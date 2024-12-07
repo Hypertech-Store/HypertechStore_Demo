@@ -220,6 +220,7 @@ const Shop = () => {
         return diffDays <= 7; // Nếu sản phẩm được tạo trong vòng 7 ngày, trả về true
     }
 
+    
     return (
         <>
             <section className="pt-5 pb-9">
