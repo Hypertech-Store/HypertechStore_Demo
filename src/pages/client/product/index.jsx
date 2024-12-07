@@ -1,22 +1,226 @@
-import product1 from '../../../assets/img/products/1.png';
-import product2 from '../../../assets/img/products/2.png';
-import product3 from '../../../assets/img/products/3.png';
-import product4 from '../../../assets/img/products/4.png';
-import product5 from '../../../assets/img/products/5.png';
-import product6 from '../../../assets/img/products/6.png';
-import product7 from '../../../assets/img/products/7.png';
-import product10 from '../../../assets/img/products/10.png';
-import product18 from '../../../assets/img/products/18.png';
-import product12 from '../../../assets/img/products/12.png';
-import product16 from '../../../assets/img/products/16.png';
-import product17 from '../../../assets/img/products/17.png';
-import product20 from '../../../assets/img/products/20.png';
-import product24 from '../../../assets/img/products/24.png';
-import product25 from '../../../assets/img/products/25.png';
-import product26 from '../../../assets/img/products/26.png';
-import product27 from '../../../assets/img/products/27.png';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+
+
 const Shop = () => {
     document.title = "Hypertech Store - Cửa hàng";
+
+    const [userId] = useState(() => localStorage.getItem('userId'));
+    const [products, setProducts] = useState([]);
+    const [wishlist, setWishlist] = useState(new Set());
+    const [minPrice, setMinPrice] = useState(0);
+    const [maxPrice, setMaxPrice] = useState(100000);
+    const [range, setRange] = useState([0, 100000]);
+    const [sortOption, setSortOption] = useState('');
+    const [sortedProducts, setSortedProducts] = useState([]);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [currentPageShop1, setCurrentPageShop1] = useState(1);
+    const [currentPageShop2, setCurrentPageShop2] = useState(1);
+    const productsPerPageShop1 = 9;
+    const productsPerPageShop2 = 5;
+    const [activeTab, setActiveTab] = useState("shop-1");
+    const [newProducts, setNewProducts] = useState([]);
+    const [saleProducts, setSaleProducts] = useState([]);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/san-pham/allProduct`);
+                const data = await response.json();
+
+                if (data.status === "success" && Array.isArray(data.data.data)) {
+                    setProducts(data.data.data); // Set all products
+                    setSortedProducts(data.data.data);
+
+                    const total = data.data.total; // Total products
+                    setTotalProducts(total);
+
+                    // Calculate total pages based on the tab
+                    const totalPagesCalculated = Math.ceil(total / (activeTab === "shop-1" ? productsPerPageShop1 : productsPerPageShop2));
+                    setTotalPages(totalPagesCalculated);
+
+                    const prices = data.data.data
+                        .map(product => parseFloat(product.gia))
+                        .filter(price => !isNaN(price));
+
+                    if (prices.length > 0) {
+                        const min = Math.min(...prices);
+                        const max = Math.max(...prices);
+                        setMinPrice(min);
+                        setMaxPrice(max);
+                        setRange([min, max]);
+                    }
+                } else {
+                    console.error('Error: Expected an array but got', typeof data.data.data);
+                    setSortedProducts([]);
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
+
+        fetchProducts();
+    }, [activeTab]); // Re-fetch data when activeTab changes
+
+    const handlePageChange = (page) => {
+        if (activeTab === "shop-1") {
+            setCurrentPageShop1(page);
+        } else if (activeTab === "shop-2") {
+            setCurrentPageShop2(page);
+        }
+    };
+
+    const handleSliderChange = (newRange) => {
+        setRange(newRange);
+    };
+
+    const addToCart = (productId, price, variationId) => {
+        const cartData = {
+            khach_hang_id: userId,
+            san_pham_id: productId,
+            so_luong: 1,
+            bien_the_san_pham_id: variationId,  // Use selected variation id
+            gia: price,
+        };
+
+        fetch('http://127.0.0.1:8000/api/gio-hang/them-san-pham', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(cartData),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('API response:', data);  // In ra để kiểm tra dữ liệu trả về từ API
+
+                // Kiểm tra nếu API trả về một message thành công
+                if (data && data.message === 'Sản phẩm đã được thêm vào giỏ hàng thành công') {
+                    console.log('Product added to cart:', data);
+                    toast.success('Thêm sản phẩm thành công vào giỏ hàng!', {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                } else {
+                    console.error('Failed to add product to cart:', data);
+                    toast.error('Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng!', {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error adding product to cart:', error);
+                toast.error('Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng!', {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            });
+    };
+
+
+    // Define the handleSortChange function here
+    const handleSortChange = (event) => {
+        const option = event.target.value;
+        setSortOption(option);
+
+        // Create a copy of the products array to avoid mutation
+        let sortedArray = [...products];
+
+        switch (option) {
+            case 'A to Z':
+                sortedArray.sort((a, b) => a.ten_san_pham.localeCompare(b.ten_san_pham));
+                break;
+            case 'Z to A':
+                sortedArray.sort((a, b) => b.ten_san_pham.localeCompare(a.ten_san_pham));
+                break;
+            case 'Giá cao':
+                sortedArray.sort((a, b) => b.gia - a.gia);
+                break;
+            case 'Giá thấp':
+                sortedArray.sort((a, b) => a.gia - b.gia);
+                break;
+            default:
+                break;
+        }
+
+        setSortedProducts(sortedArray); // Update sorted products state
+    };
+
+
+    // Hàm để lấy sản phẩm mới
+    const fetchNewProducts = async () => {
+        try {
+            const response = await axios.get("http://127.0.0.1:8000/api/san-pham/getNewProducts");
+            setNewProducts(response.data.data);
+        } catch (error) {
+            console.error("Error fetching new products:", error);
+        }
+    };
+    // Hàm để lấy sản phẩm đang sale
+    const fetchSaleProducts = async () => {
+        try {
+            const response = await axios.get("http://127.0.0.1:8000/api/sale-san-pham/get-sale");
+            setSaleProducts(response.data.data);
+        } catch (error) {
+            console.error("Error fetching sale products:", error);
+        }
+    };
+
+
+    useEffect(() => {
+        fetchNewProducts();
+        fetchSaleProducts();
+    }, []);
+
+    // Hàm để kiểm tra nếu sản phẩm có phải là sản phẩm mới hoặc đang sale
+    // Hàm kiểm tra nhãn cho sản phẩm
+    const getLabel = (productId, productCreatedAt, saleStartDate, saleEndDate, salePercentage) => {
+        const currentDate = new Date();
+        const saleStart = new Date(saleStartDate);
+        const saleEnd = new Date(saleEndDate);
+
+        // Kiểm tra sản phẩm sale
+        if (saleStart <= currentDate && saleEnd >= currentDate) {
+            return `-${salePercentage}%`;  // Nếu sản phẩm đang sale, hiển thị phần trăm sale
+        }
+
+        // Kiểm tra sản phẩm mới (tạo trong 7 ngày gần đây)
+        const productCreated = new Date(productCreatedAt);
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(currentDate.getDate() - 7);
+
+        if (productCreated >= sevenDaysAgo) {
+            return "New";  // Nếu sản phẩm mới, hiển thị "New"
+        }
+
+        return null;  // Nếu không phải sản phẩm sale hoặc mới, trả về null
+    };
+
+    // Hàm kiểm tra sản phẩm có phải là mới (được tạo trong vòng 7 ngày)
+    function isNewProduct(createdAt) {
+        const createdDate = new Date(createdAt);
+        const currentDate = new Date();
+        const diffTime = Math.abs(currentDate - createdDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // chuyển thời gian chênh lệch thành ngày
+        return diffDays <= 7; // Nếu sản phẩm được tạo trong vòng 7 ngày, trả về true
+    }
+
+    
     return (
         <>
             <section className="pt-5 pb-9">
@@ -189,349 +393,74 @@ const Shop = () => {
                         </div>
                         <div className="col-lg-9 col-xxl-10">
                             <div className="row gx-3 gy-6 mb-8">
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product6} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">PlayStation 5 DualSense Wireless Controller</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(67 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <p className="fs-9 text-body-tertiary mb-2">dbrand skin available</p>
-                                                    <div className="d-flex align-items-center mb-1">
-                                                        <p className="me-2 text-body text-decoration-line-through mb-0">$125.00</p>
-                                                        <h3 className="text-body-emphasis mb-0">$89.00</h3>
+                                {products.map((product) => (
+                                    <div
+                                        className="col-12 col-sm-6 col-md-4 col-xxl-2"
+                                        key={product.id}
+                                    >
+                                        <div className="product-card-container h-100">
+                                            <div className="position-relative text-decoration-none product-card h-100">
+                                                <div className="d-flex flex-column justify-content-between h-100">
+                                                    <div>
+                                                        <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                                                            <button
+                                                                className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                                                                data-bs-toggle="tooltip"
+                                                                data-bs-placement="top"
+                                                                title="Add to wishlist"
+                                                            >
+                                                                <span
+                                                                    className="fas fa-heart d-block-hover"
+                                                                    data-fa-transform="down-1"
+                                                                />
+                                                                <span
+                                                                    className="far fa-heart d-none-hover"
+                                                                    data-fa-transform="down-1"
+                                                                />
+                                                            </button>
+                                                            <img
+                                                                className="img-fluid"
+                                                                src={product.duong_dan_anh}
+                                                                alt={product.ten_san_pham}
+                                                            />
+                                                            <span className="badge text-bg-success fs-10 product-verified-badge">
+                                                                10%
+                                                            </span>
+                                                        </div>
+                                                        <a className="stretched-link" href="chi-tiet-san-pham">
+                                                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                                                                {product.ten_san_pham}
+                                                            </h6>
+                                                        </a>
+                                                        <p className="fs-9">
+                                                            <span className="fa fa-star text-warning" />
+                                                            <span className="fa fa-star text-warning" />
+                                                            <span className="fa fa-star text-warning" />
+                                                            <span className="fa fa-star text-warning" />
+                                                            <span className="fa fa-star text-warning" />
+                                                            <span className="text-body-quaternary fw-semibold ms-1">
+                                                                (50 đánh giá)
+                                                            </span>
+                                                        </p>
                                                     </div>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">2 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product1} alt /><span className="badge text-bg-success fs-10 product-verified-badge">Verified<span className="fas fa-check ms-1" /></span></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">Fitbit Sense Advanced Smartwatch with Tools for Heart Health, Stress Management &amp; Skin Temperature ...</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(74 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <div className="d-flex align-items-center mb-1">
-                                                        <p className="me-2 text-body text-decoration-line-through mb-0">$49.99</p>
-                                                        <h3 className="text-body-emphasis mb-0">$34.99</h3>
+                                                    <div>
+                                                        <div className="d-flex align-items-center mb-1">
+                                                            <p className="me-2 text-body text-decoration-line-through mb-0">
+                                                                40,000,000₫
+                                                            </p>
+                                                            <h3 className="text-body-emphasis mb-0">
+                                                                {product.gia}₫
+                                                            </h3>
+                                                        </div>
+                                                        <p className="text-success fw-bold fs-9 lh-1 mb-0">
+                                                            Deal time ends in 24 hours
+                                                        </p>
                                                     </div>
-                                                    <p className="text-success fw-bold fs-9 lh-1 mb-0">Deal time ends in days</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product2} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">iPhone 13 pro max-Pacific Blue, 128GB storage</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(33 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <p className="fs-9 text-body-highlight fw-bold mb-2">Stock limited</p>
-                                                    <div className="d-flex align-items-center mb-1">
-                                                        <p className="me-2 text-body text-decoration-line-through mb-0">$899.99</p>
-                                                        <h3 className="text-body-emphasis mb-0">$850.99</h3>
-                                                    </div>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">5 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product3} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">Apple MacBook Pro 13 inch-M1-8/256GB-Space Gray</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(97 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <p className="fs-9 text-body-highlight fw-bold mb-2">Apple care included</p>
-                                                    <div className="d-flex align-items-center mb-1">
-                                                        <p className="me-2 text-body text-decoration-line-through mb-0">$12.00</p>
-                                                        <h3 className="text-body-emphasis mb-0">$11.00</h3>
-                                                    </div>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">2 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product4} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">Apple iMac 24" 4K Retina Display M1 8 Core CPU, 7 Core GPU, 256GB SSD, Green (MJV83ZP/A) 2021</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(134 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <p className="fs-9 text-body-highlight fw-bold mb-2">Exchange with kidney</p>
-                                                    <div className="d-flex align-items-center mb-1">
-                                                        <p className="me-2 text-body text-decoration-line-through mb-0">$1499.00</p>
-                                                        <h3 className="text-body-emphasis mb-0">$1399.00</h3>
-                                                    </div>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">7 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product5} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">Razer Kraken v3 x Wired 7.1 Surroung Sound Gaming headset</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(59 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$59.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">2 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product7} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">2021 Apple 12.9-inch iPad Pro (Wi‑Fi, 128GB) - Space Gray</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(13 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$799.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">2 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product12} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">HORI Racing Wheel Apex for PlayStation 4/3, and PC</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(64 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$299.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">1 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container active" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove from wishlist"><span className="fas fa-heart" data-fa-transform="down-1" /></button><img className="img-fluid" src={product1} alt /><span className="badge text-bg-success fs-10 product-verified-badge">Verified<span className="fas fa-check ms-1" /></span></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">Amazfit T-Rex Pro Smart Watch with GPS, Outdoor Fitness Watch for Men, Military Standard Certified</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(32 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$20.00</h3>
-                                                    <p className="text-success fw-bold fs-9 lh-1 mb-0">Deal time ends in 24 hours</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product16} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">Apple AirPods Pro</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(39 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$59.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">3 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product10} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">Apple Magic Mouse (Wireless, Rechargable) - Silver</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(6 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$89.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">2 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product25} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">RESPAWN 200 Racing Style Gaming Chair, in Gray RSP 200 GRY</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(8 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$499.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">2 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product27} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">LEVOIT Humidifiers for Bedroom Large Room 6L Warm and Cool Mist for...</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(3 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$299.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">3 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product26} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">NETGEAR Nighthawk Pro Gaming XR500 Wi-Fi Router with 4 Ethernet Ports...</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(8 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$49.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">4 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product18} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">Rachael Ray Cucina Bakeware Set Includes Nonstick Bread Baking Cookie Sheet...</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(1 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$29.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">3 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product17} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">Xbox Series S</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(6 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$19.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">2 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product24} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">FURINNO Computer Writing Desk, Walnut</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="text-body-quaternary fw-semibold ms-1">(8 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$199.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">2 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-xxl-2">
-                                    <div className="product-card-container h-100">
-                                        <div className="position-relative text-decoration-none product-card h-100">
-                                            <div className="d-flex flex-column justify-content-between h-100">
-                                                <div>
-                                                    <div className="border border-1 border-translucent rounded-3 position-relative mb-3"><button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist"><span className="fas fa-heart d-block-hover" data-fa-transform="down-1" /><span className="far fa-heart d-none-hover" data-fa-transform="down-1" /></button><img className="img-fluid" src={product20} alt /></div><a className="stretched-link" href="chi-tiet-san-pham">
-                                                        <h6 className="mb-2 lh-sm line-clamp-3 product-name">ASUS TUF Gaming F15 Gaming Laptop</h6>
-                                                    </a>
-                                                    <p className="fs-9"><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa fa-star text-warning" /><span className="fa-regular fa-star text-warning-light" data-bs-theme="light" /><span className="text-body-quaternary fw-semibold ms-1">(3 people rated)</span></p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-body-emphasis">$150.00</h3>
-                                                    <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">2 colors</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                             <div className="d-flex justify-content-end">
                                 <nav aria-label="Page navigation example">
@@ -542,22 +471,34 @@ const Shop = () => {
                                             </a>
                                         </li>
                                         <li className="page-item">
-                                            <a className="page-link" href="#">1</a>
+                                            <a className="page-link" href="#">
+                                                1
+                                            </a>
                                         </li>
                                         <li className="page-item">
-                                            <a className="page-link" href="#">2</a>
+                                            <a className="page-link" href="#">
+                                                2
+                                            </a>
                                         </li>
                                         <li className="page-item">
-                                            <a className="page-link" href="#">3</a>
+                                            <a className="page-link" href="#">
+                                                3
+                                            </a>
                                         </li>
                                         <li className="page-item active" aria-current="page">
-                                            <a className="page-link" href="#">4</a>
+                                            <a className="page-link" href="#">
+                                                4
+                                            </a>
                                         </li>
                                         <li className="page-item">
-                                            <a className="page-link" href="#">5</a>
+                                            <a className="page-link" href="#">
+                                                5
+                                            </a>
                                         </li>
                                         <li className="page-item">
-                                            <a className="page-link" href="#"> <span className="fas fa-chevron-right" /></a>
+                                            <a className="page-link" href="#">
+                                                <span className="fas fa-chevron-right" />
+                                            </a>
                                         </li>
                                     </ul>
                                 </nav>
