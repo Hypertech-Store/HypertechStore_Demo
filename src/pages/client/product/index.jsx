@@ -9,54 +9,29 @@ const Shop = () => {
     const [userId] = useState(() => localStorage.getItem('userId'));
     const [products, setProducts] = useState([]);
     const [wishlist, setWishlist] = useState(new Set());
-    const [minPrice, setMinPrice] = useState(0);
-    const [maxPrice, setMaxPrice] = useState(100000);
-    const [range, setRange] = useState([0, 100000]);
-    const [sortOption, setSortOption] = useState('');
-    const [sortedProducts, setSortedProducts] = useState([]);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalProducts, setTotalProducts] = useState(0);
-    const [currentPageShop1, setCurrentPageShop1] = useState(1);
-    const [currentPageShop2, setCurrentPageShop2] = useState(1);
-    const productsPerPageShop1 = 9;
-    const productsPerPageShop2 = 5;
-    const [activeTab, setActiveTab] = useState("shop-1");
+
     const [newProducts, setNewProducts] = useState([]);
     const [saleProducts, setSaleProducts] = useState([]);
 
     const [currentTime, setCurrentTime] = useState(new Date());
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [productsPerPage] = useState(9); // Set max 9 products per page
+
+    // Calculate total pages based on total products and products per page
+    const totalPages = Math.ceil(totalProducts / productsPerPage);
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/san-pham/allProduct`);
+                const response = await fetch(`http://127.0.0.1:8000/api/san-pham/allProduct?page=${currentPage}&limit=${productsPerPage}`);
                 const data = await response.json();
 
                 if (data.status === "success" && Array.isArray(data.data.data)) {
-                    setProducts(data.data.data); // Set all products
-                    setSortedProducts(data.data.data);
-
-                    const total = data.data.total; // Total products
-                    setTotalProducts(total);
-
-                    // Calculate total pages based on the tab
-                    const totalPagesCalculated = Math.ceil(total / (activeTab === "shop-1" ? productsPerPageShop1 : productsPerPageShop2));
-                    setTotalPages(totalPagesCalculated);
-
-                    const prices = data.data.data
-                        .map(product => parseFloat(product.gia))
-                        .filter(price => !isNaN(price));
-
-                    if (prices.length > 0) {
-                        const min = Math.min(...prices);
-                        const max = Math.max(...prices);
-                        setMinPrice(min);
-                        setMaxPrice(max);
-                        setRange([min, max]);
-                    }
+                    setProducts(data.data.data);  // Set the current products for the page
+                    setTotalProducts(data.data.total);  // Update the total products count
                 } else {
                     console.error('Error: Expected an array but got', typeof data.data.data);
-                    setSortedProducts([]);
                 }
             } catch (error) {
                 console.error('Error fetching products:', error);
@@ -64,18 +39,11 @@ const Shop = () => {
         };
 
         fetchProducts();
-    }, [activeTab]); // Re-fetch data when activeTab changes
-
+    }, [currentPage]);
     const handlePageChange = (page) => {
-        if (activeTab === "shop-1") {
-            setCurrentPageShop1(page);
-        } else if (activeTab === "shop-2") {
-            setCurrentPageShop2(page);
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page); // Update the current page
         }
-    };
-
-    const handleSliderChange = (newRange) => {
-        setRange(newRange);
     };
 
     const addToCart = (productId, price, variationId) => {
@@ -135,33 +103,6 @@ const Shop = () => {
     };
 
 
-    // Define the handleSortChange function here
-    const handleSortChange = (event) => {
-        const option = event.target.value;
-        setSortOption(option);
-
-        // Create a copy of the products array to avoid mutation
-        let sortedArray = [...products];
-
-        switch (option) {
-            case 'A to Z':
-                sortedArray.sort((a, b) => a.ten_san_pham.localeCompare(b.ten_san_pham));
-                break;
-            case 'Z to A':
-                sortedArray.sort((a, b) => b.ten_san_pham.localeCompare(a.ten_san_pham));
-                break;
-            case 'Giá cao':
-                sortedArray.sort((a, b) => b.gia - a.gia);
-                break;
-            case 'Giá thấp':
-                sortedArray.sort((a, b) => a.gia - b.gia);
-                break;
-            default:
-                break;
-        }
-
-        setSortedProducts(sortedArray); // Update sorted products state
-    };
 
 
     // Hàm để lấy sản phẩm mới
@@ -190,38 +131,6 @@ const Shop = () => {
         fetchSaleProducts();
     }, []);
 
-    // Hàm để kiểm tra nếu sản phẩm có phải là sản phẩm mới hoặc đang sale
-    // Hàm kiểm tra nhãn cho sản phẩm
-    const getLabel = (productId, productCreatedAt, saleStartDate, saleEndDate, salePercentage) => {
-        const currentDate = new Date();
-        const saleStart = new Date(saleStartDate);
-        const saleEnd = new Date(saleEndDate);
-
-        // Kiểm tra sản phẩm sale
-        if (saleStart <= currentDate && saleEnd >= currentDate) {
-            return `-${salePercentage}%`;  // Nếu sản phẩm đang sale, hiển thị phần trăm sale
-        }
-
-        // Kiểm tra sản phẩm mới (tạo trong 7 ngày gần đây)
-        const productCreated = new Date(productCreatedAt);
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(currentDate.getDate() - 7);
-
-        if (productCreated >= sevenDaysAgo) {
-            return "New";  // Nếu sản phẩm mới, hiển thị "New"
-        }
-
-        return null;  // Nếu không phải sản phẩm sale hoặc mới, trả về null
-    };
-
-    // Hàm kiểm tra sản phẩm có phải là mới (được tạo trong vòng 7 ngày)
-    function isNewProduct(createdAt) {
-        const createdDate = new Date(createdAt);
-        const currentDate = new Date();
-        const diffTime = Math.abs(currentDate - createdDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // chuyển thời gian chênh lệch thành ngày
-        return diffDays <= 7; // Nếu sản phẩm được tạo trong vòng 7 ngày, trả về true
-    }
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -234,17 +143,17 @@ const Shop = () => {
     const getRemainingTime = (saleEnd) => {
         const currentTime = new Date().getTime();
         const timeLeft = saleEnd - currentTime;
-        
+
         const seconds = Math.floor((timeLeft / 1000) % 60);
         const minutes = Math.floor((timeLeft / 1000 / 60) % 60);
         const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
-        
+
         // Tính tổng số giờ còn lại
         const totalHours = Math.floor(timeLeft / (1000 * 60 * 60));
-        
+
         if (timeLeft > 0) {
             return `${totalHours}h ${minutes}m ${seconds}s`;
-        } 
+        }
     };
 
 
@@ -451,6 +360,12 @@ const Shop = () => {
                                         label = "New";
                                     }
 
+                                    const numberFormat = new Intl.NumberFormat('vi-VN', {
+                                        style: 'decimal', // Sử dụng kiểu "decimal" thay vì "currency"
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
+                                    });
+
                                     return (
                                         <div className="col-12 col-sm-6 col-md-4 col-xxl-2" key={product.id}>
                                             <div className="product-card-container h-100">
@@ -485,11 +400,17 @@ const Shop = () => {
                                                             <div className="d-flex align-items-center mb-1">
                                                                 {saleInfo ? (
                                                                     <>
-                                                                        <p className="me-2 text-body text-decoration-line-through mb-0">{parseFloat(product.gia).toFixed(0)}₫</p>
-                                                                        <h3 className="text-body-emphasis mb-0">{discountedPrice.toFixed(0)}₫</h3>
+                                                                        <p className="me-2 text-body text-decoration-line-through mb-0">
+                                                                            {numberFormat.format(parseFloat(product.gia))} VNĐ
+                                                                        </p>
+                                                                        <h3 className="text-body-emphasis mb-0">
+                                                                            {numberFormat.format(discountedPrice)} VNĐ
+                                                                        </h3>
                                                                     </>
                                                                 ) : (
-                                                                    <h3 className="text-body-emphasis mb-0">{parseFloat(product.gia).toFixed(0)}₫</h3>
+                                                                    <h3 className="text-body-emphasis mb-0">
+                                                                        {numberFormat.format(parseFloat(product.gia))} VNĐ
+                                                                    </h3>
                                                                 )}
                                                             </div>
                                                             {saleInfo && remainingTime && (
@@ -505,7 +426,58 @@ const Shop = () => {
                                     );
                                 })}
                             </div>
-                            {/* Pagination and other content */}
+                            <div className="d-flex justify-content-end">
+                                <nav aria-label="Page navigation example">
+                                    <ul className="pagination mb-0">
+                                        {/* Previous Button */}
+                                        <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                            <a
+                                                className="page-link"
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (currentPage > 1) handlePageChange(currentPage - 1);
+                                                }}
+                                            >
+                                                <span className="fas fa-chevron-left" />
+                                            </a>
+                                        </li>
+
+                                        {/* Page Numbers */}
+                                        {Array.from({ length: totalPages }, (_, index) => (
+                                            <li
+                                                className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
+                                                key={index}
+                                            >
+                                                <a
+                                                    className="page-link"
+                                                    href="#"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handlePageChange(index + 1);
+                                                    }}
+                                                >
+                                                    {index + 1}
+                                                </a>
+                                            </li>
+                                        ))}
+
+                                        {/* Next Button */}
+                                        <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                            <a
+                                                className="page-link"
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                                                }}
+                                            >
+                                                <span className="fas fa-chevron-right" />
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
                         </div>
                     </div>
                 </div>{/* end of .container*/}
