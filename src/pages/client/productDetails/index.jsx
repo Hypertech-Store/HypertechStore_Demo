@@ -28,9 +28,49 @@ import review3 from "../../../assets/img/e-commerce/review-13.jpg";
 import review4 from "../../../assets/img/e-commerce/review-14.jpg";
 import review5 from "../../../assets/img/e-commerce/review-15.jpg";
 import review6 from "../../../assets/img/e-commerce/review-16.jpg";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 const ProductDetails = () => {
   document.title = "Hypertech Store - Chi tiết sản phẩm";
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const productId = queryParams.get("id");
+
+  const [product, setProduct] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProductDetail = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/san-pham/detail/${productId}`
+        );
+        const data = await response.json();
+
+        if (data.sanPham) {
+          setProduct(data.sanPham);
+        } else {
+          setError("Product not found");
+        }
+      } catch (err) {
+        setError("Error fetching product details");
+      }
+    };
+
+    if (productId) {
+      fetchProductDetail();
+    }
+  }, [productId]);
+
+  if (error) {
+    return <div className="container-small">Error: {error}</div>;
+  }
+
+  if (!product) {
+    return <div className="container-small">Loading...</div>;
+  }
   return (
     <>
       <div>
@@ -77,7 +117,7 @@ const ProductDetails = () => {
                             style={{ height: 84, marginBottom: 16 }}
                           >
                             <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                              <img src={blueFront} alt />
+                              <img src={product.duong_dan_anh} alt />
                             </div>
                           </div>
                           <div
@@ -126,7 +166,7 @@ const ProductDetails = () => {
                               aria-label="1 / 3"
                               style={{ width: 411 }}
                             >
-                              <img className="w-100" src={blueFront} alt />
+                              <img className="w-100" src={product.duong_dan_anh} alt />
                             </div>
                             <div
                               className="swiper-slide swiper-slide-next"
@@ -293,8 +333,7 @@ const ProductDetails = () => {
                         </p>
                       </div>
                       <h3 className="mb-3 lh-sm">
-                        24" iMac® with Retina 4.5K display - Apple M1 8GB Memory
-                        - 256GB SSD - w/Touch ID (Latest Model) - Blue
+                        {product.ten_san_pham}
                       </h3>
                       <div className="d-flex flex-wrap align-items-start mb-3">
                         <span className="badge text-bg-success fs-9 rounded-pill me-2 fw-semibold">
@@ -305,9 +344,9 @@ const ProductDetails = () => {
                         </a>
                       </div>
                       <div className="d-flex flex-wrap align-items-center">
-                        <h1 className="me-3">$1349.99</h1>
+                        <h1 className="me-3">{product.gia}</h1>
                         <p className="text-body-quaternary text-decoration-line-through fs-6 mb-0 me-3">
-                          $1499.99
+                          {product.gia}
                         </p>
                         <p className="text-warning fw-bolder fs-6 mb-0">
                           10% off
@@ -537,28 +576,7 @@ const ProductDetails = () => {
                       aria-labelledby="description-tab"
                     >
                       <p className="mb-5">
-                        CUPERTINO, CA , The M1 CPU allows Apple to deliver an
-                        all-new iMac with a lot more compact and impressively
-                        thin design. The new iMac delivers tremendous
-                        performance in an 11.5-millimeter-thin design with a
-                        stunning side profile that almost vanishes. iMac
-                        includes a 24-inch 4.5K Retina display with 11.3 million
-                        pixels, 500 nits of brightness, and over a billion
-                        colors, giving a beautiful and vivid viewing experience.
-                        It is available in a variety of striking colors to match
-                        a user's own style and brighten any area. A 1080p
-                        FaceTime HD camera, studio-quality mics, and a
-                        six-speaker sound system are all included in the new
-                        iMac, making it the greatest camera and audio system
-                        ever in a Mac. Touch ID is also making its debut on the
-                        iMac, making it easier than ever to securely log in,
-                        make Apple Pay transactions, and switch user accounts
-                        with the touch of a finger. Apps launch at lightning
-                        speed, everyday chores seem astonishingly fast and
-                        fluid, and demanding workloads like editing 4K video and
-                        working with large photos are faster than ever before
-                        thanks to the power and performance of M1 and macOS Big
-                        Sur.
+                        {product.mo_ta}
                       </p>
                       <a href={products} data-gallery="gallery-description">
                         <img
@@ -567,26 +585,6 @@ const ProductDetails = () => {
                           alt
                         />
                       </a>
-                      <p className="mb-0">
-                        The new iMac joins Apple's fantastic M1-powered Mac
-                        family, which includes the MacBook Air, 13-inch MacBook
-                        Pro, and Mac mini, and represents yet another step ahead
-                        in the company's shift to Apple silicon. Customers may
-                        order iMac starting Friday, April 30. It's the most
-                        personal, powerful, capable, and enjoyable it's ever
-                        been. In the second half of May, the iMac will be
-                        available."M1 is a huge step forward for the Mac," said
-                        Greg Joswiak, Apple's senior vice president of Worldwide
-                        Marketing. "Today, we're delighted to present the
-                        all-new iMac, the first Mac developed around the
-                        groundbreaking M1 processor." "The new iMac takes
-                        everything people love about iMac to an entirely new
-                        level, with its beautiful design in seven breathtaking
-                        colors, its immersive 4.5K Retina display, the greatest
-                        camera, mics, and speakers ever in a Mac, and Touch ID,
-                        combined with M1's incredible performance and macOS Big
-                        Sur's power."
-                      </p>
                     </div>
                     <div
                       className="tab-pane pe-lg-6 pe-xl-12 fade"
