@@ -9,40 +9,7 @@ import team3 from "../../../../assets/img/team/40x40/59.webp";
 import team4 from "../../../../assets/img/team/40x40/58.webp";
 import avatar from "../../../../assets/img/team/72x72/57.webp";
 const HeaderClient = () => {
-  const userId = localStorage.getItem('userId');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const token = localStorage.getItem('userToken');
-  useEffect(() => {
-    if (token) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, [token]); 
-
-  const handleLogout = () => {
-    Swal.fire({
-      title: "Bạn có chắc chắn muốn đăng xuất?",
-      text: "Bạn sẽ không thể hoàn tác hành động này!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Đồng ý, đăng xuất!",
-      cancelButtonText: "Hủy bỏ"
-    }).then((result) => {
-      if (result.isConfirmed) {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userInfo');
-        setIsLoggedIn(false); // Cập nhật trạng thái đăng xuất
-        toast.success("Đăng xuất thành công!");
-        setTimeout(() => {
-          navigate('/');
-        }, 100); // Delay 100ms để đảm bảo trạng thái đã được cập nhật
-      }
-    });
-  };
+  
 
   
   return (
