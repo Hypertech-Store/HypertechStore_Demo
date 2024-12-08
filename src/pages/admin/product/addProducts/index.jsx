@@ -1,5 +1,132 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
+import React, { useState, useEffect } from "react";
 const AddProducts = () => {
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  //call api get Categories
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/danh-muc/getAll", {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setCategories(data); // Đảm bảo API trả về danh sách phù hợp
+      } else {
+        console.error("Failed to fetch categories:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  // get sub categori
+  const fetchSubCategories = async (categoryId) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/danh-muc-con/${categoryId}`, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSubCategories(data.data);
+      } else {
+        console.error("Failed to fetch subcategories:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+    }
+  };
+
+  const handleCategoryChange = (e) => {
+    const categoryId = e.target.value;
+    setSelectedCategory(categoryId);
+    setFormData({
+      ...formData,
+      danh_muc_id: categoryId,
+      danh_muc_con_id: "", // Reset danh mục con khi thay đổi danh mục
+    });
+    fetchSubCategories(categoryId);
+  };
+
+  const [formData, setFormData] = useState({
+    danh_muc_id: "",
+    danh_muc_con_id: "",
+    ten_san_pham: "",
+    mo_ta: "",
+    gia: "",
+    so_luong_ton_kho: "",
+    image: null,
+    luot_xem: "",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    // Make sure to append the file to the FormData object.
+    setFormData({ ...formData, image: e.target.files[0] });
+    console.log(e.target.files[0]); // Ensure file is selected correctly
+  };
+  
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    const token = "YOUR_ACCESS_TOKEN"; // Replace with actual token
+    const form = new FormData();
+    
+    // Append form data including the image file
+    Object.keys(formData).forEach((key) => {
+      if (key === "image" && formData[key]) {
+        // If the field is an image, append as a file
+        form.append(key, formData[key]);
+      } else if (key !== "image") {
+        // For non-image fields, just append them normally
+        form.append(key, formData[key]);
+      }
+    });
+  
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/san-pham/create", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: form, // Send the form data with the image
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok) {
+        alert("Sản phẩm đã được tạo thành công!");
+        console.log(result);
+      } else {
+        console.error("Lỗi:", result);
+        alert("Không thể tạo sản phẩm, vui lòng kiểm tra lại.");
+      }
+    } catch (error) {
+      console.error("Lỗi kết nối:", error);
+      alert("Đã xảy ra lỗi, vui lòng thử lại.");
+    }
+  };
+
+
   const navbarTopShape = window.config?.config?.phoenixNavbarTopShape;
   const navbarPosition = window.config?.config?.phoenixNavbarPosition;
 
@@ -108,49 +235,39 @@ const AddProducts = () => {
             <li className="breadcrumb-item active">Default</li>
           </ol>
         </nav>
-        <form className="mb-9">
+        <form onSubmit={handleSubmit} className="mb-9">
           <div className="row g-3 flex-between-end mb-5">
             <div className="col-auto">
-              <h2 className="mb-2">Add a product</h2>
+              <h2 className="mb-2">Thêm mới sản phẩm</h2>
               <h5 className="text-body-tertiary fw-semibold">
-                Orders placed across your store
+                Đơn hàng được đặt trên cửa hàng của bạn
               </h5>
             </div>
             <div className="col-auto">
-              <button
-                className="btn btn-phoenix-secondary me-2 mb-2 mb-sm-0"
-                type="button"
-              >
-                Discard
-              </button>
-              <button
-                className="btn btn-phoenix-primary me-2 mb-2 mb-sm-0"
-                type="button"
-              >
-                Save draft
-              </button>
               <button className="btn btn-primary mb-2 mb-sm-0" type="submit">
-                Publish product
+                Tạo sản phẩm
               </button>
             </div>
           </div>
           <div className="row g-5">
             <div className="col-12 col-xl-8">
-              <h4 className="mb-3">Product Title</h4>
+              <h4 className="mb-3">Tiêu đề sản phẩm</h4>
               <input
-                className="form-control mb-5"
                 type="text"
-                placeholder="Write title here..."
+                name="ten_san_pham"
+                className="form-control" thêm
+                placeholder="Nhập tên sản phẩm"
+                onChange={handleInputChange}
               />
               <div className="mb-6">
-                <h4 className="mb-3"> Product Description</h4>
+                <h4 className="mb-3">Mô tả sản phẩm</h4>
 
                 <textarea
+                  name="mo_ta"
                   className="form-control"
-                  id="floatingTextarea2"
-                  placeholder="Leave a comment here"
-                  style={{ height: 100 }}
-                  defaultValue={""}
+                  rows="4"
+                  placeholder="Nhập mô tả sản phẩm"
+                  onChange={handleInputChange}
                 />
               </div>
               <h4 className="mb-3">Display images</h4>
@@ -160,7 +277,7 @@ const AddProducts = () => {
                 data-dropzone="data-dropzone"
               >
                 <div className="fallback">
-                  <input name="file" type="file" multiple="multiple" />
+                <input type="file" name="image" className="form-control" accept="image/*" onChange={handleFileChange} />
                 </div>
                 <div className="dz-preview d-flex flex-wrap">
                   <div
@@ -317,9 +434,11 @@ const AddProducts = () => {
                             Regular price
                           </h5>
                           <input
+                            type="number"
+                            name="gia"
                             className="form-control"
-                            type="text"
-                            placeholder="$$$"
+                            placeholder="Nhập giá sản phẩm"
+                            onChange={handleInputChange}
                           />
                         </div>
                         <div className="col-12 col-lg-6">
@@ -347,9 +466,11 @@ const AddProducts = () => {
                         <div className="row g-3 flex-1 mb-4">
                           <div className="col-sm-7">
                             <input
-                              className="form-control"
                               type="number"
-                              placeholder="Quantity"
+                              name="so_luong_ton_kho"
+                              className="form-control"
+                              placeholder="Nhập số lượng tồn kho"
+                              onChange={handleInputChange}
                             />
                           </div>
                           <div className="col-sm">
@@ -687,87 +808,57 @@ const AddProducts = () => {
                 <div className="col-12 col-xl-12">
                   <div className="card mb-3">
                     <div className="card-body">
-                      <h4 className="card-title mb-4">Organize</h4>
+                      <h4 className="card-title mb-4">Chi tiết</h4>
                       <div className="row gx-3">
+                        {/* Danh mục */}
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
-                              <h5 className="mb-0 text-body-highlight me-2">
-                                Category
-                              </h5>
+                              <h5 className="mb-0 text-body-highlight me-2">Danh mục</h5>
                               <a className="fw-bold fs-9" href="#!">
-                                Add new category
+                                Thêm mới danh mục
                               </a>
                             </div>
                             <select
                               className="form-select mb-3"
-                              aria-label="category"
+                              aria-label="Danh mục"
+                              value={selectedCategory}
+                              onChange={handleCategoryChange}
                             >
-                              <option value="men-cloth">Men's Clothing</option>
-                              <option value="women-cloth">
-                                Womens's Clothing
-                              </option>
-                              <option value="kid-cloth">Kid's Clothing</option>
+                              <option value="">Chọn danh mục...</option>
+                              {categories.length > 0 &&
+                                categories.map((category) => (
+                                  <option key={category.id} value={category.id}>
+                                    {category.ten_danh_muc}
+                                  </option>
+                                ))}
                             </select>
                           </div>
                         </div>
+
+                        {/* Danh mục con */}
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
-                              <h5 className="mb-0 text-body-highlight me-2">
-                                Vendor
-                              </h5>
+                              <h5 className="mb-0 text-body-highlight me-2">Danh mục con</h5>
                               <a className="fw-bold fs-9" href="#!">
-                                Add new vendor
+                                Thêm mới danh mục con
                               </a>
                             </div>
                             <select
-                              className="form-select mb-3"
-                              aria-label="category"
+                              name="danh_muc_con_id"
+                              className="form-select"
+                              onChange={handleInputChange}
                             >
-                              <option value="men-cloth">Men's Clothing</option>
-                              <option value="women-cloth">
-                                Womens's Clothing
-                              </option>
-                              <option value="kid-cloth">Kid's Clothing</option>
+                              <option value="">Chọn danh mục con...</option>
+                              {subCategories.length > 0 &&
+                                subCategories.map((subCategory) => (
+                                  <option key={subCategory.id} value={subCategory.id}>
+                                    {subCategory.ten_danh_muc_con}
+                                  </option>
+                                ))}
                             </select>
                           </div>
-                        </div>
-                        <div className="col-12 col-sm-6 col-xl-12">
-                          <div className="mb-4">
-                            <h5 className="mb-2 text-body-highlight">
-                              Collection
-                            </h5>
-                            <input
-                              className="form-control mb-xl-3"
-                              type="text"
-                              placeholder="Collection"
-                            />
-                          </div>
-                        </div>
-                        <div className="form-floating">
-                          <div className="d-flex flex-wrap mb-2">
-                            <h5 className="mb-0 text-body-highlight me-2">
-                              Tags
-                            </h5>
-                            <a className="fw-bold fs-9 lh-sm" href="#!">
-                              View all tags
-                            </a>
-                          </div>
-                          <select
-                            className="form-select"
-                            id="floaTingLabelMultipleSelect"
-                            data-choices="data-choices"
-                            multiple="multiple"
-                            data-options='{"removeItemButton":true,"placeholder":true}'
-                          >
-                            <option selected="selected">
-                              Massachusetts Institute of Technology
-                            </option>
-                            <option>University of Chicago</option>
-                            <option>GSAS Open Labs At Harvard</option>
-                            <option>California Institute of Technology</option>
-                          </select>
                         </div>
                       </div>
                     </div>
