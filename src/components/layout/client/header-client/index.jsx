@@ -1,17 +1,63 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom"; // Import NavLink từ react-router-dom
-
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import logo from "../../../../assets/img/icons/logo1.png";
 import team from "../../../../assets/img/team/40x40/30.webp";
 import team1 from "../../../../assets/img/team/40x40/avatar.webp";
 import team2 from "../../../../assets/img/team/40x40/57.webp";
 import team3 from "../../../../assets/img/team/40x40/59.webp";
 import team4 from "../../../../assets/img/team/40x40/58.webp";
-import avatar from "../../../../assets/img/team/72x72/57.webp";
 const HeaderClient = () => {
-  
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+  const navigate = useNavigate();
 
-  
+  useEffect(() => {
+    const storedUserInfo = sessionStorage.getItem("userInfo");
+    if (storedUserInfo) {
+      const user = JSON.parse(storedUserInfo);
+      setUserInfo(user);
+      setLoggedIn(true); // Set loggedIn to true when user info exists
+      console.log("Thông tin người dùng từ sessionStorage:", user);
+    }
+  }, []); // Only run on mount
+
+  const handleLogout = () => {
+    // Hiển thị thông báo xác nhận đăng xuất
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn đăng xuất?",
+      text: "Bạn sẽ không thể hoàn tác hành động này!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Đồng ý, đăng xuất!",
+      cancelButtonText: "Hủy bỏ",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Xóa thông tin người dùng khỏi sessionStorage và localStorage
+        sessionStorage.removeItem("userInfo");
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userInfo");
+
+        // Cập nhật trạng thái đăng xuất
+        setLoggedIn(false);
+        setUserInfo(null);
+
+        // Hiển thị thông báo thành công
+        toast.success("Đăng xuất thành công!");
+
+        // Điều hướng lại trang chủ sau 100ms để đảm bảo trạng thái đã được cập nhật
+        setTimeout(() => {
+          navigate("/"); // Thay đổi đường dẫn nếu cần
+        }, 100);
+      }
+    });
+  };
+
   return (
     <>
       <div className="container-small">
@@ -55,7 +101,28 @@ const HeaderClient = () => {
                         data-bs-title="Switch theme"
                         style={{ height: 32, width: 32 }}
                       >
-                        <span className="icon" data-feather="sun" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-sun icon"
+                        >
+                          <circle cx={12} cy={12} r={5} />
+                          <line x1={12} y1={1} x2={12} y2={3} />
+                          <line x1={12} y1={21} x2={12} y2={23} />
+                          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                          <line x1={1} y1={12} x2={3} y2={12} />
+                          <line x1={21} y1={12} x2={23} y2={12} />
+                          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                        </svg>
                       </label>
                     </div>
                   </li>
@@ -97,331 +164,358 @@ const HeaderClient = () => {
                       aria-haspopup="true"
                       aria-expanded="false"
                     >
-                      <span
-                        className="text-body-tertiary"
-                        data-feather="bell"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16px"
+                        height="16px"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="feather feather-bell text-body-tertiary"
                         style={{ height: 20, width: 20 }}
-                      />
+                      >
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                      </svg>
                     </a>
-                    <div
-                      className="dropdown-menu dropdown-menu-end notification-dropdown-menu py-0 shadow border navbar-dropdown-caret mt-2"
-                      id="navbarDropdownNotfication"
-                      aria-labelledby="navbarDropdownNotfication"
-                    >
-                      <div className="card position-relative border-0">
-                        <div className="card-header p-2">
-                          <div className="d-flex justify-content-between">
-                            <h5 className="text-body-emphasis mb-0">
-                              Notifications
-                            </h5>
-                            <button
-                              className="btn btn-link p-0 fs-9 fw-normal"
-                              type="button"
-                            >
-                              Mark all as read
-                            </button>
-                          </div>
-                        </div>
-                        <div className="card-body p-0">
-                          <div
-                            className="scrollbar-overlay"
-                            style={{ height: "27rem" }}
-                          >
-                            <div className="px-2 px-sm-3 py-3 notification-card position-relative read border-bottom">
-                              <div className="d-flex align-items-center justify-content-between position-relative">
-                                <div className="d-flex">
-                                  <div className="avatar avatar-m status-online me-3">
-                                    <img
-                                      className="rounded-circle"
-                                      src={team}
-                                      alt
-                                    />
-                                  </div>
-                                  <div className="flex-1 me-sm-3">
-                                    <h4 className="fs-9 text-body-emphasis">
-                                      Jessie Samson
-                                    </h4>
-                                    <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
-                                      <span className="me-1 fs-10">💬</span>
-                                      Mentioned you in a comment.
-                                      <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10">
-                                        10m
-                                      </span>
-                                    </p>
-                                    <p className="text-body-secondary fs-9 mb-0">
-                                      <span className="me-1 fas fa-clock" />
-                                      <span className="fw-bold">10:41 AM </span>
-                                      August 7,2021
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="dropdown notification-dropdown">
-                                  <button
-                                    className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    data-boundary="window"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                    data-bs-reference="parent"
-                                  >
-                                    <span className="fas fa-ellipsis-h fs-10 text-body" />
-                                  </button>
-                                  <div className="dropdown-menu py-2">
-                                    <a className="dropdown-item" href="#!">
-                                      Mark as unread
-                                    </a>
-                                  </div>
-                                </div>
-                              </div>
+
+                    <div>
+                      <div
+                        className="dropdown-menu dropdown-menu-end notification-dropdown-menu py-0 shadow border navbar-dropdown-caret mt-2"
+                        id="navbarDropdownNotfication"
+                        aria-labelledby="navbarDropdownNotfication"
+                      >
+                        <div className="card position-relative border-0">
+                          <div className="card-header p-2">
+                            <div className="d-flex justify-content-between">
+                              <h5 className="text-body-emphasis mb-0">
+                                Notifications
+                              </h5>
+                              <button
+                                className="btn btn-link p-0 fs-9 fw-normal"
+                                type="button"
+                              >
+                                Mark all as read
+                              </button>
                             </div>
-                            <div className="px-2 px-sm-3 py-3 notification-card position-relative unread border-bottom">
-                              <div className="d-flex align-items-center justify-content-between position-relative">
-                                <div className="d-flex">
-                                  <div className="avatar avatar-m status-online me-3">
-                                    <div className="avatar-name rounded-circle">
-                                      <span>J</span>
+                          </div>
+                          <div className="card-body p-0">
+                            <div
+                              className="scrollbar-overlay"
+                              style={{ height: "27rem" }}
+                            >
+                              <div className="px-2 px-sm-3 py-3 notification-card position-relative read border-bottom">
+                                <div className="d-flex align-items-center justify-content-between position-relative">
+                                  <div className="d-flex">
+                                    <div className="avatar avatar-m status-online me-3">
+                                      <img
+                                        className="rounded-circle"
+                                        src={team}
+                                        alt
+                                      />
+                                    </div>
+                                    <div className="flex-1 me-sm-3">
+                                      <h4 className="fs-9 text-body-emphasis">
+                                        Jessie Samson
+                                      </h4>
+                                      <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
+                                        <span className="me-1 fs-10">💬</span>
+                                        Mentioned you in a comment.
+                                        <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10">
+                                          10m
+                                        </span>
+                                      </p>
+                                      <p className="text-body-secondary fs-9 mb-0">
+                                        <span className="me-1 fas fa-clock" />
+                                        <span className="fw-bold">
+                                          10:41 AM{" "}
+                                        </span>
+                                        August 7,2021
+                                      </p>
                                     </div>
                                   </div>
-                                  <div className="flex-1 me-sm-3">
-                                    <h4 className="fs-9 text-body-emphasis">
-                                      Jane Foster
-                                    </h4>
-                                    <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
-                                      <span className="me-1 fs-10">📅</span>
-                                      Created an event.
-                                      <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10">
-                                        20m
-                                      </span>
-                                    </p>
-                                    <p className="text-body-secondary fs-9 mb-0">
-                                      <span className="me-1 fas fa-clock" />
-                                      <span className="fw-bold">10:20 AM </span>
-                                      August 7,2021
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="dropdown notification-dropdown">
-                                  <button
-                                    className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    data-boundary="window"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                    data-bs-reference="parent"
-                                  >
-                                    <span className="fas fa-ellipsis-h fs-10 text-body" />
-                                  </button>
-                                  <div className="dropdown-menu py-2">
-                                    <a className="dropdown-item" href="#!">
-                                      Mark as unread
-                                    </a>
+                                  <div className="dropdown notification-dropdown">
+                                    <button
+                                      className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
+                                      type="button"
+                                      data-bs-toggle="dropdown"
+                                      data-boundary="window"
+                                      aria-haspopup="true"
+                                      aria-expanded="false"
+                                      data-bs-reference="parent"
+                                    >
+                                      <span className="fas fa-ellipsis-h fs-10 text-body" />
+                                    </button>
+                                    <div className="dropdown-menu py-2">
+                                      <a className="dropdown-item" href="#!">
+                                        Mark as unread
+                                      </a>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="px-2 px-sm-3 py-3 notification-card position-relative unread border-bottom">
-                              <div className="d-flex align-items-center justify-content-between position-relative">
-                                <div className="d-flex">
-                                  <div className="avatar avatar-m status-online me-3">
-                                    <img
-                                      className="rounded-circle avatar-placeholder"
-                                      src={team1}
-                                      alt
-                                    />
+                              <div className="px-2 px-sm-3 py-3 notification-card position-relative unread border-bottom">
+                                <div className="d-flex align-items-center justify-content-between position-relative">
+                                  <div className="d-flex">
+                                    <div className="avatar avatar-m status-online me-3">
+                                      <div className="avatar-name rounded-circle">
+                                        <span>J</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 me-sm-3">
+                                      <h4 className="fs-9 text-body-emphasis">
+                                        Jane Foster
+                                      </h4>
+                                      <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
+                                        <span className="me-1 fs-10">📅</span>
+                                        Created an event.
+                                        <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10">
+                                          20m
+                                        </span>
+                                      </p>
+                                      <p className="text-body-secondary fs-9 mb-0">
+                                        <span className="me-1 fas fa-clock" />
+                                        <span className="fw-bold">
+                                          10:20 AM{" "}
+                                        </span>
+                                        August 7,2021
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div className="flex-1 me-sm-3">
-                                    <h4 className="fs-9 text-body-emphasis">
-                                      Jessie Samson
-                                    </h4>
-                                    <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
-                                      <span className="me-1 fs-10">👍</span>
-                                      Liked your comment.
-                                      <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10">
-                                        1h
-                                      </span>
-                                    </p>
-                                    <p className="text-body-secondary fs-9 mb-0">
-                                      <span className="me-1 fas fa-clock" />
-                                      <span className="fw-bold">9:30 AM </span>
-                                      August 7,2021
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="dropdown notification-dropdown">
-                                  <button
-                                    className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    data-boundary="window"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                    data-bs-reference="parent"
-                                  >
-                                    <span className="fas fa-ellipsis-h fs-10 text-body" />
-                                  </button>
-                                  <div className="dropdown-menu py-2">
-                                    <a className="dropdown-item" href="#!">
-                                      Mark as unread
-                                    </a>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="px-2 px-sm-3 py-3 notification-card position-relative unread border-bottom">
-                              <div className="d-flex align-items-center justify-content-between position-relative">
-                                <div className="d-flex">
-                                  <div className="avatar avatar-m status-online me-3">
-                                    <img
-                                      className="rounded-circle"
-                                      src={team2}
-                                      alt
-                                    />
-                                  </div>
-                                  <div className="flex-1 me-sm-3">
-                                    <h4 className="fs-9 text-body-emphasis">
-                                      Kiera Anderson
-                                    </h4>
-                                    <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
-                                      <span className="me-1 fs-10">💬</span>
-                                      Mentioned you in a comment.
-                                      <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10" />
-                                    </p>
-                                    <p className="text-body-secondary fs-9 mb-0">
-                                      <span className="me-1 fas fa-clock" />
-                                      <span className="fw-bold">9:11 AM </span>
-                                      August 7,2021
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="dropdown notification-dropdown">
-                                  <button
-                                    className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    data-boundary="window"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                    data-bs-reference="parent"
-                                  >
-                                    <span className="fas fa-ellipsis-h fs-10 text-body" />
-                                  </button>
-                                  <div className="dropdown-menu py-2">
-                                    <a className="dropdown-item" href="#!">
-                                      Mark as unread
-                                    </a>
+                                  <div className="dropdown notification-dropdown">
+                                    <button
+                                      className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
+                                      type="button"
+                                      data-bs-toggle="dropdown"
+                                      data-boundary="window"
+                                      aria-haspopup="true"
+                                      aria-expanded="false"
+                                      data-bs-reference="parent"
+                                    >
+                                      <span className="fas fa-ellipsis-h fs-10 text-body" />
+                                    </button>
+                                    <div className="dropdown-menu py-2">
+                                      <a className="dropdown-item" href="#!">
+                                        Mark as unread
+                                      </a>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="px-2 px-sm-3 py-3 notification-card position-relative unread border-bottom">
-                              <div className="d-flex align-items-center justify-content-between position-relative">
-                                <div className="d-flex">
-                                  <div className="avatar avatar-m status-online me-3">
-                                    <img
-                                      className="rounded-circle"
-                                      src={team3}
-                                      alt
-                                    />
+                              <div className="px-2 px-sm-3 py-3 notification-card position-relative unread border-bottom">
+                                <div className="d-flex align-items-center justify-content-between position-relative">
+                                  <div className="d-flex">
+                                    <div className="avatar avatar-m status-online me-3">
+                                      <img
+                                        className="rounded-circle avatar-placeholder"
+                                        src={team1}
+                                        alt
+                                      />
+                                    </div>
+                                    <div className="flex-1 me-sm-3">
+                                      <h4 className="fs-9 text-body-emphasis">
+                                        Jessie Samson
+                                      </h4>
+                                      <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
+                                        <span className="me-1 fs-10">👍</span>
+                                        Liked your comment.
+                                        <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10">
+                                          1h
+                                        </span>
+                                      </p>
+                                      <p className="text-body-secondary fs-9 mb-0">
+                                        <span className="me-1 fas fa-clock" />
+                                        <span className="fw-bold">
+                                          9:30 AM{" "}
+                                        </span>
+                                        August 7,2021
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div className="flex-1 me-sm-3">
-                                    <h4 className="fs-9 text-body-emphasis">
-                                      Herman Carter
-                                    </h4>
-                                    <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
-                                      <span className="me-1 fs-10">👤</span>
-                                      Tagged you in a comment.
-                                      <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10" />
-                                    </p>
-                                    <p className="text-body-secondary fs-9 mb-0">
-                                      <span className="me-1 fas fa-clock" />
-                                      <span className="fw-bold">10:58 PM </span>
-                                      August 7,2021
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="dropdown notification-dropdown">
-                                  <button
-                                    className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    data-boundary="window"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                    data-bs-reference="parent"
-                                  >
-                                    <span className="fas fa-ellipsis-h fs-10 text-body" />
-                                  </button>
-                                  <div className="dropdown-menu py-2">
-                                    <a className="dropdown-item" href="#!">
-                                      Mark as unread
-                                    </a>
+                                  <div className="dropdown notification-dropdown">
+                                    <button
+                                      className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
+                                      type="button"
+                                      data-bs-toggle="dropdown"
+                                      data-boundary="window"
+                                      aria-haspopup="true"
+                                      aria-expanded="false"
+                                      data-bs-reference="parent"
+                                    >
+                                      <span className="fas fa-ellipsis-h fs-10 text-body" />
+                                    </button>
+                                    <div className="dropdown-menu py-2">
+                                      <a className="dropdown-item" href="#!">
+                                        Mark as unread
+                                      </a>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="px-2 px-sm-3 py-3 notification-card position-relative read ">
-                              <div className="d-flex align-items-center justify-content-between position-relative">
-                                <div className="d-flex">
-                                  <div className="avatar avatar-m status-online me-3">
-                                    <img
-                                      className="rounded-circle"
-                                      src={team4}
-                                      alt
-                                    />
+                              <div className="px-2 px-sm-3 py-3 notification-card position-relative unread border-bottom">
+                                <div className="d-flex align-items-center justify-content-between position-relative">
+                                  <div className="d-flex">
+                                    <div className="avatar avatar-m status-online me-3">
+                                      <img
+                                        className="rounded-circle"
+                                        src={team2}
+                                        alt
+                                      />
+                                    </div>
+                                    <div className="flex-1 me-sm-3">
+                                      <h4 className="fs-9 text-body-emphasis">
+                                        Kiera Anderson
+                                      </h4>
+                                      <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
+                                        <span className="me-1 fs-10">💬</span>
+                                        Mentioned you in a comment.
+                                        <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10" />
+                                      </p>
+                                      <p className="text-body-secondary fs-9 mb-0">
+                                        <span className="me-1 fas fa-clock" />
+                                        <span className="fw-bold">
+                                          9:11 AM{" "}
+                                        </span>
+                                        August 7,2021
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div className="flex-1 me-sm-3">
-                                    <h4 className="fs-9 text-body-emphasis">
-                                      Benjamin Button
-                                    </h4>
-                                    <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
-                                      <span className="me-1 fs-10">👍</span>
-                                      Liked your comment.
-                                      <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10" />
-                                    </p>
-                                    <p className="text-body-secondary fs-9 mb-0">
-                                      <span className="me-1 fas fa-clock" />
-                                      <span className="fw-bold">10:18 AM </span>
-                                      August 7,2021
-                                    </p>
+                                  <div className="dropdown notification-dropdown">
+                                    <button
+                                      className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
+                                      type="button"
+                                      data-bs-toggle="dropdown"
+                                      data-boundary="window"
+                                      aria-haspopup="true"
+                                      aria-expanded="false"
+                                      data-bs-reference="parent"
+                                    >
+                                      <span className="fas fa-ellipsis-h fs-10 text-body" />
+                                    </button>
+                                    <div className="dropdown-menu py-2">
+                                      <a className="dropdown-item" href="#!">
+                                        Mark as unread
+                                      </a>
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="dropdown notification-dropdown">
-                                  <button
-                                    className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    data-boundary="window"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                    data-bs-reference="parent"
-                                  >
-                                    <span className="fas fa-ellipsis-h fs-10 text-body" />
-                                  </button>
-                                  <div className="dropdown-menu py-2">
-                                    <a className="dropdown-item" href="#!">
-                                      Mark as unread
-                                    </a>
+                              </div>
+                              <div className="px-2 px-sm-3 py-3 notification-card position-relative unread border-bottom">
+                                <div className="d-flex align-items-center justify-content-between position-relative">
+                                  <div className="d-flex">
+                                    <div className="avatar avatar-m status-online me-3">
+                                      <img
+                                        className="rounded-circle"
+                                        src={team3}
+                                        alt
+                                      />
+                                    </div>
+                                    <div className="flex-1 me-sm-3">
+                                      <h4 className="fs-9 text-body-emphasis">
+                                        Herman Carter
+                                      </h4>
+                                      <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
+                                        <span className="me-1 fs-10">👤</span>
+                                        Tagged you in a comment.
+                                        <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10" />
+                                      </p>
+                                      <p className="text-body-secondary fs-9 mb-0">
+                                        <span className="me-1 fas fa-clock" />
+                                        <span className="fw-bold">
+                                          10:58 PM{" "}
+                                        </span>
+                                        August 7,2021
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="dropdown notification-dropdown">
+                                    <button
+                                      className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
+                                      type="button"
+                                      data-bs-toggle="dropdown"
+                                      data-boundary="window"
+                                      aria-haspopup="true"
+                                      aria-expanded="false"
+                                      data-bs-reference="parent"
+                                    >
+                                      <span className="fas fa-ellipsis-h fs-10 text-body" />
+                                    </button>
+                                    <div className="dropdown-menu py-2">
+                                      <a className="dropdown-item" href="#!">
+                                        Mark as unread
+                                      </a>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="px-2 px-sm-3 py-3 notification-card position-relative read ">
+                                <div className="d-flex align-items-center justify-content-between position-relative">
+                                  <div className="d-flex">
+                                    <div className="avatar avatar-m status-online me-3">
+                                      <img
+                                        className="rounded-circle"
+                                        src={team4}
+                                        alt
+                                      />
+                                    </div>
+                                    <div className="flex-1 me-sm-3">
+                                      <h4 className="fs-9 text-body-emphasis">
+                                        Benjamin Button
+                                      </h4>
+                                      <p className="fs-9 text-body-highlight mb-2 mb-sm-3 fw-normal">
+                                        <span className="me-1 fs-10">👍</span>
+                                        Liked your comment.
+                                        <span className="ms-2 text-body-quaternary text-opacity-75 fw-bold fs-10" />
+                                      </p>
+                                      <p className="text-body-secondary fs-9 mb-0">
+                                        <span className="me-1 fas fa-clock" />
+                                        <span className="fw-bold">
+                                          10:18 AM{" "}
+                                        </span>
+                                        August 7,2021
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="dropdown notification-dropdown">
+                                    <button
+                                      className="btn fs-10 btn-sm dropdown-toggle dropdown-caret-none transition-none"
+                                      type="button"
+                                      data-bs-toggle="dropdown"
+                                      data-boundary="window"
+                                      aria-haspopup="true"
+                                      aria-expanded="false"
+                                      data-bs-reference="parent"
+                                    >
+                                      <span className="fas fa-ellipsis-h fs-10 text-body" />
+                                    </button>
+                                    <div className="dropdown-menu py-2">
+                                      <a className="dropdown-item" href="#!">
+                                        Mark as unread
+                                      </a>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="card-footer p-0 border-top border-translucent border-0">
-                          <div className="my-2 text-center fw-bold fs-10 text-body-tertiary text-opactity-85">
-                            <a
-                              className="fw-bolder"
-                              href="../../../pages/notifications.html"
-                            >
-                              Notification history
-                            </a>
+                          <div className="card-footer p-0 border-top border-translucent border-0">
+                            <div className="my-2 text-center fw-bold fs-10 text-body-tertiary text-opactity-85">
+                              <a
+                                className="fw-bolder"
+                                href="../../../pages/notifications.html"
+                              >
+                                Notification history
+                              </a>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </li>
+
                   <li className="nav-item dropdown">
                     <a
                       className="dropdown-caret-none nav-link lh-1 dropdown-toggle"
@@ -433,149 +527,224 @@ const HeaderClient = () => {
                       aria-haspopup="true"
                       aria-expanded="false"
                     >
-                      <span
-                        className="text-body-tertiary"
-                        data-feather="user"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16px"
+                        height="16px"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="feather feather-user text-body-tertiary"
                         style={{ height: 20, width: 20 }}
-                      />
+                      >
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx={12} cy={7} r={4} />
+                      </svg>
                     </a>
-                    <div
-                      className="dropdown-menu dropdown-menu-end navbar-dropdown-caret py-0 dropdown-profile shadow border mt-2"
-                      aria-labelledby="navbarDropdownUser"
-                    >
-                      <div className="card position-relative border-0">
-                        <div className="card-body p-0">
-                          <div className="text-center pt-4 pb-3">
-                            <div className="avatar avatar-xl ">
-                              <img
-                                className="rounded-circle "
-                                src={avatar}
-                                alt
-                              />
-                            </div>
-                            <h6 className="mt-2 text-body-emphasis">
-                              Jerry Seinfield
-                            </h6>
-                          </div>
-                          <div className="mb-3 mx-3">
-                            <input
-                              className="form-control form-control-sm"
-                              id="statusUpdateInput"
-                              type="text"
-                              placeholder="Update your status"
-                            />
-                          </div>
-                        </div>
+                    <div>
+                      {loggedIn ? (
                         <div
-                          className="overflow-auto scrollbar"
-                          style={{ height: "10rem" }}
+                          className="dropdown-menu dropdown-menu-end navbar-dropdown-caret py-0 dropdown-profile shadow border mt-2"
+                          aria-labelledby="navbarDropdownUser"
                         >
-                          <ul className="nav d-flex flex-column mb-2 pb-1">
-                            <li className="nav-item">
-                              <a
-                                className="nav-link px-3 d-block"
-                                href="thong-tin-tai-khoan"
-                              >
-                                {" "}
-                                <span
-                                  className="me-2 text-body align-bottom"
-                                  data-feather="user"
+                          <div className="card position-relative border-0">
+                            <div className="card-body p-0">
+                              <div className="text-center pt-4 pb-3">
+                                <div className="avatar avatar-xl ">
+                                  <img
+                                    className="rounded-circle"
+                                    src={
+                                      userInfo?.hinh_anh ||
+                                      "https://via.placeholder.com/150"
+                                    } // Sử dụng placeholder nếu không có hình ảnh
+                                    alt="User Avatar"
+                                  />
+                                </div>
+                                <h6 className="mt-2 text-body-emphasis">
+                                  {userInfo?.ten_nguoi_dung ||
+                                    "Chưa cập nhật tên"}
+                                </h6>
+                              </div>
+                              <div className="mb-3 mx-3">
+                                <input
+                                  className="form-control form-control-sm"
+                                  id="statusUpdateInput"
+                                  type="text"
+                                  placeholder="Update your status"
                                 />
-                                <span>Profile</span>
-                              </a>
-                            </li>
-                            <li className="nav-item">
-                              <a className="nav-link px-3 d-block" href="#!">
-                                <span
-                                  className="me-2 text-body align-bottom"
-                                  data-feather="pie-chart"
-                                />
-                                Dashboard
-                              </a>
-                            </li>
-                            <li className="nav-item">
-                              <a className="nav-link px-3 d-block" href="#!">
-                                {" "}
-                                <span
-                                  className="me-2 text-body align-bottom"
-                                  data-feather="lock"
-                                />
-                                Posts &amp; Activity
-                              </a>
-                            </li>
-                            <li className="nav-item">
-                              <a className="nav-link px-3 d-block" href="#!">
-                                {" "}
-                                <span
-                                  className="me-2 text-body align-bottom"
-                                  data-feather="settings"
-                                />
-                                Settings &amp; Privacy{" "}
-                              </a>
-                            </li>
-                            <li className="nav-item">
-                              <a className="nav-link px-3 d-block" href="#!">
-                                {" "}
-                                <span
-                                  className="me-2 text-body align-bottom"
-                                  data-feather="help-circle"
-                                />
-                                Help Center
-                              </a>
-                            </li>
-                            <li className="nav-item">
-                              <a className="nav-link px-3 d-block" href="#!">
-                                {" "}
-                                <span
-                                  className="me-2 text-body align-bottom"
-                                  data-feather="globe"
-                                />
-                                Language
-                              </a>
-                            </li>
-                          </ul>
-                        </div>
-                        <div className="card-footer p-0 border-top border-translucent">
-                          <ul className="nav d-flex flex-column my-3">
-                            <li className="nav-item">
-                              <a className="nav-link px-3 d-block" href="#!">
-                                {" "}
-                                <span
-                                  className="me-2 text-body align-bottom"
-                                  data-feather="user-plus"
-                                />
-                                Add another account
-                              </a>
-                            </li>
-                          </ul>
-                          <hr />
-                          <div className="px-3">
-                            {" "}
-                            <a
-                              className="btn btn-phoenix-secondary d-flex flex-center w-100"
-                              href="dang-xuat"
+                              </div>
+                            </div>
+                            <div
+                              className="overflow-auto scrollbar"
+                              style={{ height: "10rem" }}
                             >
-                              <span className="me-2" data-feather="log-out">
+                              <ul className="nav d-flex flex-column mb-2 pb-1">
+                                <li className="nav-item">
+                                  <a
+                                    className="nav-link px-3 d-block"
+                                    href="thong-tin-tai-khoan"
+                                  >
+                                    {" "}
+                                    <span
+                                      className="me-2 text-body align-bottom"
+                                      data-feather="user"
+                                    />
+                                    <span>Profile</span>
+                                  </a>
+                                </li>
+
+                                <li className="nav-item">
+                                  <a
+                                    className="nav-link px-3 d-block"
+                                    href="#!"
+                                  >
+                                    {" "}
+                                    <span
+                                      className="me-2 text-body align-bottom"
+                                      data-feather="lock"
+                                    />
+                                    Posts &amp; Activity
+                                  </a>
+                                </li>
+                                <li className="nav-item">
+                                  <a
+                                    className="nav-link px-3 d-block"
+                                    href="#!"
+                                  >
+                                    {" "}
+                                    <span
+                                      className="me-2 text-body align-bottom"
+                                      data-feather="settings"
+                                    />
+                                    Settings &amp; Privacy{" "}
+                                  </a>
+                                </li>
+                                <li className="nav-item">
+                                  <a
+                                    className="nav-link px-3 d-block"
+                                    href="#!"
+                                  >
+                                    {" "}
+                                    <span
+                                      className="me-2 text-body align-bottom"
+                                      data-feather="help-circle"
+                                    />
+                                    Help Center
+                                  </a>
+                                </li>
+                                <li className="nav-item">
+                                  <a
+                                    className="nav-link px-3 d-block"
+                                    href="#!"
+                                  >
+                                    {" "}
+                                    <span
+                                      className="me-2 text-body align-bottom"
+                                      data-feather="globe"
+                                    />
+                                    Language
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                            <div className="card-footer p-0 border-top border-translucent">
+                              <ul className="nav d-flex flex-column my-3">
+                                <li className="nav-item">
+                                  <a
+                                    className="nav-link px-3 d-block"
+                                    href="#!"
+                                  >
+                                    {" "}
+                                    <span
+                                      className="me-2 text-body align-bottom"
+                                      data-feather="user-plus"
+                                    />
+                                    Add another account
+                                  </a>
+                                </li>
+                              </ul>
+                              <hr />
+                              <div className="px-3">
                                 {" "}
-                              </span>
-                              Sign out
-                            </a>
-                          </div>
-                          <div className="my-2 text-center fw-bold fs-10 text-body-quaternary">
-                            <a className="text-body-quaternary me-1" href="#!">
-                              Privacy policy
-                            </a>
-                            •
-                            <a className="text-body-quaternary mx-1" href="#!">
-                              Terms
-                            </a>
-                            •
-                            <a className="text-body-quaternary ms-1" href="#!">
-                              Cookies
-                            </a>
+                                <a
+                                  className="btn btn-phoenix-secondary d-flex flex-center w-100"
+                                  href="#"
+                                  onClick={handleLogout}
+                                >
+                                  <span className="me-2" data-feather="log-out">
+                                    {" "}
+                                  </span>
+                                  Sign out
+                                </a>
+                              </div>
+                              <div className="my-2 text-center fw-bold fs-10 text-body-quaternary">
+                                <a
+                                  className="text-body-quaternary me-1"
+                                  href="#!"
+                                >
+                                  Privacy policy
+                                </a>
+                                •
+                                <a
+                                  className="text-body-quaternary mx-1"
+                                  href="#!"
+                                >
+                                  Terms
+                                </a>
+                                •
+                                <a
+                                  className="text-body-quaternary ms-1"
+                                  href="#!"
+                                >
+                                  Cookies
+                                </a>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div
+                          className="dropdown-menu dropdown-menu-end navbar-dropdown-caret py-0 dropdown-profile-1 shadow border mt-2"
+                          aria-labelledby="navbarDropdownUser"
+                        >
+                          <div className="card position-relative border-0">
+                            <div className="overflow-auto scrollbar">
+                              <ul className="nav d-flex flex-column">
+                                <li className="nav-item">
+                                  <a
+                                    className="nav-link px-3 d-block"
+                                    href="dang-ky"
+                                  >
+                                    {" "}
+                                    <span
+                                      className="me-2 text-body align-bottom"
+                                      data-feather="user"
+                                    />
+                                    <span>Đăng ký</span>
+                                  </a>
+                                </li>
+
+                                <li className="nav-item">
+                                  <a
+                                    className="nav-link px-3 d-block"
+                                    href="dang-nhap"
+                                  >
+                                    {" "}
+                                    <span
+                                      className="me-2 text-body align-bottom"
+                                      data-feather="globe"
+                                    />
+                                    Đăng nhập
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </li>
                 </ul>

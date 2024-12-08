@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import logo from "../../../assets/img/icons/logo1.png";
 
 const LoginPage = () => {
   document.title = "Hypertech Store - Đăng nhập";
 
-  const [email, setEmail] = useState('');
-  const [mat_khau, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [mat_khau, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate(); // Khởi tạo useNavigate để điều hướng
 
@@ -18,25 +18,33 @@ const LoginPage = () => {
     const loginData = { email, mat_khau };
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/khach-hang/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(loginData),
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/khach-hang/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(loginData),
+        }
+      );
 
       const data = await response.json();
       console.log(data); // Log nội dung JSON nhận được từ API
-
       if (response.ok) {
-        localStorage.setItem('userToken', data.token || 'token');
-        localStorage.setItem('userId', data.user.id);
-        localStorage.setItem('userInfo', JSON.stringify(data));
-        toast.success('Đăng nhập thành công!');
-        navigate('/');
+        const userData = {
+          ten_nguoi_dung: data.user.ten_nguoi_dung,
+          email: data.user.email,
+          hinh_anh: data.user.hinh_anh,
+        };
+        sessionStorage.setItem("userInfo", JSON.stringify(userData));
+        sessionStorage.setItem("userToken", data.token || "token");
+        sessionStorage.setItem("userId", data.user.id);
+
+        toast.success("Đăng nhập thành công!");
+        navigate("/");
       } else {
-        toast.error(data.message || 'Đăng nhập thất bại');
+        toast.error(data.message || "Đăng nhập thất bại");
       }
     } catch (err) {
       toast.error(`Có lỗi xảy ra, ${err?.message}`);
@@ -58,7 +66,7 @@ const LoginPage = () => {
             <h3 className="text-body-highlight">Sign In</h3>
             <p className="text-body-tertiary">Get access to your account</p>
           </div>
-          
+
           <button className="btn btn-phoenix-secondary w-100 mb-3">
             <svg
               className="svg-inline--fa fa-google text-danger me-2 fs-9"
@@ -121,7 +129,10 @@ const LoginPage = () => {
               <label className="form-label" htmlFor="password">
                 Password
               </label>
-              <div className="form-icon-container" data-password="data-password">
+              <div
+                className="form-icon-container"
+                data-password="data-password"
+              >
                 <input
                   className="form-control form-icon-input pe-6"
                   id="password"
@@ -158,7 +169,10 @@ const LoginPage = () => {
                     type="checkbox"
                     defaultChecked="checked"
                   />
-                  <label className="form-check-label mb-0" htmlFor="basic-checkbox">
+                  <label
+                    className="form-check-label mb-0"
+                    htmlFor="basic-checkbox"
+                  >
                     Remember me
                   </label>
                 </div>
@@ -170,8 +184,12 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary w-100 mb-3" disabled={loading}>
-              {loading ? 'Đang đăng nhập...' : 'Sign In'}
+            <button
+              type="submit"
+              className="btn btn-primary w-100 mb-3"
+              disabled={loading}
+            >
+              {loading ? "Đang đăng nhập..." : "Sign In"}
             </button>
           </form>
 
