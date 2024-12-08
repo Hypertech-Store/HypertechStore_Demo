@@ -24,6 +24,8 @@ const Shop = () => {
     const [newProducts, setNewProducts] = useState([]);
     const [saleProducts, setSaleProducts] = useState([]);
 
+    const [currentTime, setCurrentTime] = useState(new Date());
+
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -171,6 +173,7 @@ const Shop = () => {
             console.error("Error fetching new products:", error);
         }
     };
+
     // Hàm để lấy sản phẩm đang sale
     const fetchSaleProducts = async () => {
         try {
@@ -220,7 +223,31 @@ const Shop = () => {
         return diffDays <= 7; // Nếu sản phẩm được tạo trong vòng 7 ngày, trả về true
     }
 
-    
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date()); // Update current time every second
+        }, 1000);
+
+        return () => clearInterval(timer); // Cleanup the interval on component unmount
+    }, []);
+
+    const getRemainingTime = (saleEnd) => {
+        const currentTime = new Date().getTime();
+        const timeLeft = saleEnd - currentTime;
+        
+        const seconds = Math.floor((timeLeft / 1000) % 60);
+        const minutes = Math.floor((timeLeft / 1000 / 60) % 60);
+        const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+        
+        // Tính tổng số giờ còn lại
+        const totalHours = Math.floor(timeLeft / (1000 * 60 * 60));
+        
+        if (timeLeft > 0) {
+            return `${totalHours}h ${minutes}m ${seconds}s`;
+        } 
+    };
+
+
     return (
         <>
             <section className="pt-5 pb-9">
@@ -393,116 +420,92 @@ const Shop = () => {
                         </div>
                         <div className="col-lg-9 col-xxl-10">
                             <div className="row gx-3 gy-6 mb-8">
-                                {products.map((product) => (
-                                    <div
-                                        className="col-12 col-sm-6 col-md-4 col-xxl-2"
-                                        key={product.id}
-                                    >
-                                        <div className="product-card-container h-100">
-                                            <div className="position-relative text-decoration-none product-card h-100">
-                                                <div className="d-flex flex-column justify-content-between h-100">
-                                                    <div>
-                                                        <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                                                            <button
-                                                                className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
-                                                                data-bs-toggle="tooltip"
-                                                                data-bs-placement="top"
-                                                                title="Add to wishlist"
-                                                            >
-                                                                <span
-                                                                    className="fas fa-heart d-block-hover"
-                                                                    data-fa-transform="down-1"
-                                                                />
-                                                                <span
-                                                                    className="far fa-heart d-none-hover"
-                                                                    data-fa-transform="down-1"
-                                                                />
-                                                            </button>
-                                                            <img
-                                                                className="img-fluid"
-                                                                src={product.duong_dan_anh}
-                                                                alt={product.ten_san_pham}
-                                                            />
-                                                            <span className="badge text-bg-success fs-10 product-verified-badge">
-                                                                10%
-                                                            </span>
-                                                        </div>
-                                                        <a className="stretched-link" href="chi-tiet-san-pham">
-                                                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
-                                                                {product.ten_san_pham}
-                                                            </h6>
-                                                        </a>
-                                                        <p className="fs-9">
-                                                            <span className="fa fa-star text-warning" />
-                                                            <span className="fa fa-star text-warning" />
-                                                            <span className="fa fa-star text-warning" />
-                                                            <span className="fa fa-star text-warning" />
-                                                            <span className="fa fa-star text-warning" />
-                                                            <span className="text-body-quaternary fw-semibold ms-1">
-                                                                (50 đánh giá)
-                                                            </span>
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <div className="d-flex align-items-center mb-1">
-                                                            <p className="me-2 text-body text-decoration-line-through mb-0">
-                                                                40,000,000₫
+                                {products.map((product) => {
+                                    // Find sale information for the product
+                                    const saleInfo = saleProducts.find(sale => sale.san_pham_id === product.id);
+                                    let label = null;
+                                    let discountedPrice = parseFloat(product.gia);
+                                    let remainingTime = '';
+
+                                    if (saleInfo) {
+                                        const currentDate = new Date();
+                                        const saleStart = new Date(saleInfo.ngay_bat_dau_sale);
+                                        const saleEnd = new Date(saleInfo.ngay_ket_thuc_sale);
+
+                                        if (saleStart <= currentDate && saleEnd >= currentDate) {
+                                            label = `-${parseFloat(saleInfo.sale_theo_phan_tram).toFixed(0)}%`;
+                                            const discountPercentage = parseFloat(saleInfo.sale_theo_phan_tram);
+                                            const discountAmount = (discountedPrice * discountPercentage) / 100;
+                                            discountedPrice -= discountAmount;
+
+                                            // Calculate remaining time for sale
+                                            remainingTime = getRemainingTime(saleEnd);
+                                        }
+                                    }
+
+                                    // If the product is new (created within 7 days)
+                                    const productCreatedAt = new Date(product.created_at);
+                                    const sevenDaysAgo = new Date();
+                                    sevenDaysAgo.setDate(new Date().getDate() - 7);
+                                    if (!label && productCreatedAt >= sevenDaysAgo) {
+                                        label = "New";
+                                    }
+
+                                    return (
+                                        <div className="col-12 col-sm-6 col-md-4 col-xxl-2" key={product.id}>
+                                            <div className="product-card-container h-100">
+                                                <div className="position-relative text-decoration-none product-card h-100">
+                                                    <div className="d-flex flex-column justify-content-between h-100">
+                                                        <div>
+                                                            <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                                                                <button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist">
+                                                                    <span className="fas fa-heart d-block-hover" data-fa-transform="down-1" />
+                                                                    <span className="far fa-heart d-none-hover" data-fa-transform="down-1" />
+                                                                </button>
+                                                                <img className="img-fluid" src={product.duong_dan_anh} alt={product.ten_san_pham} />
+                                                                {label && (
+                                                                    <span className="badge text-bg-success fs-10 product-verified-badge">
+                                                                        {label}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <a className="stretched-link" href="chi-tiet-san-pham">
+                                                                <h6 className="mb-2 lh-sm line-clamp-3 product-name">{product.ten_san_pham}</h6>
+                                                            </a>
+                                                            <p className="fs-9">
+                                                                <span className="fa fa-star text-warning" />
+                                                                <span className="fa fa-star text-warning" />
+                                                                <span className="fa fa-star text-warning" />
+                                                                <span className="fa fa-star text-warning" />
+                                                                <span className="fa fa-star text-warning" />
+                                                                <span className="text-body-quaternary fw-semibold ms-1">(50 đánh giá)</span>
                                                             </p>
-                                                            <h3 className="text-body-emphasis mb-0">
-                                                                {product.gia}₫
-                                                            </h3>
                                                         </div>
-                                                        <p className="text-success fw-bold fs-9 lh-1 mb-0">
-                                                            Deal time ends in 24 hours
-                                                        </p>
+                                                        <div>
+                                                            <div className="d-flex align-items-center mb-1">
+                                                                {saleInfo ? (
+                                                                    <>
+                                                                        <p className="me-2 text-body text-decoration-line-through mb-0">{parseFloat(product.gia).toFixed(0)}₫</p>
+                                                                        <h3 className="text-body-emphasis mb-0">{discountedPrice.toFixed(0)}₫</h3>
+                                                                    </>
+                                                                ) : (
+                                                                    <h3 className="text-body-emphasis mb-0">{parseFloat(product.gia).toFixed(0)}₫</h3>
+                                                                )}
+                                                            </div>
+                                                            {saleInfo && remainingTime && (
+                                                                <p className="text-success fw-bold fs-9 lh-1 mb-0">
+                                                                    Deal time ends in {remainingTime}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
-                            <div className="d-flex justify-content-end">
-                                <nav aria-label="Page navigation example">
-                                    <ul className="pagination mb-0">
-                                        <li className="page-item">
-                                            <a className="page-link" href="#">
-                                                <span className="fas fa-chevron-left"> </span>
-                                            </a>
-                                        </li>
-                                        <li className="page-item">
-                                            <a className="page-link" href="#">
-                                                1
-                                            </a>
-                                        </li>
-                                        <li className="page-item">
-                                            <a className="page-link" href="#">
-                                                2
-                                            </a>
-                                        </li>
-                                        <li className="page-item">
-                                            <a className="page-link" href="#">
-                                                3
-                                            </a>
-                                        </li>
-                                        <li className="page-item active" aria-current="page">
-                                            <a className="page-link" href="#">
-                                                4
-                                            </a>
-                                        </li>
-                                        <li className="page-item">
-                                            <a className="page-link" href="#">
-                                                5
-                                            </a>
-                                        </li>
-                                        <li className="page-item">
-                                            <a className="page-link" href="#">
-                                                <span className="fas fa-chevron-right" />
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </nav>
-                            </div>
+                            {/* Pagination and other content */}
                         </div>
                     </div>
                 </div>{/* end of .container*/}
