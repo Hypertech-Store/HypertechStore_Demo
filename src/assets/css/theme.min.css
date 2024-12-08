@@ -37445,8 +37445,9 @@ html:not(.navbar-vertical-collapsed)
 }
 .product-card .product-verified-badge {
   position: absolute;
-  bottom: 0.75rem;
+  top: 0.75rem;
   left: 0.75rem;
+  padding: 5px;
 }
 .product-card:hover .product-name {
   color: var(--phoenix-primary);
