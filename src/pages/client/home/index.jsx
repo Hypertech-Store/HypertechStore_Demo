@@ -27,12 +27,11 @@ import illustrations from "../../../assets/img/spot-illustrations/light_30.png";
 import illustrations1 from "../../../assets/img/spot-illustrations/dark_30.png";
 
 const HomeClient = () => {
-
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
     // Gọi API và lấy dữ liệu
-    fetch('http://127.0.0.1:8000/api/sale-san-pham/get-sale')
+    fetch("http://127.0.0.1:8000/api/sale-san-pham/get-sale")
       .then((response) => response.json())
       .then((data) => {
         // Thêm thời gian còn lại vào mỗi sản phẩm
@@ -47,7 +46,7 @@ const HomeClient = () => {
         setProducts(updatedProducts);
       })
       .catch((error) => {
-        console.error('Lỗi khi tải dữ liệu:', error);
+        console.error("Lỗi khi tải dữ liệu:", error);
       });
   }, []);
 
@@ -78,14 +77,11 @@ const HomeClient = () => {
     return `${hours}h ${minutes}m ${seconds}s`;
   };
 
-  const numberFormat = new Intl.NumberFormat('vi-VN', {
-    style: 'decimal', // Sử dụng kiểu "decimal" thay vì "currency"
+  const numberFormat = new Intl.NumberFormat("vi-VN", {
+    style: "decimal", // Sử dụng kiểu "decimal" thay vì "currency"
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   });
-
-
-
 
   return (
     <div>
@@ -446,53 +442,115 @@ const HomeClient = () => {
                   data-swiper='{"slidesPerView":4,"spaceBetween":16,"breakpoints":{"450":{"slidesPerView":2,"spaceBetween":16},"768":{"slidesPerView":3,"spaceBetween":20},"1200":{"slidesPerView":4,"spaceBetween":16},"1540":{"slidesPerView":5,"spaceBetween":16}}}'
                 >
                   <div className="swiper-wrapper">
-                    {products.slice(0, 4).map((product) => ( // Hiển thị 4 sản phẩm đầu tiên
-                      <div
-                        className="swiper-slide swiper-slide-prev"
-                        role="group"
-                        aria-label="2 / 6"
-                        style={{ width: "208.5px", marginRight: 16 }}
-                        key={product.id}
-                      >
-                        <div className="position-relative text-decoration-none product-card h-100">
-                          <div className="d-flex flex-column justify-content-between h-100">
-                            <div>
-                              <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                                <button
-                                  className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
-                                  data-bs-toggle="tooltip"
-                                  data-bs-placement="top"
-                                  aria-label="Add to wishlist"
+                    {products.slice(0, 4).map(
+                      (
+                        product // Hiển thị 4 sản phẩm đầu tiên
+                      ) => (
+                        <div
+                          className="swiper-slide swiper-slide-prev"
+                          role="group"
+                          aria-label="2 / 6"
+                          style={{ width: "208.5px", marginRight: 16 }}
+                          key={product.id}
+                        >
+                          <div className="position-relative text-decoration-none product-card h-100">
+                            <div className="d-flex flex-column justify-content-between h-100">
+                              <div>
+                                <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                                  <button
+                                    className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    aria-label="Add to wishlist"
+                                  >
+                                    <svg
+                                      className="svg-inline--fa fa-heart"
+                                      aria-hidden="true"
+                                      focusable="false"
+                                      data-prefix="fas"
+                                      data-icon="heart"
+                                      role="img"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      viewBox="0 0 512 512"
+                                    >
+                                      <path
+                                        fill="currentColor"
+                                        d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <img
+                                    className="img-fluid"
+                                    src={product.san_pham.duong_dan_anh}
+                                    alt={product.san_pham.ten_san_pham}
+                                  />
+                                  <span className="badge text-bg-success fs-10 product-verified-badge">
+                                    -{parseFloat(product.sale_theo_phan_tram)}%
+                                  </span>
+                                </div>
+                                <a
+                                  className="stretched-link"
+                                  href="product-details.html"
                                 >
-                                  <svg className="svg-inline--fa fa-heart" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="heart" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                                    <path
-                                      fill="currentColor"
-                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
-                                    />
-                                  </svg>
-                                </button>
-                                <img className="img-fluid" src={product.san_pham.duong_dan_anh} alt={product.san_pham.ten_san_pham} />
-                                <span className="badge text-bg-success fs-10 product-verified-badge">
-                                  -{parseFloat(product.sale_theo_phan_tram)}%
-                                </span>
+                                  <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                                    {product.san_pham.ten_san_pham}
+                                  </h6>
+                                </a>
+                                <p className="fs-9">
+                                  <span className="fa fa-star text-warning"></span>
+                                  <span
+                                    className="fa-regular fa-star text-warning-light"
+                                    data-bs-theme="light"
+                                  ></span>
+                                  <span
+                                    className="fa-regular fa-star text-warning-light"
+                                    data-bs-theme="light"
+                                  ></span>
+                                  <span
+                                    className="fa-regular fa-star text-warning-light"
+                                    data-bs-theme="light"
+                                  ></span>
+                                  <span
+                                    className="fa-regular fa-star text-warning-light"
+                                    data-bs-theme="light"
+                                  ></span>
+                                  <span className="text-body-quaternary fw-semibold ms-1">
+                                    (6 people rated)
+                                  </span>
+                                </p>
                               </div>
-                              <a className="stretched-link" href="product-details.html">
-                                <h6 className="mb-2 lh-sm line-clamp-3 product-name">{product.san_pham.ten_san_pham}</h6>
-                              </a>
-                            </div>
-                            <div>
-                              <div className="d-flex align-items-center mb-1">
-                                <p className="me-2 text-body text-decoration-line-through mb-0">{numberFormat.format(parseFloat(product.san_pham.gia))} VNĐ</p>
-                                <h3 className="text-body-emphasis mb-0">{numberFormat.format(parseFloat(product.san_pham.gia) * (1 - product.sale_theo_phan_tram / 100))} VNĐ</h3>
+                              <div>
+                                <div className="align-items-center mb-1">
+                                  <h4 className="text-danger">
+                                    {numberFormat.format(
+                                      parseFloat(product.san_pham.gia) *
+                                        (1 - product.sale_theo_phan_tram / 100)
+                                    )}{" "}
+                                    VNĐ
+                                  </h4>
+                                  <p
+                                    className="me-2 text-decoration-line-through mb-0"
+                                    style={{
+                                      color: "#98a2b3",
+                                      fontSize: "15px",
+                                    }}
+                                  >
+                                    {numberFormat.format(
+                                      parseFloat(product.san_pham.gia)
+                                    )}{" "}
+                                    VNĐ
+                                  </p>
+                                </div>
+                                <p className="text-success fw-bold fs-9 lh-1 mb-0">
+                                  Deal time ends in{" "}
+                                  {formatTime(product.timeRemaining)}
+                                </p>
                               </div>
-                              <p className="text-success fw-bold fs-9 lh-1 mb-0">
-                                Deal time ends in {formatTime(product.timeRemaining)}
-                              </p>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </div>
               </div>
@@ -2700,8 +2758,8 @@ const HomeClient = () => {
           </div>
         </div>
         {/* end of .container*/}
-      </section >
-    </div >
+      </section>
+    </div>
   );
 };
 export default HomeClient;
