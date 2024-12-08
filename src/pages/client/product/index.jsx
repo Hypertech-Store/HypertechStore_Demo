@@ -12,6 +12,7 @@ const Shop = () => {
 
     const [newProducts, setNewProducts] = useState([]);
     const [saleProducts, setSaleProducts] = useState([]);
+    
 
     const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -384,9 +385,10 @@ const Shop = () => {
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <a className="stretched-link" href="chi-tiet-san-pham">
+                                                            <a className="stretched-link" href={`/chi-tiet-san-pham?id=${product.id}`}>
                                                                 <h6 className="mb-2 lh-sm line-clamp-3 product-name">{product.ten_san_pham}</h6>
                                                             </a>
+
                                                             <p className="fs-9">
                                                                 <span className="fa fa-star text-warning" />
                                                                 <span className="fa fa-star text-warning" />
