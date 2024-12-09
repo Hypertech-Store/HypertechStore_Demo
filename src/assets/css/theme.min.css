@@ -31811,7 +31811,7 @@ html:not(.navbar-vertical-collapsed)
   }
 }
 .dropdown-profile {
-  min-width: 18.3125rem;
+  width: 18.3125rem;
 }
 .dropdown-profile .nav .nav-link {
   --phoenix-nav-link-color: var(--phoenix-body-highlight-color);
@@ -31822,6 +31822,18 @@ html:not(.navbar-vertical-collapsed)
 .dropdown-profile .nav .nav-link:hover {
   background: var(--phoenix-body-highlight-bg);
 }
+
+
+.dropdown-profile-1 .nav .nav-link {
+  --phoenix-nav-link-color: var(--phoenix-body-highlight-color);
+  --phoenix-nav-link-hover-color: var(--phoenix-emphasis-color);
+  padding: 0.5rem 2.5rem 0.5rem 2.5rem;
+  font-weight: 600;
+}
+.dropdown-profile-1 .nav .nav-link:hover {
+  background: var(--phoenix-body-highlight-bg);
+}
+
 .notification-dropdown-menu {
   min-width: 260px;
 }
