@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from "react";
+import { FaArrowTurnUp } from "react-icons/fa6";
+
 import avatar from "../../../assets/img/team/15.webp";
 import product1 from '../../../assets/img/products/1.png';
 import product3 from '../../../assets/img/products/3.png';
@@ -42,6 +44,115 @@ function Profile() {
 
     const visibleProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage); // Get the products for the current page
 
+    const [activePanel, setActivePanel] = useState("my-account-1");
+    const userId = localStorage.getItem('userId');
+
+    const [isLoading, setIsLoading] = useState(true); // Loading state
+    const [profileData, setProfileData] = useState({});
+    const [formData, setFormData] = useState({
+        ten_nguoi_dung: "",
+        ho_ten: "",
+        hinh_anh: "",
+        email: "",
+        dien_thoai: "",
+        dia_chi: "",
+        ngay_sinh: "", // Lưu ngày sinh đầy đủ
+        ngay: "",
+        thang: "",
+        nam: "",
+        mat_khau: "",
+    });
+
+    const [oldPassword, setOldPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    const togglePanel = (panelId) => {
+        setActivePanel(activePanel === panelId ? "" : panelId);
+    };
+
+    // Fetch user data when component mounts
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/khach-hang/profile/${userId}`);
+                const data = await response.json();
+                console.log(data);
+
+                setProfileData(data);
+                setIsLoading(false);
+
+                const birthday = data.user.ngay_sinh || "";
+                const [year, month, day] = birthday.split("-");
+
+                setFormData({
+                    ho_ten: data.user.ho_ten || "",
+                    ten_nguoi_dung: data.user.ten_nguoi_dung || "",
+                    hinh_anh: data.user.hinh_anh || "",
+                    email: data.user.email || "",
+                    dien_thoai: data.user.dien_thoai || "",
+                    dia_chi: data.user.dia_chi || "",
+                    gioi_tinh: data.user.gioi_tinh || "",
+                    ngay_sinh: birthday, // Lưu ngày sinh đầy đủ
+                    ngay: day || "",
+                    thang: month || "",
+                    nam: year || "",
+                    mat_khau: "", // Empty password field after fetching
+                });
+                console.log("Form Data:", formData);
+
+            } catch (error) {
+                console.error("Có lỗi khi tải dữ liệu", error);
+                setIsLoading(false);
+            }
+        };
+        fetchProfileData();
+    }, []);
+    // Handle form data change
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    // Handle profile update
+    const handleUpdateProfile = async () => {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/khach-hang/update-profile/1", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ho_ten: formData.ho_ten,
+                    email: formData.email,
+                    dien_thoai: formData.dien_thoai,
+                    dia_chi: formData.dia_chi,
+                    updated_at: null, // Let API update timestamp
+                }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert("Cập nhật thông tin thành công!");
+                console.log("Cập nhật thành công", data);
+                // Auto reload page after successful update
+                window.location.reload();
+            } else {
+                console.error("Cập nhật thất bại", data);
+                alert("Cập nhật thất bại! Vui lòng thử lại.");
+            }
+        } catch (error) {
+            console.error("Có lỗi khi cập nhật thông tin", error);
+            alert("Có lỗi khi cập nhật thông tin! Vui lòng thử lại.");
+        }
+    };
+    const years = Array.from({ length: 2025 - 1990 + 1 }, (v, i) => 1990 + i);
+
+
+
     return (
         <section className="pt-5 pb-9">
             <div className="container-small">
@@ -69,31 +180,41 @@ function Profile() {
                             <div className="card-body">
                                 <div className="border-bottom border-dashed pb-4">
                                     <div className="row align-items-center g-3 g-sm-5 text-center text-sm-start">
-                                        <div className="col-12 col-sm-auto"><input className="d-none" id="avatarFile" type="file" /><label className="cursor-pointer avatar avatar-5xl" htmlFor="avatarFile"><img className="rounded-circle" src={avatar} alt /></label></div>
+                                        <div className="col-12 col-sm-auto">
+                                            <input className="d-none" id="avatarFile" type="file" />
+                                            <label className="cursor-pointer avatar avatar-5xl" htmlFor="avatarFile">
+                                                <img className="rounded-circle" src={formData.hinh_anh || 'default-avatar.jpg'} alt="Avatar" />
+                                            </label>
+                                        </div>
                                         <div className="col-12 col-sm-auto flex-1">
-                                            <h3>Ansolo Lazinatov</h3>
-                                            <p className="text-body-secondary">Joined 3 months ago</p>
-                                            <div><a className="me-2" href="#!"><span className="fab fa-linkedin-in text-body-quaternary text-opacity-75 text-primary-hover" /></a><a className="me-2" href="#!"><span className="fab fa-facebook text-body-quaternary text-opacity-75 text-primary-hover" /></a><a href="#!"><span className="fab fa-twitter text-body-quaternary text-opacity-75 text-primary-hover" /></a></div>
+                                            <h3>{formData.ho_ten || 'Your Name'}</h3>
+                                            <p className="text-body-secondary">Joined {formData.joinedDate || '3 months ago'}</p>
+                                            <div>
+                                                <a className="me-2" href={formData.linkedin || '#'}><span className="fab fa-linkedin-in text-body-quaternary text-opacity-75 text-primary-hover" /></a>
+                                                <a className="me-2" href={formData.facebook || '#'}><span className="fab fa-facebook text-body-quaternary text-opacity-75 text-primary-hover" /></a>
+                                                <a href={formData.twitter || '#'}><span className="fab fa-twitter text-body-quaternary text-opacity-75 text-primary-hover" /></a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="d-flex flex-between-center pt-4">
                                     <div>
                                         <h6 className="mb-2 text-body-secondary">Total Spent</h6>
-                                        <h4 className="fs-7 text-body-highlight mb-0">$894</h4>
+                                        <h4 className="fs-7 text-body-highlight mb-0">${formData.totalSpent || '0'}</h4>
                                     </div>
                                     <div className="text-end">
                                         <h6 className="mb-2 text-body-secondary">Last Order</h6>
-                                        <h4 className="fs-7 text-body-highlight mb-0">1 week ago</h4>
+                                        <h4 className="fs-7 text-body-highlight mb-0">{formData.lastOrder || '1 week ago'}</h4>
                                     </div>
                                     <div className="text-end">
                                         <h6 className="mb-2 text-body-secondary">Total Orders</h6>
-                                        <h4 className="fs-7 text-body-highlight mb-0">97 </h4>
+                                        <h4 className="fs-7 text-body-highlight mb-0">{formData.totalOrders || '0'}</h4>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div className="col-12 col-lg-4">
                         <div className="card h-100">
                             <div className="card-body">
@@ -106,7 +227,7 @@ function Profile() {
                                             <h5 className="text-body-highlight">Address</h5>
                                         </div>
                                         <div className="col-auto">
-                                            <p className="text-body-secondary">Vancouver, British Columbia<br />Canada</p>
+                                            <p className="text-body-secondary">{formData.dia_chi || ''}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -115,13 +236,13 @@ function Profile() {
                                         <div className="col-auto">
                                             <h5 className="text-body-highlight mb-0">Email</h5>
                                         </div>
-                                        <div className="col-auto"><a className="lh-1" href="mailto:shatinon@jeemail.com">shatinon@jeemail.com</a></div>
+                                        <div className="col-auto"><a className="lh-1" href="">{formData.email || ''}</a></div>
                                     </div>
                                     <div className="row flex-between-center">
                                         <div className="col-auto">
                                             <h5 className="text-body-highlight mb-0">Phone</h5>
                                         </div>
-                                        <div className="col-auto"><a href="tel:+1234567890">+1234567890</a></div>
+                                        <div className="col-auto"><a href="tel:+1234567890">{formData.so_dien_thoai || ''}</a></div>
                                     </div>
                                 </div>
                             </div>
@@ -138,109 +259,133 @@ function Profile() {
                         </ul>
                     </div>
                     <div className="tab-content" id="profileTabContent">
+
                         <div className="tab-pane fade show active" id="tab-personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
                             <div className="row gx-3 gy-4 mb-5">
-                                <div className="col-12 col-lg-6"><label className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm" htmlFor="fullName">Full name</label><input className="form-control" id="fullName" type="text" placeholder="Full name" /></div>
-                                <div className="col-12 col-lg-6"><label className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm" htmlFor="gender">Gender</label><select className="form-select" id="gender">
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="non-binary">Non-binary</option>
-                                    <option value="not-to-say">Prefer not to say</option>
-                                </select></div>
-                                <div className="col-12 col-lg-6"><label className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm" htmlFor="email">Email</label><input className="form-control" id="email" type="text" placeholder="Email" /></div>
                                 <div className="col-12 col-lg-6">
-                                    <div className="row g-2 gy-lg-0"><label className="form-label text-body-highlight fs-8 ps-1 text-capitalize lh-sm mb-1">Date of birth</label>
-                                        <div className="col-6 col-sm-2 col-lg-3 col-xl-2"><select className="form-select" id="date">
-                                            <option value={1}>1</option>
-                                            <option value={2}>2</option>
-                                            <option value={3}>3</option>
-                                            <option value={4}>4</option>
-                                            <option value={5}>5</option>
-                                            <option value={6}>6</option>
-                                            <option value={7}>7</option>
-                                            <option value={8}>8</option>
-                                            <option value={9}>9</option>
-                                            <option value={10}>10</option>
-                                            <option value={11}>11</option>
-                                            <option value={12}>12</option>
-                                            <option value={13}>13</option>
-                                            <option value={14}>14</option>
-                                            <option value={15}>15</option>
-                                            <option value={16}>16</option>
-                                            <option value={17}>17</option>
-                                            <option value={18}>18</option>
-                                            <option value={19}>19</option>
-                                            <option value={20}>20</option>
-                                            <option value={21}>21</option>
-                                            <option value={22}>22</option>
-                                            <option value={23}>23</option>
-                                            <option value={24}>24</option>
-                                            <option value={25}>25</option>
-                                            <option value={26}>26</option>
-                                            <option value={27}>27</option>
-                                            <option value={28}>28</option>
-                                            <option value={29}>29</option>
-                                            <option value={30}>30</option>
-                                        </select></div>
-                                        <div className="col-6 col-sm-2 col-lg-3 col-xl-2"><select className="form-select" id="month">
-                                            <option value="Jan">Jan</option>
-                                            <option value="Feb">Feb</option>
-                                            <option value="Mar">Mar</option>
-                                            <option value="Apr">Apr</option>
-                                            <option value="May">May</option>
-                                            <option value="Jun">Jun</option>
-                                            <option value="Jul">Jul</option>
-                                            <option value="Aug">Aug</option>
-                                            <option value="Sep">Sep</option>
-                                            <option value="Oct">Oct</option>
-                                            <option value="Nov">Nov</option>
-                                            <option value="Dec">Dec</option>
-                                        </select></div>
-                                        <div className="col-12 col-sm-8 col-lg-6 col-xl-8"><select className="form-select" id="year">
-                                            <option value={1990}>1990</option>
-                                            <option value={1991}>1991</option>
-                                            <option value={1992}>1992</option>
-                                            <option value={1993}>1993</option>
-                                            <option value={1994}>1994</option>
-                                            <option value={1995}>1995</option>
-                                            <option value={1996}>1996</option>
-                                            <option value={1997}>1997</option>
-                                            <option value={1998}>1998</option>
-                                            <option value={1999}>1999</option>
-                                            <option value={2000}>2000</option>
-                                            <option value={2001}>2001</option>
-                                            <option value={2002}>2002</option>
-                                            <option value={2003}>2003</option>
-                                            <option value={2004}>2004</option>
-                                            <option value={2005}>2005</option>
-                                            <option value={2006}>2006</option>
-                                            <option value={2007}>2007</option>
-                                            <option value={2008}>2008</option>
-                                            <option value={2009}>2009</option>
-                                            <option value={2010}>2010</option>
-                                            <option value={2011}>2011</option>
-                                            <option value={2012}>2012</option>
-                                            <option value={2013}>2013</option>
-                                            <option value={2014}>2014</option>
-                                            <option value={2015}>2015</option>
-                                            <option value={2016}>2016</option>
-                                            <option value={2017}>2017</option>
-                                            <option value={2018}>2018</option>
-                                            <option value={2019}>2019</option>
-                                            <option value={2020}>2020</option>
-                                            <option value={2021}>2021</option>
-                                            <option value={2022}>2022</option>
-                                        </select></div>
+                                    <label className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm" htmlFor="fullName">Full name</label>
+                                    <input
+                                        className="form-control"
+                                        id="fullName"
+                                        type="text"
+                                        placeholder="Full name"
+                                        value={formData.ho_ten}
+                                        onChange={(e) => setFormData({ ...formData, ho_ten: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="col-12 col-lg-6">
+                                    <label className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm" htmlFor="gender">Gender</label>
+                                    <select
+                                        className="form-select"
+                                        id="gender"
+                                        value={formData.gioi_tinh}
+                                        onChange={(e) => setFormData({ ...formData, gioi_tinh: e.target.value })}
+                                    >
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="non-binary">Non-binary</option>
+                                        <option value="not-to-say">Prefer not to say</option>
+                                    </select>
+                                </div>
+
+                                <div className="col-12 col-lg-6">
+                                    <label className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm" htmlFor="email">Email</label>
+                                    <input
+                                        className="form-control"
+                                        id="email"
+                                        type="text"
+                                        placeholder="Email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="col-12 col-lg-6">
+                                    <div className="row g-2 gy-lg-0">
+                                        <label className="form-label text-body-highlight fs-8 ps-1 text-capitalize lh-sm mb-1">Date of birth</label>
+                                        <div className="col-6 col-sm-2 col-lg-3 col-xl-2">
+                                            <select
+                                                className="form-select"
+                                                id="date"
+                                                value={formData.ngay}
+                                                onChange={(e) => setFormData({ ...formData, ngay: e.target.value })}
+                                            >
+                                                {[...Array(31).keys()].map(i => (
+                                                    <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="col-6 col-sm-2 col-lg-3 col-xl-2">
+                                            <select
+                                                className="form-select"
+                                                id="month"
+                                                value={formData.thang}
+                                                onChange={(e) => setFormData({ ...formData, thang: e.target.value })}
+                                            >
+                                                <option value="01">Jan</option>
+                                                <option value="02">Feb</option>
+                                                <option value="03">Mar</option>
+                                                <option value="04">Apr</option>
+                                                <option value="05">May</option>
+                                                <option value="06">Jun</option>
+                                                <option value="07">Jul</option>
+                                                <option value="08">Aug</option>
+                                                <option value="09">Sep</option>
+                                                <option value="10">Oct</option>
+                                                <option value="11">Nov</option>
+                                                <option value="12">Dec</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="col-12 col-sm-8 col-lg-6 col-xl-8">
+                                            <select
+                                                className="form-select"
+                                                id="year"
+                                                value={formData.nam}
+                                                onChange={(e) => setFormData({ ...formData, nam: e.target.value })}
+                                            >
+                                                {years.map(year => (
+                                                    <option key={year} value={year}>{year}</option>
+                                                ))}
+                                                {/* More years can be added dynamically if needed */}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="col-12 col-lg-6"><label className="form-label text-body-highlight fw-bold fs-8 ps-0 text-capitalize lh-sm" htmlFor="phone">Phone</label><input className="form-control" id="phone" type="text" placeholder={+1234567890} /></div>
-                                <div className="col-12 col-lg-6"><label className="form-label text-body-highlight fw-bold fs-8 ps-0 text-capitalize lh-sm" htmlFor="alternative_phone">Alternative phone</label><input className="form-control" id="alternative_phone" type="text" placeholder={+1234567890} /></div>
-                                <div className="col-12 col-lg-4"><label className="form-label text-body-highlight fw-bold fs-8 ps-0 text-capitalize lh-sm" htmlFor="facebook">Facebook</label><input className="form-control" id="facebook" type="text" placeholder="Facebook" /></div>
-                                <div className="col-12 col-lg-4"><label className="form-label text-body-highlight fw-bold fs-8 ps-0 text-capitalize lh-sm" htmlFor="instagram">Instagram</label><input className="form-control" id="instagram" type="text" placeholder="Instagram" /></div>
-                                <div className="col-12 col-lg-4"><label className="form-label text-body-highlight fw-bold fs-8 ps-0 text-capitalize lh-sm" htmlFor="twitter">Twitter</label><input className="form-control" id="twitter" type="text" placeholder="Twitter" /></div>
+
+                                <div className="col-12 col-lg-6">
+                                    <label className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm" htmlFor="address">Address</label>
+                                    <input
+                                        className="form-control"
+                                        id="address"
+                                        type="text"
+                                        placeholder="Address"
+                                        value={formData.dia_chi}
+                                        onChange={(e) => setFormData({ ...formData, dia_chi: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="col-12 col-lg-6">
+                                    <label className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm" htmlFor="phone">Phone</label>
+                                    <input
+                                        className="form-control"
+                                        id="phone"
+                                        type="text"
+                                        placeholder="Phone"
+                                        value={formData.dien_thoai}
+                                        onChange={(e) => setFormData({ ...formData, dien_thoai: e.target.value })}
+                                    />
+                                </div>
+
                             </div>
-                            <div className="text-end"><button className="btn btn-primary px-7">Save changes</button></div>
+                            <div className="text-end">
+                                <button className="btn btn-primary px-7">Save changes</button>
+                            </div>
                         </div>
+
+
                         <div className="tab-pane fade" id="tab-orders" role="tabpanel" aria-labelledby="orders-tab">
                             <div className="border-top border-bottom border-translucent" id="profileOrdersTable" data-list="{&quot;valueNames&quot;:[&quot;order&quot;,&quot;status&quot;,&quot;delivery&quot;,&quot;date&quot;,&quot;total&quot;],&quot;page&quot;:6,&quot;pagination&quot;:true}">
                                 <div className="table-responsive scrollbar">
