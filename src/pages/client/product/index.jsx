@@ -6,13 +6,13 @@ import { toast } from "react-toastify";
 const Shop = () => {
     document.title = "Hypertech Store - Cửa hàng";
 
-    const [userId] = useState(() => localStorage.getItem('userId'));
+    // const [userId] = useState(() => localStorage.getItem('userId'));
     const [products, setProducts] = useState([]);
     const [wishlist, setWishlist] = useState(new Set());
 
     const [newProducts, setNewProducts] = useState([]);
     const [saleProducts, setSaleProducts] = useState([]);
-    
+
 
     const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -104,8 +104,6 @@ const Shop = () => {
     };
 
 
-
-
     // Hàm để lấy sản phẩm mới
     const fetchNewProducts = async () => {
         try {
@@ -156,6 +154,42 @@ const Shop = () => {
             return `${totalHours}h ${minutes}m ${seconds}s`;
         }
     };
+    
+    const storedUserInfo = sessionStorage.getItem("userInfo");
+    const user = JSON.parse(storedUserInfo);
+    const userId = user.id;
+    
+    const [isInWishlist, setIsInWishlist] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleAddToWishlist = async (sanPhamId) => {
+        setLoading(true);
+    
+        try {
+            const response = await axios.post('http://127.0.0.1:8000/api/danh-sach-yeu-thich/addWishlist', {
+                khach_hang_id: userId,
+                san_pham_id: sanPhamId
+            });
+            console.log(response);
+            
+    
+            if (response.data.message) {
+                // Hiển thị thông điệp thành công từ API
+                toast.success(response.data.message);
+            }
+    
+            // Nếu sản phẩm đã được thêm vào danh sách yêu thích
+            if (response.data.message === 'Sản phẩm đã được thêm vào danh sách yêu thích.') {
+                setIsInWishlist(true);  // Đánh dấu là sản phẩm đã được thêm vào danh sách yêu thích
+            }
+        } catch (err) {
+            // Hiển thị thông điệp lỗi nếu có từ API
+            toast.error(err.response?.data?.message || 'Có lỗi xảy ra.');
+        } finally {
+            setLoading(false);
+        }
+    };
+    
 
 
     return (
@@ -374,10 +408,18 @@ const Shop = () => {
                                                     <div className="d-flex flex-column justify-content-between h-100">
                                                         <div>
                                                             <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                                                                <button className="btn btn-wish btn-wish-primary z-2 d-toggle-container" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to wishlist">
-                                                                    <span className="fas fa-heart d-block-hover" data-fa-transform="down-1" />
-                                                                    <span className="far fa-heart d-none-hover" data-fa-transform="down-1" />
+                                                                <button
+                                                                    className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${isInWishlist ? 'active' : ''}`}
+                                                                    data-bs-toggle="tooltip"
+                                                                    data-bs-placement="top"
+                                                                    title={isInWishlist ? 'Đã có trong danh sách yêu thích' : 'Thêm vào danh sách yêu thích'}
+                                                                    onClick={() => handleAddToWishlist(product.id)} 
+                                                                    disabled={loading}
+                                                                >
+                                                                    <span className={`fas fa-heart d-block-hover ${isInWishlist ? 'd-none' : ''}`} data-fa-transform="down-1" />
+                                                                    <span className={`far fa-heart d-none-hover ${!isInWishlist ? 'd-block' : ''}`} data-fa-transform="down-1" />
                                                                 </button>
+
                                                                 <img className="img-fluid" src={product.duong_dan_anh} alt={product.ten_san_pham} />
                                                                 {label && (
                                                                     <span className="badge text-bg-success fs-10 product-verified-badge">
