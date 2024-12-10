@@ -33,6 +33,7 @@ const LoginPage = () => {
       console.log(data); // Log nội dung JSON nhận được từ API
       if (response.ok) {
         const userData = {
+          id: data.user.id,
           ten_nguoi_dung: data.user.ten_nguoi_dung,
           email: data.user.email,
           hinh_anh: data.user.hinh_anh,

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ToastContainer, toast } from 'react-toastify';
 import { FaArrowTurnUp } from "react-icons/fa6";
 
 import avatar from "../../../assets/img/team/15.webp";
@@ -14,38 +15,26 @@ import product17 from '../../../assets/img/products/17.png';
 function Profile() {
     document.title = "Hypertech Store - Sản phẩm yêu thích";
     const [viewAll, setViewAll] = useState(false); // Quản lý trạng thái View All / View Less
-    const [currentPage, setCurrentPage] = useState(1); // Quản lý trang hiện tại
 
     const handleViewToggle = () => {
         setViewAll(!viewAll);
         setCurrentPage(1); // Quay lại trang đầu khi chuyển đổi View All / View Less
     };
 
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
-    };
+    const numberFormat = new Intl.NumberFormat('vi-VN', {
+        style: 'decimal', // Sử dụng kiểu "decimal" thay vì "currency"
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
 
 
     const totalItems = 9; // Total number of products
     const itemsPerPage = viewAll ? totalItems : 5; // View All shows all products, View Less shows 5
-    const totalPages = Math.ceil(totalItems / itemsPerPage); // Calculate the number of pages
 
-    const products = [
-        { image: product1, name: 'Fitbit Sense Advanced Smartwatch', color: 'Pure matte black', size: '42', price: '$57' },
-        { image: product7, name: '2021 Apple 12.9-inch iPad Pro', color: 'Black', size: 'Pro', price: '$1,499' },
-        { image: product6, name: 'PlayStation 5 DualSense Wireless Controller', color: 'White', size: 'Regular', price: '$299' },
-        { image: product3, name: 'Apple MacBook Pro 13 inch-M1-8/256GB-space', color: 'Space Gray', size: 'Pro', price: '$1,699' },
-        { image: product4, name: 'Apple iMac 24" 4K Retina Display', color: 'Ocean Blue', size: '21"', price: '$65' },
-        { image: product10, name: 'Apple Magic Mouse (Wireless, Rechargable)', color: 'White', size: 'Regular', price: '$30' },
-        { image: product8, name: 'Amazon Basics Matte Black Wired Keyboard', color: 'Black', size: 'MD', price: '$40' },
-        { image: product12, name: 'HORI Racing Wheel Apex for PlayStation 4', color: 'Black', size: '45', price: '$130' },
-        { image: product17, name: 'Xbox Series S', color: 'Space Gray', size: 'sm', price: '$300' }
-    ];
-
-    const visibleProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage); // Get the products for the current page
 
     const [activePanel, setActivePanel] = useState("my-account-1");
-    const userId = localStorage.getItem('userId');
+
+    const storedUserInfo = sessionStorage.getItem("userInfo");
 
     const [isLoading, setIsLoading] = useState(true); // Loading state
     const [profileData, setProfileData] = useState({});
@@ -62,14 +51,8 @@ function Profile() {
         nam: "",
         mat_khau: "",
     });
-
-    const [oldPassword, setOldPassword] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-
-    const togglePanel = (panelId) => {
-        setActivePanel(activePanel === panelId ? "" : panelId);
-    };
+    const user = JSON.parse(storedUserInfo);
+    const userId = user.id;
 
     // Fetch user data when component mounts
     useEffect(() => {
@@ -108,6 +91,7 @@ function Profile() {
         };
         fetchProfileData();
     }, []);
+
     // Handle form data change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -151,6 +135,63 @@ function Profile() {
     };
     const years = Array.from({ length: 2025 - 1990 + 1 }, (v, i) => 1990 + i);
 
+
+    //danh sách yêu thích
+    const [products, setProducts] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 5;
+    const [wishlistCount, setWishlistCount] = useState(0);
+
+    useEffect(() => {
+        fetch(`http://127.0.0.1:8000/api/danh-sach-yeu-thich/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                const productList = data.map(item => ({
+                    image: item.san_pham.duong_dan_anh,
+                    name: item.san_pham.ten_san_pham,
+                    price: parseFloat(item.san_pham.gia),
+                    stock: item.san_pham.so_luong_ton_kho,
+                    id: item.san_pham_id,
+                }));
+                setProducts(productList);
+                setWishlistCount(productList.length);
+            })
+            .catch(error => console.error('Error fetching wishlist data:', error));
+    }, [userId]);
+
+    // Pagination logic
+    const totalPages = Math.ceil(products.length / productsPerPage);
+    const visibleProducts = products.slice(
+        (currentPage - 1) * productsPerPage,
+        currentPage * productsPerPage
+    );
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const removeFromWishlist = (productId) => {
+        fetch(`http://127.0.0.1:8000/api/danh-sach-yeu-thich/destroy`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                khach_hang_id: userId, // Send userId in the body
+                san_pham_id: productId, // Send productId in the body
+            }),
+        })
+            .then(response => {
+                if (response.ok) {
+                    setProducts(prevProducts => prevProducts.filter(product => product.id !== productId)); // Remove product from list
+                    setWishlistCount((prevCount) => prevCount - 1);
+                    toast.success('Bạn đã xóa thành công sản phẩm yêu thích!');
+                } else {
+                    console.error('Failed to remove product from wishlist');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    };
 
 
     return (
@@ -242,7 +283,7 @@ function Profile() {
                                         <div className="col-auto">
                                             <h5 className="text-body-highlight mb-0">Phone</h5>
                                         </div>
-                                        <div className="col-auto"><a href="tel:+1234567890">{formData.so_dien_thoai || ''}</a></div>
+                                        <div className="col-auto"><a href="tel:+1234567890">{formData.dien_thoai || ''}</a></div>
                                     </div>
                                 </div>
                             </div>
@@ -255,11 +296,10 @@ function Profile() {
                             <li className="nav-item"><a className="nav-link text-nowrap active" id="personal-info-tab" data-bs-toggle="tab" href="#tab-personal-info" role="tab" aria-controls="tab-personal-info" aria-selected="true"><span className="fas fa-user me-2" />Personal info</a></li>
                             <li className="nav-item me-3"><a className="nav-link text-nowrap" id="orders-tab" data-bs-toggle="tab" href="#tab-orders" role="tab" aria-controls="tab-orders" aria-selected="true"><span className="fas fa-shopping-cart me-2" />Orders <span className="text-body-tertiary fw-normal"> (35)</span></a></li>
                             <li className="nav-item me-3"><a className="nav-link text-nowrap" id="reviews-tab" data-bs-toggle="tab" href="#tab-reviews" role="tab" aria-controls="tab-orders" aria-selected="true"><span className="fas fa-star me-2" />Reviews<span className="text-body-tertiary fw-normal"> (24)</span></a></li>
-                            <li className="nav-item me-3"><a className="nav-link text-nowrap" id="wishlist-tab" data-bs-toggle="tab" href="#tab-wishlist" role="tab" aria-controls="tab-orders" aria-selected="true"><span className="fas fa-heart me-2" />Wishlist<span className="text-body-tertiary fw-normal"> (9)</span></a></li>
+                            <li className="nav-item me-3"><a className="nav-link text-nowrap" id="wishlist-tab" data-bs-toggle="tab" href="#tab-wishlist" role="tab" aria-controls="tab-orders" aria-selected="true"><span className="fas fa-heart me-2" />Wishlist <span className="text-body-tertiary fw-normal"> ({wishlistCount})</span></a></li>
                         </ul>
                     </div>
                     <div className="tab-content" id="profileTabContent">
-
                         <div className="tab-pane fade show active" id="tab-personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
                             <div className="row gx-3 gy-4 mb-5">
                                 <div className="col-12 col-lg-6">
@@ -282,10 +322,8 @@ function Profile() {
                                         value={formData.gioi_tinh}
                                         onChange={(e) => setFormData({ ...formData, gioi_tinh: e.target.value })}
                                     >
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="non-binary">Non-binary</option>
-                                        <option value="not-to-say">Prefer not to say</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
                                     </select>
                                 </div>
 
@@ -384,7 +422,6 @@ function Profile() {
                                 <button className="btn btn-primary px-7">Save changes</button>
                             </div>
                         </div>
-
 
                         <div className="tab-pane fade" id="tab-orders" role="tabpanel" aria-labelledby="orders-tab">
                             <div className="border-top border-bottom border-translucent" id="profileOrdersTable" data-list="{&quot;valueNames&quot;:[&quot;order&quot;,&quot;status&quot;,&quot;delivery&quot;,&quot;date&quot;,&quot;total&quot;],&quot;page&quot;:6,&quot;pagination&quot;:true}">
@@ -694,159 +731,85 @@ function Profile() {
                                 </div>
                             </div>
                         </div>
+
                         <div className="tab-pane fade" id="tab-wishlist" role="tabpanel" aria-labelledby="wishlist-tab">
-                            <div className="border-y border-translucent" id="productWishlistTable" data-list="{&quot;valueNames&quot;:[&quot;products&quot;,&quot;color&quot;,&quot;size&quot;,&quot;price&quot;,&quot;quantity&quot;,&quot;total&quot;],&quot;page&quot;:5,&quot;pagination&quot;:true}">
+                            <div className="border-y border-translucent" id="productWishlistTable">
                                 <div className="table-responsive scrollbar">
                                     <table className="table fs-9 mb-0">
-                                        <thead >
+                                        <thead>
                                             <tr>
-                                                <th
-                                                    className="align-middle"
-                                                    scope="col"
-                                                    data-sort="image"
-                                                    style={{ width: '8%' }}
-                                                >
-                                                    IMAGE
-                                                </th>
-                                                <th
-                                                    className="white-space-nowrap align-middle"
-                                                    scope="col"
-                                                    style={{ width: '35%', minWidth: 250 }}
-                                                    data-sort="products"
-                                                >
-                                                    PRODUCTS
-                                                </th>
-                                                <th
-                                                    className="align-middle"
-                                                    scope="col"
-                                                    data-sort="color"
-                                                    style={{ width: '10%' }}
-                                                >
-                                                    COLOR
-                                                </th>
-                                                <th
-                                                    className="align-middle"
-                                                    scope="col"
-                                                    data-sort="size"
-                                                    style={{ width: '8%' }}
-                                                >
-                                                    SIZE
-                                                </th>
-                                                <th
-                                                    className="align-middle text-body"
-                                                    scope="col"
-                                                    data-sort="price"
-                                                    style={{ width: '8%' }}
-                                                >
-                                                    PRICE
-                                                </th>
-                                                <th
-                                                    className="align-middle text-body"
-                                                    scope="col"
-                                                    style={{
-                                                        width: '20%',
-                                                        textAlign: 'center', // Đảm bảo căn giữa văn bản trong th
-                                                        justifyContent: 'center', // Căn giữa theo chiều ngang
-                                                        alignItems: 'center'
-                                                    }}
-                                                >
-                                                    ACTION
-                                                </th>
-
+                                                <th style={{ width: '8%' }}>IMAGE</th>
+                                                <th style={{ width: '35%' }}>PRODUCTS</th>
+                                                <th style={{ width: '8%' }}>PRICE</th>
+                                                <th style={{ width: '20%', textAlign: 'center' }}>ACTION</th>
                                             </tr>
                                         </thead>
-
-                                        <tbody className="list" id="profile-wishlist-table-body" >
+                                        <tbody>
                                             {visibleProducts.map((product, index) => (
-                                                <tr key={index} className="hover-actions-trigger btn-reveal-trigger position-static">
-                                                    <td className="align-middle white-space-nowrap ps-0 py-0">
-                                                        <a className="border border-translucent rounded-2 d-inline-block" href="product-details.html">
-                                                            <img src={product.image} alt={product.name} width={55} />
-                                                        </a>
+                                                <tr key={index}>
+                                                    <td>
+                                                        <img
+                                                            src={product.image}
+                                                            alt={product.name}
+                                                            width={55}
+                                                            className="rounded-2"
+                                                        />
                                                     </td>
-                                                    <td className="products align-middle">
-                                                        <a className="fw-semibold mb-0 line-clamp-1" href="product-details.html">{product.name}</a>
+                                                    <td>
+                                                        <span className="fw-semibold">{product.name}</span>
                                                     </td>
-                                                    <td className="color align-middle fs-9 text-body">{product.color}</td>
-                                                    <td className="size align-middle text-body-tertiary fs-9 fw-semibold">{product.size}</td>
-                                                    <td className="price align-middle text-body fs-9 fw-semibold">{product.price}</td>
-                                                    <td className="total align-middle fw-bold text-body-highlight text-end text-nowrap pe-0">
-                                                        <button className="btn btn-sm text-body-quaternary text-body-tertiary-hover me-2">
-                                                            <span className="fas fa-trash" />
-                                                        </button>
-                                                        <button className="btn btn-primary fs-10">
-                                                            <span className="fas fa-shopping-cart me-1 fs-10" />Add to cart
+                                                    <td>{numberFormat.format(parseFloat(product.price.toFixed(2)))} VNĐ</td>
+                                                    <td className="text-center">
+                                                        <button
+                                                            className="btn btn-sm btn-primary me-2"
+                                                            onClick={() => removeFromWishlist(product.id)} // Gọi hàm xóa
+                                                        >
+                                                            <span className="fas fa-trash" /> Remove
                                                         </button>
                                                     </td>
                                                 </tr>
                                             ))}
+
                                         </tbody>
                                     </table>
-
                                 </div>
 
                                 <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
-                                    <div className="col-auto d-flex">
-                                        <p className="mb-0 d-none d-sm-block me-3 fw-semibold text-body" data-list-info="data-list-info">
-                                            {viewAll
-                                                ? '1 to 9 '
-                                                : currentPage === 1
-                                                    ? '1 to 5 '
-                                                    : '6 to 9 '}
-                                            <span className="text-body-tertiary"> Items of </span>
-                                            {totalItems}
+                                    <div className="col-auto">
+                                        <p className="mb-0">
+                                            Showing {products.length === 0 ? 0 : (currentPage - 1) * productsPerPage + 1} to{' '}
+                                            {Math.min(currentPage * productsPerPage, products.length)} of {products.length} items
                                         </p>
-                                        <a
-                                            className={`fw-semibold ${viewAll ? 'd-none' : ''}`}
-                                            href="#!"
-                                            data-list-view="*"
-                                            onClick={handleViewToggle}
-                                        >
-                                            View all<span className="fas fa-angle-right ms-1" data-fa-transform="down-1" />
-                                        </a>
-                                        <a
-                                            className={`fw-semibold ${viewAll ? '' : 'd-none'}`}
-                                            href="#!"
-                                            data-list-view="less"
-                                            onClick={handleViewToggle}
-                                        >
-                                            View Less<span className="fas fa-angle-right ms-1" data-fa-transform="down-1" />
-                                        </a>
                                     </div>
                                     <div className="col-auto d-flex">
                                         <button
-                                            className={`page-link ${currentPage === 1 ? 'disabled' : ''}`}
-                                            data-list-pagination="prev"
-                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            className="btn btn-sm btn-outline-primary"
                                             disabled={currentPage === 1}
+                                            onClick={() => handlePageChange(currentPage - 1)}
                                         >
-                                            <span className="fas fa-chevron-left" />
+                                            Prev
                                         </button>
-                                        <ul className="mb-0 pagination">
-                                            {[...Array(totalPages)].map((_, index) => (
-                                                <li key={index} className={currentPage === index + 1 ? 'active' : ''}>
-                                                    <button
-                                                        className="page"
-                                                        type="button"
-                                                        onClick={() => handlePageChange(index + 1)}
-                                                    >
-                                                        {index + 1}
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                        {[...Array(totalPages)].map((_, index) => (
+                                            <button
+                                                key={index}
+                                                className={`btn btn-sm ${currentPage === index + 1 ? 'btn-primary' : 'btn-outline-primary'}`}
+                                                onClick={() => handlePageChange(index + 1)}
+                                            >
+                                                {index + 1}
+                                            </button>
+                                        ))}
                                         <button
-                                            className={`page-link ${currentPage === totalPages ? 'disabled' : ''}`}
-                                            data-list-pagination="next"
-                                            onClick={() => handlePageChange(currentPage + 1)}
+                                            className="btn btn-sm btn-outline-primary"
                                             disabled={currentPage === totalPages}
+                                            onClick={() => handlePageChange(currentPage + 1)}
                                         >
-                                            <span className="fas fa-chevron-right" />
+                                            Next
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>{/* end of .container*/}
