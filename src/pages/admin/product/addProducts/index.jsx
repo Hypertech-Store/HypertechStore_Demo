@@ -1,132 +1,6 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
 import React, { useState, useEffect } from "react";
 const AddProducts = () => {
-  const [categories, setCategories] = useState([]);
-  const [subCategories, setSubCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  //call api get Categories
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/danh-muc/getAll", {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setCategories(data); // Đảm bảo API trả về danh sách phù hợp
-      } else {
-        console.error("Failed to fetch categories:", data);
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
-
-  // get sub categori
-  const fetchSubCategories = async (categoryId) => {
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/danh-muc-con/${categoryId}`, {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setSubCategories(data.data);
-      } else {
-        console.error("Failed to fetch subcategories:", data);
-      }
-    } catch (error) {
-      console.error("Error fetching subcategories:", error);
-    }
-  };
-
-  const handleCategoryChange = (e) => {
-    const categoryId = e.target.value;
-    setSelectedCategory(categoryId);
-    setFormData({
-      ...formData,
-      danh_muc_id: categoryId,
-      danh_muc_con_id: "", // Reset danh mục con khi thay đổi danh mục
-    });
-    fetchSubCategories(categoryId);
-  };
-
-  const [formData, setFormData] = useState({
-    danh_muc_id: "",
-    danh_muc_con_id: "",
-    ten_san_pham: "",
-    mo_ta: "",
-    gia: "",
-    so_luong_ton_kho: "",
-    image: null,
-    luot_xem: "",
-  });
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleFileChange = (e) => {
-    // Make sure to append the file to the FormData object.
-    setFormData({ ...formData, image: e.target.files[0] });
-    console.log(e.target.files[0]); // Ensure file is selected correctly
-  };
-  
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
-    const token = "YOUR_ACCESS_TOKEN"; // Replace with actual token
-    const form = new FormData();
-    
-    // Append form data including the image file
-    Object.keys(formData).forEach((key) => {
-      if (key === "image" && formData[key]) {
-        // If the field is an image, append as a file
-        form.append(key, formData[key]);
-      } else if (key !== "image") {
-        // For non-image fields, just append them normally
-        form.append(key, formData[key]);
-      }
-    });
-  
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/san-pham/create", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: form, // Send the form data with the image
-      });
-  
-      const result = await response.json();
-  
-      if (response.ok) {
-        alert("Sản phẩm đã được tạo thành công!");
-        console.log(result);
-      } else {
-        console.error("Lỗi:", result);
-        alert("Không thể tạo sản phẩm, vui lòng kiểm tra lại.");
-      }
-    } catch (error) {
-      console.error("Lỗi kết nối:", error);
-      alert("Đã xảy ra lỗi, vui lòng thử lại.");
-    }
-  };
-
-
   const navbarTopShape = window.config?.config?.phoenixNavbarTopShape;
   const navbarPosition = window.config?.config?.phoenixNavbarPosition;
 
@@ -221,6 +95,152 @@ const AddProducts = () => {
   if (navbarVerticalStyle === "darker") {
     navbarVertical?.setAttribute("data-navbar-appearance", "darker");
   }
+
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  //call api get Categories
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/danh-muc/getAll",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setCategories(data); // Đảm bảo API trả về danh sách phù hợp
+      } else {
+        console.error("Failed to fetch categories:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  // get sub categori
+  const fetchSubCategories = async (categoryId) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/danh-muc-con/${categoryId}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setSubCategories(data.data);
+      } else {
+        console.error("Failed to fetch subcategories:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+    }
+  };
+
+  const handleCategoryChange = (e) => {
+    const categoryId = e.target.value;
+    setSelectedCategory(categoryId);
+    setFormData({
+      ...formData,
+      danh_muc_id: categoryId,
+      danh_muc_con_id: "", // Reset danh mục con khi thay đổi danh mục
+    });
+    fetchSubCategories(categoryId);
+  };
+
+  const [formData, setFormData] = useState({
+    danh_muc_id: "",
+    danh_muc_con_id: "",
+    ten_san_pham: "",
+    mo_ta: "",
+    gia: "",
+    so_luong_ton_kho: "",
+    image: null,
+    luot_xem: "0",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, image: file });
+      console.log("Selected file:", file);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setFormData({ ...formData, image: file });
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const form = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (key === "image" && formData[key]) {
+        form.append(key, formData[key]);
+      } else if (key !== "image") {
+        form.append(key, formData[key]);
+      }
+    });
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/san-pham/create",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          body: form, // FormData chứa dữ liệu sản phẩm
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Sản phẩm đã được tạo thành công!");
+        console.log(result);
+      } else {
+        console.error("Lỗi:", result);
+        alert("Không thể tạo sản phẩm, vui lòng kiểm tra lại.");
+      }
+    } catch (error) {
+      console.error("Lỗi kết nối:", error);
+      alert("Đã xảy ra lỗi, vui lòng thử lại.");
+    }
+  };
+
   return (
     <>
       <div className="content">
@@ -255,11 +275,11 @@ const AddProducts = () => {
               <input
                 type="text"
                 name="ten_san_pham"
-                className="form-control" thêm
+                className="form-control"
                 placeholder="Nhập tên sản phẩm"
                 onChange={handleInputChange}
               />
-              <div className="mb-6">
+              <div className="mb-6 mt-5">
                 <h4 className="mb-3">Mô tả sản phẩm</h4>
 
                 <textarea
@@ -273,44 +293,36 @@ const AddProducts = () => {
               <h4 className="mb-3">Display images</h4>
               <div
                 className="dropzone dropzone-multiple p-0 mb-5"
-                id="my-awesome-dropzone"
-                data-dropzone="data-dropzone"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
+                style={{
+                  border: "2px dashed #ccc",
+                  padding: "20px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                }}
               >
-                <div className="fallback">
-                <input type="file" name="image" className="form-control" accept="image/*" onChange={handleFileChange} />
-                </div>
-                <div className="dz-preview d-flex flex-wrap">
+                {formData.image ? (
                   <div
                     className="border border-translucent bg-body-emphasis rounded-3 d-flex flex-center position-relative me-2 mb-2"
                     style={{ height: 80, width: 80 }}
                   >
                     <img
-                      className="dz-image"
-                      src="../../../assets/img/products/23.png"
-                      alt="..."
-                      data-dz-thumbnail="data-dz-thumbnail"
+                      src={URL.createObjectURL(formData.image)}
+                      alt="Preview"
+                      style={{ maxWidth: "100%", maxHeight: "100%" }}
                     />
-                    <a
-                      className="dz-remove text-body-quaternary"
-                      href="#!"
-                      data-dz-remove="data-dz-remove"
-                    >
-                      <span data-feather="x" />
-                    </a>
                   </div>
-                </div>
-                <div
-                  className="dz-message text-body-tertiary text-opacity-85"
-                  data-dz-message="data-dz-message"
-                >
-                  Drag your photo here
-                  <span className="text-body-secondary px-1">or</span>
-                  <button className="btn btn-link p-0" type="button">
-                    Browse from device
-                  </button>
-                  <br />
-                  <img className="mt-3 me-2" src={icon} width={40} alt />
-                </div>
+                ) : (
+                  <p>Drag & drop a file here or click to upload</p>
+                )}
+                <input
+                  id="fileInput"
+                  type="file"
+                  style={{ display: "none" }} // Ẩn input
+                  onChange={handleFileChange}
+                />
               </div>
               <h4 className="mb-3">Inventory</h4>
               <div className="row g-0 border-top border-bottom">
@@ -814,8 +826,10 @@ const AddProducts = () => {
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
-                              <h5 className="mb-0 text-body-highlight me-2">Danh mục</h5>
-                              <a className="fw-bold fs-9" href="#!">
+                              <h5 className="mb-0 text-body-highlight me-2">
+                                Danh mục
+                              </h5>
+                              <a className="fw-bold fs-9" href="them-danh-muc">
                                 Thêm mới danh mục
                               </a>
                             </div>
@@ -840,8 +854,13 @@ const AddProducts = () => {
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
-                              <h5 className="mb-0 text-body-highlight me-2">Danh mục con</h5>
-                              <a className="fw-bold fs-9" href="#!">
+                              <h5 className="mb-0 text-body-highlight me-2">
+                                Danh mục con
+                              </h5>
+                              <a
+                                className="fw-bold fs-9"
+                                href="them-danh-muc-con"
+                              >
                                 Thêm mới danh mục con
                               </a>
                             </div>
@@ -853,7 +872,10 @@ const AddProducts = () => {
                               <option value="">Chọn danh mục con...</option>
                               {subCategories.length > 0 &&
                                 subCategories.map((subCategory) => (
-                                  <option key={subCategory.id} value={subCategory.id}>
+                                  <option
+                                    key={subCategory.id}
+                                    value={subCategory.id}
+                                  >
                                     {subCategory.ten_danh_muc_con}
                                   </option>
                                 ))}
