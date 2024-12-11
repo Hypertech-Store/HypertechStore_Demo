@@ -28,49 +28,286 @@ import review3 from "../../../assets/img/e-commerce/review-13.jpg";
 import review4 from "../../../assets/img/e-commerce/review-14.jpg";
 import review5 from "../../../assets/img/e-commerce/review-15.jpg";
 import review6 from "../../../assets/img/e-commerce/review-16.jpg";
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+
+import { useState, useEffect } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+
+const link = "http://127.0.0.1:8000/storage/";
 
 const ProductDetails = () => {
   document.title = "Hypertech Store - Chi tiết sản phẩm";
 
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const productId = queryParams.get("id");
+  const userId = localStorage.getItem('userId');
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
+  const productId = queryParams.get('id');
+  const [productData, setProductData] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [activeTab, setActiveTab] = useState('des-details1'); // Default tab state
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [allAttributeIds, setAllAttributeIds] = useState([]);
+  const [quantity, setQuantity] = useState(1);  // Để theo dõi số lượng
 
-  const [product, setProduct] = useState(null);
-  const [error, setError] = useState(null);
+  const [remainingTime, setRemainingTime] = useState(null);
+  const [timer, setTimer] = useState(null);
+
+
 
   useEffect(() => {
-    const fetchProductDetail = async () => {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/san-pham/detail/${productId}`
-        );
-        const data = await response.json();
+    // Fetch product details
+    fetch(`http://127.0.0.1:8000/api/san-pham/detail/${productId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const product = data; // Assuming 'data' is the product object
+        console.log('Product data:', product);
 
-        if (data.sanPham) {
-          setProduct(data.sanPham);
-        } else {
-          setError("Product not found");
+        setProductData(product);
+        setSelectedImage({ img: product?.sanPham?.duong_dan_anh, zoomImg: product?.sanPham?.duong_dan_anh });
+
+        const ngayBatDau = new Date(data?.sale?.ngay_bat_dau_sale);
+        const ngayKetThuc = new Date(data?.sale?.ngay_ket_thuc_sale);
+        const now = new Date();
+
+        if (now >= ngayBatDau && now <= ngayKetThuc) {
+          updateRemainingTime(ngayKetThuc); // Initialize countdown
+          const interval = setInterval(() => {
+            updateRemainingTime(ngayKetThuc);
+          }, 1000); // Update every second
+
+          return () => clearInterval(interval); // Cleanup on unmount
         }
-      } catch (err) {
-        setError("Error fetching product details");
-      }
-    };
-
-    if (productId) {
-      fetchProductDetail();
-    }
+      })
+      .catch((error) => console.error('Error fetching product data:', error));
   }, [productId]);
 
-  if (error) {
-    return <div className="container-small">Error: {error}</div>;
-  }
 
-  if (!product) {
-    return <div className="container-small">Loading...</div>;
-  }
+  const updateRemainingTime = (endTime) => {
+    const now = new Date();
+    const difference = endTime - now; // Difference in milliseconds
+    if (difference > 0) {
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setRemainingTime(`${hours}h ${minutes}m ${seconds}s`);
+    }
+  };
+
+
+
+  // Quantity handling functions
+  const handleDecrease = () => {
+    if (quantity > 1) setQuantity(quantity - 1);
+  };
+
+  const handleIncrease = () => {
+    setQuantity(quantity + 1);
+  };
+
+  // Handle tab click
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+  };
+
+  // Toggle description expand/collapse
+  const toggleDescription = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  // Truncate text to a specific character limit
+  const truncateText = (text, wordLimit) => {
+    const words = text.split(" ");
+    if (words.length > wordLimit) {
+      return words.slice(0, wordLimit).join(" ") + "...";
+    }
+    return text;
+  };
+
+  // State to manage the visibility of dropdown sections
+  const [isOpen, setIsOpen] = useState({
+    config: false,
+    camera: false,
+    battery: false,
+    features: false,
+    connectivity: false,
+    design: false,
+  });
+
+  // Hàm thay đổi giá trị thuộc tính
+  // const handleAttributeChange = (attribute, value) => {
+  //     setSelectedAttributes(prevState => {
+  //         const newState = { ...prevState, [attribute]: value };
+
+  //         // Log ra đối tượng selectedAttributes sau khi cập nhật
+  //         console.log("Selected Attributes: ", newState);
+
+  //         return newState;
+  //     });
+  // };
+
+  const handleAttributeChange = (attribute, value, attributeId) => {
+    setSelectedAttributes(prevState => {
+      // Nếu giá trị thuộc tính đã được chọn, reset mảng ID về mảng rỗng trước khi thêm ID mới
+      let updatedAttributeIds = [];
+
+      // Nếu người dùng chọn một giá trị thuộc tính mới, thêm ID vào mảng
+      updatedAttributeIds.push(attributeId);
+
+      // Tạo state mới với mảng attributeIds chứa chỉ ID mới
+      const newState = {
+        ...prevState,
+        [attribute]: value,
+        [`${attribute}_ids`]: updatedAttributeIds
+      };
+
+      // Gộp tất cả các mảng attribute_ids thành một mảng duy nhất
+      const allAttributeIds = Object.values(newState).filter(value => Array.isArray(value)).flat();
+
+      setAllAttributeIds(allAttributeIds);
+
+      console.log("Selected Attributes: ", newState);
+      console.log("All Combined Attribute IDs: ", allAttributeIds);
+
+      return newState;
+    });
+  };
+
+  const handleAddToCartWithVariant = async () => {
+    try {
+      console.log("Mảng biến thể", allAttributeIds);
+
+      const variantResponse = await axios.post('http://127.0.0.1:8000/api/bien-the-san-pham/kiem-tra-bien-the', {
+        attributes: allAttributeIds
+      });
+
+
+      console.log(variantResponse);
+
+      const priceAfterDiscount = productData?.sale_theo_phan_tram
+        ? productData?.sanPham?.gia * (1 - parseFloat(productData?.sale_theo_phan_tram) / 100)
+        : productData?.sanPham?.gia;
+      console.log(priceAfterDiscount);
+
+
+      const giaSanPham = (Math.floor(priceAfterDiscount) + Math.floor(variantResponse.data.bien_the_san_phams[0]?.gia)) * quantity;
+
+      console.log('Variant ID:', variantResponse.data.bien_the_san_phams.id);
+      // console.log('khach_hang_id', userId);
+      // // console.log('gio_hang_id', cartResponse);
+      // console.log('san_pham_id', productId);
+      // console.log('so_luong', quantity);
+      console.log('gia', giaSanPham);
+      // Tiến hành thêm vào giỏ hàng nếu biến thể hợp lệ
+      // const payload = {
+      //     khach_hang_id: userId,
+      //     san_pham_id: productId,
+      //     bien_the_san_pham_id: variantResponse.data.data.id,
+      //     so_luong: quantity,
+      //     gia: giaSanPham
+      // };
+
+      // 2. Gửi yêu cầu thêm sản phẩm vào giỏ hàng
+      // const addToCartResponse = await axios.post('http://127.0.0.1:8000/api/gio-hang/them-san-pham', payload);
+
+      // if (addToCartResponse.status === 200) {
+      //     toast.success('Sản phẩm đã được thêm vào giỏ hàng!');
+      // } else {
+      //     toast.error('Đã có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.');
+      //     console.error('Error:', addToCartResponse.data.message || 'Failed to add product.');
+      // }
+    } catch (error) {
+      toast.error('Đã có lỗi xảy ra. Vui lòng thử lại!');
+      console.error('Error:', error);
+    }
+  };
+
+
+  // Toggle function for dropdown
+  const toggleDropdown = (section) => {
+    setIsOpen(prevState => ({
+      ...prevState,
+      [section]: !prevState[section], // Toggle the specific section
+    }));
+  };
+
+  const styles = {
+    wrapper: {
+      marginTop: '20px',
+    },
+    boxSpecifi: {
+      marginBottom: '15px',
+    },
+    link: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '10px',
+      backgroundColor: '#f4f4f4',
+      color: '#333',
+      cursor: 'pointer',
+      textDecoration: 'none',
+      borderRadius: '10px',
+    },
+    linkHover: {
+      backgroundColor: '#eaeaea',
+    },
+    textSpecifi: {
+      display: 'none',
+      paddingLeft: '20px',
+    },
+    textSpecifiItem: {
+      marginTop: '15px',
+      display: 'flex',
+      justifyContent: 'space-between',  // Đảm bảo thẳng hàng các phần tử theo chiều ngang
+      alignItems: 'center',  // Căn giữa các phần tử theo chiều dọc
+      marginBottom: '10px',
+    },
+    itemLabel: {
+      display: 'inline-block',
+      fontWeight: '600',
+      color: '#344054',
+      paddingRight: '4px',  // Reduced padding-right to bring itemLabel closer to itemValue
+    },
+    itemValue: {
+      fontWeight: 'normal',
+      paddingLeft: '4px',  // Reduced padding-left to bring itemValue closer to itemLabel
+      display: 'flex',      // Chuyển sang flexbox để kiểm soát căn chỉnh các phần tử
+      justifyContent: 'flex-start',  // Căn trái các phần tử trong itemValue
+      alignItems: 'center',  // Căn giữa các phần tử theo chiều dọc
+    },
+
+    itemValueSpan: {
+      marginLeft: '-35pc',  // Thêm margin-left vào span để căn chỉnh với itemLabel
+    },
+
+    activeTextSpecifi: {
+      display: 'block',
+    },
+    icon: {
+      fontSize: '28px', // Kích thước icon lớn hơn
+    },
+    h4: {
+      fontSize: '15px',
+    },
+
+    // New style for a custom divider
+    itemSeparator: {
+      border: 'none',
+      height: '1px',
+      backgroundColor: '#ddd', // Light color for the divider
+      margin: '8px 0',  // Space between items
+      opacity: 0.5,     // Make it slightly transparent for a lighter look
+    },
+  };
+
+  const wordLimit = 40; // Limit to 40 characters
+
+  if (!productData) return <div>Loading...</div>;
+
+  const description = productData?.sanPham?.mo_ta || "No description available.";
   return (
     <>
       <div>
@@ -99,140 +336,53 @@ const ProductDetails = () => {
               >
                 <div className="col-12 col-lg-6">
                   <div className="row g-3 mb-3">
+                    {/* Swiper Thumbnails */}
                     <div className="col-12 col-md-2 col-lg-12 col-xl-2">
                       <div
-                        className="swiper-products-thumb swiper theme-slider overflow-visible swiper-initialized swiper-vertical swiper-backface-hidden swiper-thumbs"
+                        className="swiper-products-thumb swiper theme-slider overflow-visible swiper-vertical"
                         id="swiper-products-thumb"
                       >
                         <div
                           className="swiper-wrapper"
-                          id="swiper-wrapper-56b3ffd4b36810b60"
                           aria-live="polite"
                           style={{ transform: "translate3d(0px, 0px, 0px)" }}
                         >
-                          <div
-                            className="swiper-slide swiper-slide-active swiper-slide-visible swiper-slide-fully-visible swiper-slide-thumb-active"
-                            role="group"
-                            aria-label="1 / 3"
-                            style={{ height: 84, marginBottom: 16 }}
-                          >
-                            <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                              <img src={product.duong_dan_anh} alt />
+                          {productData?.sanPham?.hinh_anh_san_phams.map((item, index) => (
+                            <div
+                              className={`swiper-slide ${index === 0 ? "swiper-slide-active" : ""
+                                }`}
+                              key={item.id}
+                              role="group"
+                              aria-label={`${index + 1} / ${productData?.sanPham?.hinh_anh_san_phams.length}`}
+                              style={{ height: 84, marginBottom: 16 }}
+                            >
+                              <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
+                                <img
+                                  src={`${link}${item?.duong_dan_hinh_anh}`}
+                                  alt={`Product Thumbnail ${index + 1}`}
+                                  className="img-fluid"
+                                />
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            className="swiper-slide swiper-slide-next swiper-slide-visible swiper-slide-fully-visible"
-                            role="group"
-                            aria-label="2 / 3"
-                            style={{ height: 84, marginBottom: 16 }}
-                          >
-                            <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                              <img src={blueBack} alt />
-                            </div>
-                          </div>
-                          <div
-                            className="swiper-slide swiper-slide-visible swiper-slide-fully-visible"
-                            role="group"
-                            aria-label="3 / 3"
-                            style={{ height: 84, marginBottom: 16 }}
-                          >
-                            <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                              <img src={blueFront} alt />
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                        <span
-                          className="swiper-notification"
-                          aria-live="assertive"
-                          aria-atomic="true"
-                        />
                       </div>
                     </div>
+
+                    {/* Main Product Image */}
                     <div className="col-12 col-md-10 col-lg-12 col-xl-10">
                       <div className="d-flex align-items-center border border-translucent rounded-3 text-center p-5 h-100">
-                        <div
-                          className="swiper theme-slider swiper-initialized swiper-horizontal swiper-backface-hidden"
-                          data-thumb-target="swiper-products-thumb"
-                          data-products-swiper='{"slidesPerView":1,"spaceBetween":16,"thumbsEl":".swiper-products-thumb"}'
-                        >
-                          <div
-                            className="swiper-wrapper"
-                            id="swiper-wrapper-25b87b05eda6d6e9"
-                            aria-live="polite"
-                          >
-                            <div
-                              className="swiper-slide swiper-slide-active"
-                              role="group"
-                              aria-label="1 / 3"
-                              style={{ width: 411 }}
-                            >
-                              <img className="w-100" src={product.duong_dan_anh} alt />
-                            </div>
-                            <div
-                              className="swiper-slide swiper-slide-next"
-                              role="group"
-                              aria-label="2 / 3"
-                              style={{ width: 411 }}
-                            >
-                              <img className="w-100" src={blueBack} alt />
-                            </div>
-                            <div
-                              className="swiper-slide "
-                              role="group"
-                              aria-label="3 / 3"
-                              style={{ width: 411 }}
-                            >
-                              <img className="w-100" src={blueFront} alt />
-                            </div>
-                          </div>
-                          <span
-                            className="swiper-notification"
-                            aria-live="assertive"
-                            aria-atomic="true"
-                          />
-                        </div>
+                        <img className="w-100" src={productData?.sanPham?.duong_dan_anh} alt="Main Product" />
                       </div>
                     </div>
                   </div>
+
+                  {/* Buttons */}
                   <div className="d-flex">
                     <button className="btn btn-lg btn-outline-warning rounded-pill w-100 me-3 px-2 px-sm-4 fs-9 fs-sm-8">
-                      <svg
-                        className="svg-inline--fa fa-heart me-2"
-                        aria-hidden="true"
-                        focusable="false"
-                        data-prefix="far"
-                        data-icon="heart"
-                        role="img"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 512 512"
-                        data-fa-i2svg
-                      >
-                        <path
-                          fill="currentColor"
-                          d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
-                        />
-                      </svg>
-                      {/* <span class="me-2 far fa-heart"></span> Font Awesome fontawesome.com */}
                       Add to wishlist
                     </button>
                     <button className="btn btn-lg btn-warning rounded-pill w-100 fs-9 fs-sm-8">
-                      <svg
-                        className="svg-inline--fa fa-cart-shopping me-2"
-                        aria-hidden="true"
-                        focusable="false"
-                        data-prefix="fas"
-                        data-icon="cart-shopping"
-                        role="img"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 576 512"
-                        data-fa-i2svg
-                      >
-                        <path
-                          fill="currentColor"
-                          d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"
-                        />
-                      </svg>
-                      {/* <span class="fas fa-shopping-cart me-2"></span> Font Awesome fontawesome.com */}
                       Add to cart
                     </button>
                   </div>
@@ -333,7 +483,7 @@ const ProductDetails = () => {
                         </p>
                       </div>
                       <h3 className="mb-3 lh-sm">
-                        {product.ten_san_pham}
+                        {productData?.sanPham?.ten_san_pham}
                       </h3>
                       <div className="d-flex flex-wrap align-items-start mb-3">
                         <span className="badge text-bg-success fs-9 rounded-pill me-2 fw-semibold">
@@ -344,14 +494,33 @@ const ProductDetails = () => {
                         </a>
                       </div>
                       <div className="d-flex flex-wrap align-items-center">
-                        <h1 className="me-3">{product.gia}</h1>
-                        <p className="text-body-quaternary text-decoration-line-through fs-6 mb-0 me-3">
-                          {product.gia}
-                        </p>
-                        <p className="text-warning fw-bolder fs-6 mb-0">
-                          10% off
-                        </p>
+                        {productData?.sale_theo_phan_tram ? (
+                          // Nếu có giảm giá, hiển thị giá giảm và giá gốc
+                          <>
+                            <h1 className="me-3">
+                              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
+                                .format(productData?.sanPham?.gia * (1 - (parseFloat(productData?.sale_theo_phan_tram) / 100)))
+                                .replace('₫', 'VNĐ')}
+                            </h1>
+                            <p className="text-body-quaternary text-decoration-line-through fs-6 mb-0 me-3">
+                              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
+                                .format(productData?.sanPham?.gia)
+                                .replace('₫', 'VNĐ')}
+                            </p>
+                            <p className="text-warning fw-bolder fs-6 mb-0">
+                              {parseFloat(productData?.sale_theo_phan_tram).toFixed(0)}% off
+                            </p>
+                          </>
+                        ) : (
+                          // Nếu không có giảm giá, chỉ hiển thị giá gốc
+                          <h1>
+                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
+                              .format(productData?.sanPham?.gia)
+                              .replace('₫', 'VNĐ')}
+                          </h1>
+                        )}
                       </div>
+
                       <p className="text-success fw-semibold fs-7 mb-2">
                         In stock
                       </p>
@@ -372,9 +541,14 @@ const ProductDetails = () => {
                           Gift wrapping is available.
                         </strong>
                       </p>
-                      <p className="text-danger-dark fw-bold mb-5 mb-lg-0">
-                        Special offer ends in 23:00:45 hours
-                      </p>
+
+                      {productData?.sale  ? ( 
+                        <p className="text-danger-dark fw-bold mb-5 mb-lg-0">
+                          Special offer ends in {remainingTime} hours
+                        </p>
+                      ) : null}
+
+
                     </div>
                     <div>
                       <div className="mb-3">
@@ -462,6 +636,7 @@ const ProductDetails = () => {
                           </div>
                         </div>
                       </div>
+                      
                       <div className="row g-3 g-sm-5 align-items-end">
                         <div className="col-12 col-sm-auto">
                           <p className="fw-semibold mb-2 text-body">Size:</p>
@@ -576,7 +751,28 @@ const ProductDetails = () => {
                       aria-labelledby="description-tab"
                     >
                       <p className="mb-5">
-                        {product.mo_ta}
+                        CUPERTINO, CA , The M1 CPU allows Apple to deliver an
+                        all-new iMac with a lot more compact and impressively
+                        thin design. The new iMac delivers tremendous
+                        performance in an 11.5-millimeter-thin design with a
+                        stunning side profile that almost vanishes. iMac
+                        includes a 24-inch 4.5K Retina display with 11.3 million
+                        pixels, 500 nits of brightness, and over a billion
+                        colors, giving a beautiful and vivid viewing experience.
+                        It is available in a variety of striking colors to match
+                        a user's own style and brighten any area. A 1080p
+                        FaceTime HD camera, studio-quality mics, and a
+                        six-speaker sound system are all included in the new
+                        iMac, making it the greatest camera and audio system
+                        ever in a Mac. Touch ID is also making its debut on the
+                        iMac, making it easier than ever to securely log in,
+                        make Apple Pay transactions, and switch user accounts
+                        with the touch of a finger. Apps launch at lightning
+                        speed, everyday chores seem astonishingly fast and
+                        fluid, and demanding workloads like editing 4K video and
+                        working with large photos are faster than ever before
+                        thanks to the power and performance of M1 and macOS Big
+                        Sur.
                       </p>
                       <a href={products} data-gallery="gallery-description">
                         <img
@@ -585,6 +781,26 @@ const ProductDetails = () => {
                           alt
                         />
                       </a>
+                      <p className="mb-0">
+                        The new iMac joins Apple's fantastic M1-powered Mac
+                        family, which includes the MacBook Air, 13-inch MacBook
+                        Pro, and Mac mini, and represents yet another step ahead
+                        in the company's shift to Apple silicon. Customers may
+                        order iMac starting Friday, April 30. It's the most
+                        personal, powerful, capable, and enjoyable it's ever
+                        been. In the second half of May, the iMac will be
+                        available."M1 is a huge step forward for the Mac," said
+                        Greg Joswiak, Apple's senior vice president of Worldwide
+                        Marketing. "Today, we're delighted to present the
+                        all-new iMac, the first Mac developed around the
+                        groundbreaking M1 processor." "The new iMac takes
+                        everything people love about iMac to an entirely new
+                        level, with its beautiful design in seven breathtaking
+                        colors, its immersive 4.5K Retina display, the greatest
+                        camera, mics, and speakers ever in a Mac, and Touch ID,
+                        combined with M1's incredible performance and macOS Big
+                        Sur's power."
+                      </p>
                     </div>
                     <div
                       className="tab-pane pe-lg-6 pe-xl-12 fade"
@@ -3466,3 +3682,36 @@ const ProductDetails = () => {
   );
 };
 export default ProductDetails;
+
+function getBackgroundColor(color) {
+  switch (color.toLowerCase()) {
+      case 'black':
+          return '#000000'; // Màu đen
+      case 'blue':
+          return '#4798f3'; // Màu xanh dương
+      case 'maroon':
+          return '#736751'; // Màu nâu đỏ
+      case 'gray':
+          return '#c0c0c0'; // Màu xám
+      case 'green':
+          return '#139c57'; // Màu xanh lá cây
+      case 'yellow':
+          return '#e28b37'; // Màu vàng
+      case 'red':
+          return '#e28b37'; // Màu đỏ
+      case 'white':
+          return '#ffffff'; // Màu trắng
+      case 'silver':
+          return '#c0c0c0'; // Màu bạc
+      case 'gold':
+          return '#d4af37'; // Màu vàng kim loại
+      case 'green':
+          return '#004b49'; // Màu xanh đêm (Apple)
+      case 'purple':
+          return '#6a0dad'; // Màu tím đậm
+      case 'aqua':
+          return '#00ffff'; // Màu aqua
+      default:
+          return '#000000'; // Màu mặc định nếu không có trong danh sách
+  }
+}
