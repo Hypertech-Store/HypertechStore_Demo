@@ -1,29 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import HashLoader from "react-spinners/HashLoader"; // Import spinner từ react-icons
 import logo from "../../../assets/img/icons/logo1.png";
 
 const Register = () => {
   document.title = "Hypertech Store - Đăng ký";
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    ten_nguoi_dung: '',
-    mat_khau: '',
-    email: ''
+    ten_nguoi_dung: "",
+    mat_khau: "",
+    email: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate(); // Khởi tạo useNavigate
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setLoading(true);
     setIsSubmitting(true); // Kích hoạt gửi dữ liệu khi nhấn nút
   };
 
@@ -31,20 +34,27 @@ const Register = () => {
     if (isSubmitting) {
       const registerUser = async () => {
         try {
-          const response = await fetch('http://127.0.0.1:8000/api/khach-hang/register', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-          });
+          const response = await fetch(
+            "http://127.0.0.1:8000/api/khach-hang/register",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            }
+          );
           const data = await response.json();
- 
+
           if (response.ok) {
-            toast.success('Đăng ký thành công!');
-            navigate('/dang-nhap'); // Chuyển hướng sang trang đăng nhập
+            toast.success("Đăng ký thành công!");
+            setTimeout(() => {
+              // Dừng spinner sau 2s (demo)
+              setLoading(false);
+            }, 5000);
+            navigate("/dang-nhap"); // Chuyển hướng sang trang đăng nhập
           } else {
-            toast.error(data.message || 'Đăng ký thất bại');
+            toast.error(data.message || "Đăng ký thất bại");
           }
         } catch (error) {
           toast.error(`Có lỗi xảy ra`);
@@ -55,7 +65,6 @@ const Register = () => {
       registerUser();
     }
   }, [isSubmitting, formData, navigate]);
- 
 
   return (
     <div className="container">
@@ -158,9 +167,25 @@ const Register = () => {
                 {errorMessage}
               </div>
             )}
-            <button className="btn btn-primary w-100 mb-3" type="submit">
-              {isSubmitting ? 'Submitting...' : 'Sign up'}
+            <button
+              className="btn btn-primary w-100 mb-3 d-flex align-items-center justify-content-center"
+              disabled={loading}
+              type="submit"
+            >
+              {isSubmitting ? "Submitting" : "Sign up"}
+
+              {isSubmitting ? (
+                <HashLoader
+                  color="#ffffff" // Set the color of the loader to white
+                  size={15} // Adjust the size of the loader here (e.g., 20px)
+                  style={{
+                    animation: "spin 1s linear infinite",
+                    marginLeft: "12px", // Space between the text and the icon
+                  }}
+                />
+              ) : null}
             </button>
+
             <div className="text-center">
               <a className="fs-9 fw-bold" href="/dang-nhap">
                 Sign in to an existing account
@@ -172,5 +197,12 @@ const Register = () => {
     </div>
   );
 };
-
+const style = document.createElement("style");
+style.innerHTML = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(style);
 export default Register;

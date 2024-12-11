@@ -1,7 +1,6 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
 import React, { useState, useEffect } from "react";
 const AddProducts = () => {
-
   const navbarTopShape = window.config?.config?.phoenixNavbarTopShape;
   const navbarPosition = window.config?.config?.phoenixNavbarPosition;
 
@@ -97,7 +96,6 @@ const AddProducts = () => {
     navbarVertical?.setAttribute("data-navbar-appearance", "darker");
   }
 
-
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -109,13 +107,16 @@ const AddProducts = () => {
   //call api get Categories
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/danh-muc/getAll", {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/danh-muc/getAll",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
       const data = await response.json();
       if (response.ok) {
         setCategories(data); // Đảm bảo API trả về danh sách phù hợp
@@ -130,13 +131,16 @@ const AddProducts = () => {
   // get sub categori
   const fetchSubCategories = async (categoryId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/danh-muc-con/${categoryId}`, {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/danh-muc-con/${categoryId}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
       const data = await response.json();
       if (response.ok) {
         setSubCategories(data.data);
@@ -211,13 +215,16 @@ const AddProducts = () => {
     });
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/san-pham/create", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-        },
-        body: form, // FormData chứa dữ liệu sản phẩm
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/san-pham/create",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          body: form, // FormData chứa dữ liệu sản phẩm
+        }
+      );
 
       const result = await response.json();
 
@@ -233,7 +240,6 @@ const AddProducts = () => {
       alert("Đã xảy ra lỗi, vui lòng thử lại.");
     }
   };
-
 
   return (
     <>
@@ -269,11 +275,11 @@ const AddProducts = () => {
               <input
                 type="text"
                 name="ten_san_pham"
-                className="form-control" thêm
+                className="form-control"
                 placeholder="Nhập tên sản phẩm"
                 onChange={handleInputChange}
               />
-              <div className="mb-6">
+              <div className="mb-6 mt-5">
                 <h4 className="mb-3">Mô tả sản phẩm</h4>
 
                 <textarea
@@ -820,8 +826,10 @@ const AddProducts = () => {
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
-                              <h5 className="mb-0 text-body-highlight me-2">Danh mục</h5>
-                              <a className="fw-bold fs-9" href="#!">
+                              <h5 className="mb-0 text-body-highlight me-2">
+                                Danh mục
+                              </h5>
+                              <a className="fw-bold fs-9" href="them-danh-muc">
                                 Thêm mới danh mục
                               </a>
                             </div>
@@ -846,8 +854,13 @@ const AddProducts = () => {
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
-                              <h5 className="mb-0 text-body-highlight me-2">Danh mục con</h5>
-                              <a className="fw-bold fs-9" href="#!">
+                              <h5 className="mb-0 text-body-highlight me-2">
+                                Danh mục con
+                              </h5>
+                              <a
+                                className="fw-bold fs-9"
+                                href="them-danh-muc-con"
+                              >
                                 Thêm mới danh mục con
                               </a>
                             </div>
@@ -859,7 +872,10 @@ const AddProducts = () => {
                               <option value="">Chọn danh mục con...</option>
                               {subCategories.length > 0 &&
                                 subCategories.map((subCategory) => (
-                                  <option key={subCategory.id} value={subCategory.id}>
+                                  <option
+                                    key={subCategory.id}
+                                    value={subCategory.id}
+                                  >
                                     {subCategory.ten_danh_muc_con}
                                   </option>
                                 ))}

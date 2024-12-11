@@ -10,6 +10,8 @@ import team1 from "../../../../assets/img/team/40x40/avatar.webp";
 import team2 from "../../../../assets/img/team/40x40/57.webp";
 import team3 from "../../../../assets/img/team/40x40/59.webp";
 import team4 from "../../../../assets/img/team/40x40/58.webp";
+
+import defaultAvatar from "../../../../assets/img/team/image-default.png";
 const HeaderClient = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
@@ -557,10 +559,7 @@ const HeaderClient = () => {
                                 <div className="avatar avatar-xl ">
                                   <img
                                     className="rounded-circle"
-                                    src={
-                                      userInfo?.hinh_anh ||
-                                      "https://via.placeholder.com/150"
-                                    } // Sử dụng placeholder nếu không có hình ảnh
+                                    src={userInfo?.hinh_anh || defaultAvatar} // Sử dụng ảnh mặc định nếu không có hình ảnh
                                     alt="User Avatar"
                                   />
                                 </div>
@@ -1278,11 +1277,11 @@ const HeaderClient = () => {
                 Products
               </NavLink>
             </li>
-            <li className="nav-item" data-nav-item="data-nav-item">
+            {/* <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/san-pham-yeu-thich">
                 Wishlist
               </NavLink>
-            </li>
+            </li> */}
             <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/thong-tin-van-chuyen">
                 Shipping Info
@@ -1294,11 +1293,11 @@ const HeaderClient = () => {
                 Track order
               </NavLink>
             </li>
-            <li className="nav-item" data-nav-item="data-nav-item">
+            {/* <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/thanh-toan">
                 Checkout
               </NavLink>
-            </li>
+            </li> */}
             <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/hoa-don">
                 Invoice
