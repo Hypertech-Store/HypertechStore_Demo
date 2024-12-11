@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 
+import haha from "../../../assets/img/e-commerce/image-removebg-preview.png";
 import defaultAvatar from "../../../assets/img/team/image-default.png";
 
 function Profile() {
@@ -176,28 +178,49 @@ function Profile() {
   };
 
   const removeFromWishlist = (productId) => {
-    fetch(`http://127.0.0.1:8000/api/danh-sach-yeu-thich/destroy`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        khach_hang_id: userId, // Send userId in the body
-        san_pham_id: productId, // Send productId in the body
-      }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          setProducts((prevProducts) =>
-            prevProducts.filter((product) => product.id !== productId)
-          ); // Remove product from list
-          setWishlistCount((prevCount) => prevCount - 1);
-          toast.success("Bạn đã xóa thành công sản phẩm yêu thích!");
-        } else {
-          console.error("Failed to remove product from wishlist");
-        }
-      })
-      .catch((error) => console.error("Error:", error));
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn xóa sản phẩm này không?",
+      text: "Bạn sẽ không thể hoàn tác hành động này!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Đồng ý, xóa sản phẩm!",
+      cancelButtonText: "Hủy bỏ",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Gửi yêu cầu API để xóa sản phẩm khỏi danh sách yêu thích
+        fetch(`http://127.0.0.1:8000/api/danh-sach-yeu-thich/destroy`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            khach_hang_id: userId, // Gửi userId trong body
+            san_pham_id: productId, // Gửi productId trong body
+          }),
+        })
+          .then((response) => {
+            if (response.ok) {
+              // Cập nhật danh sách sản phẩm và hiển thị thông báo thành công
+              setProducts((prevProducts) =>
+                prevProducts.filter((product) => product.id !== productId)
+              ); // Xóa sản phẩm khỏi danh sách
+              setWishlistCount((prevCount) => prevCount - 1);
+              toast.success("Bạn đã xóa thành công sản phẩm yêu thích!");
+            } else {
+              // Xử lý nếu API trả về lỗi
+              toast.error("Không thể xóa sản phẩm khỏi danh sách yêu thích!");
+              console.error("Failed to remove product from wishlist");
+            }
+          })
+          .catch((error) => {
+            // Xử lý lỗi nếu không thể kết nối đến API
+            toast.error("Đã xảy ra lỗi khi xóa sản phẩm!");
+            console.error("Error:", error);
+          });
+      }
+    });
   };
 
   return (
@@ -1833,178 +1856,177 @@ function Profile() {
               role="tabpanel"
               aria-labelledby="wishlist-tab"
             >
-              <div
-                className="border-y border-translucent"
-                id="productWishlistTable"
-                data-list='{"valueNames":["products","color","size","price","quantity","total"],"page":5,"pagination":true}'
-              >
-                <div className="table-responsive scrollbar">
-                  <table className="table fs-9 mb-0">
-                    <thead>
-                      <tr>
-                        <th
-                          className="align-middle"
-                          scope="col"
-                          data-sort="image"
-                          style={{ width: "8%" }}
-                        >
-                          IMAGE
-                        </th>
-                        <th
-                          className="white-space-nowrap align-middle"
-                          scope="col"
-                          style={{ width: "35%", minWidth: 250 }}
-                          data-sort="products"
-                        >
-                          PRODUCTS
-                        </th>
-                        <th
-                          className="align-middle"
-                          scope="col"
-                          data-sort="color"
-                          style={{ width: "10%" }}
-                        >
-                          COLOR
-                        </th>
-                        <th
-                          className="align-middle"
-                          scope="col"
-                          data-sort="size"
-                          style={{ width: "8%" }}
-                        >
-                          SIZE
-                        </th>
-                        <th
-                          className="align-middle text-body"
-                          scope="col"
-                          data-sort="price"
-                          style={{ width: "8%" }}
-                        >
-                          PRICE
-                        </th>
-                        <th
-                          className="align-middle text-body"
-                          scope="col"
-                          style={{
-                            width: "20%",
-                            textAlign: "center", // Đảm bảo căn giữa văn bản trong th
-                            justifyContent: "center", // Căn giữa theo chiều ngang
-                            alignItems: "center",
-                          }}
-                        >
-                          ACTION
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody className="list" id="profile-wishlist-table-body">
-                      {visibleProducts.map((product, index) => (
-                        <tr
-                          key={index}
-                          className="hover-actions-trigger btn-reveal-trigger position-static"
-                        >
-                          <td className="align-middle white-space-nowrap ps-0 py-0">
-                            <a
-                              className="border border-translucent rounded-2 d-inline-block"
-                              href="product-details.html"
-                            >
-                              <img
-                                src={product.image}
-                                alt={product.name}
-                                width={55}
-                              />
-                            </a>
-                          </td>
-                          <td className="products align-middle">
-                            <a
-                              className="fw-semibold mb-0 line-clamp-1"
-                              href="product-details.html"
-                            >
-                              {product.name}
-                            </a>
-                          </td>
-                          <td className="color align-middle fs-9 text-body">
-                            {product.color}
-                          </td>
-                          <td className="size align-middle text-body-tertiary fs-9 fw-semibold">
-                            {product.size}
-                          </td>
-                          <td className="price align-middle text-body fs-9 fw-semibold">
-                            {numberFormat.format(
-                              parseFloat(product.price.toFixed(2))
-                            )}{" "}
-                            VNĐ
-                          </td>
-                          <td className="total align-middle fw-bold text-body-highlight text-end text-nowrap pe-0">
-                            <button
-                              className="btn btn-sm text-body-quaternary text-body-tertiary-hover me-2"
-                              onClick={() => removeFromWishlist(product.id)}
-                            >
-                              <span className="fas fa-trash" />
-                            </button>
-                            <button className="btn btn-primary fs-10">
-                              <span className="fas fa-shopping-cart me-1 fs-10" />
-                              Add to cart
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
-                  <div className="col-auto">
-                    <p className="mb-0">
-                      Showing{" "}
-                      {products.length === 0
-                        ? 0
-                        : (currentPage - 1) * productsPerPage + 1}{" "}
-                      to{" "}
-                      {Math.min(currentPage * productsPerPage, products.length)}{" "}
-                      of {products.length} items
-                    </p>
-                  </div>
-                  <div className="col-auto d-flex">
-                    <button
-                      className={`page-link ${
-                        currentPage === 1 ? "disabled" : ""
-                      }`}
-                      data-list-pagination="prev"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <span className="fas fa-chevron-left" />
-                    </button>
-                    <ul className="mb-0 pagination">
-                      {[...Array(totalPages)].map((_, index) => (
-                        <li
-                          key={index}
-                          className={currentPage === index + 1 ? "active" : ""}
-                        >
-                          <button
-                            className="page"
-                            type="button"
-                            onClick={() => handlePageChange(index + 1)}
+              {products.length > 0 ? (
+                <div
+                  className="border-y border-translucent"
+                  id="productWishlistTable"
+                  data-list='{"valueNames":["products","color","size","price","quantity","total"],"page":5,"pagination":true}'
+                >
+                  <div className="table-responsive scrollbar">
+                    <table className="table fs-9 mb-0">
+                      <thead>
+                        <tr>
+                          <th
+                            className="align-middle"
+                            scope="col"
+                            data-sort="image"
+                            style={{ width: "20%" }} // Tăng chiều rộng cho hình ảnh
                           >
-                            {index + 1}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    <button
-                      className={`page-link ${
-                        currentPage === totalPages ? "disabled" : ""
-                      }`}
-                      data-list-pagination="next"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      <span className="fas fa-chevron-right" />
-                    </button>
+                            IMAGE
+                          </th>
+                          <th
+                            className="white-space-nowrap align-middle"
+                            scope="col"
+                            style={{ width: "35%", minWidth: 250 }} // Tăng chiều rộng cho sản phẩm
+                            data-sort="products"
+                          >
+                            PRODUCTS
+                          </th>
+                          <th
+                            className="align-middle text-body"
+                            scope="col"
+                            data-sort="price"
+                            style={{ width: "15%" }} // Cân đối chiều rộng cho giá
+                          >
+                            PRICE
+                          </th>
+                          <th
+                            className="align-middle text-body"
+                            scope="col"
+                            style={{
+                              width: "20%", // Cân đối chiều rộng cho hành động
+                              textAlign: "center",
+                              justifyContent: "center",
+                              alignItems: "center",
+                            }}
+                          >
+                            ACTION
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <tbody className="list" id="profile-wishlist-table-body">
+                        {visibleProducts.map((product, index) => (
+                          <tr
+                            key={index}
+                            className="hover-actions-trigger btn-reveal-trigger position-static"
+                          >
+                            <td className="align-middle white-space-nowrap ps-0 py-0">
+                              <a
+                                className="border border-translucent rounded-2 d-inline-block"
+                                href="product-details.html"
+                              >
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  width={55}
+                                />
+                              </a>
+                            </td>
+                            <td className="products align-middle">
+                              <a
+                                className="fw-semibold mb-0 line-clamp-1"
+                                href="product-details.html"
+                              >
+                                {product.name}
+                              </a>
+                            </td>
+                            <td className="price align-middle text-body fs-9 fw-semibold">
+                              {numberFormat.format(
+                                parseFloat(product.price.toFixed(2))
+                              )}{" "}
+                              VNĐ
+                            </td>
+                            <td className="total align-middle fw-bold text-body-highlight text-end text-nowrap pe-0">
+                              <button
+                                className="btn btn-sm text-body-quaternary text-body-tertiary-hover me-2"
+                                onClick={() => removeFromWishlist(product.id)}
+                              >
+                                <span className="fas fa-trash" />
+                              </button>
+                              <button className="btn btn-primary fs-10">
+                                <span className="fas fa-shopping-cart me-1 fs-10" />
+                                Add to cart
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
+                    <div className="col-auto">
+                      <p className="mb-0">
+                        Showing{" "}
+                        {products.length === 0
+                          ? 0
+                          : (currentPage - 1) * productsPerPage + 1}{" "}
+                        to{" "}
+                        {Math.min(
+                          currentPage * productsPerPage,
+                          products.length
+                        )}{" "}
+                        of {products.length} items
+                      </p>
+                    </div>
+                    <div className="col-auto d-flex">
+                      <button
+                        className={`page-link ${
+                          currentPage === 1 ? "disabled" : ""
+                        }`}
+                        data-list-pagination="prev"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        <span className="fas fa-chevron-left" />
+                      </button>
+                      <ul className="mb-0 pagination">
+                        {[...Array(totalPages)].map((_, index) => (
+                          <li
+                            key={index}
+                            className={
+                              currentPage === index + 1 ? "active" : ""
+                            }
+                          >
+                            <button
+                              className="page"
+                              type="button"
+                              onClick={() => handlePageChange(index + 1)}
+                            >
+                              {index + 1}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        className={`page-link ${
+                          currentPage === totalPages ? "disabled" : ""
+                        }`}
+                        data-list-pagination="next"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        <span className="fas fa-chevron-right" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div
+                  className="container"
+                  style={{ textAlign: "center", marginTop: "50px" }}
+                >
+                  <img
+                    src={haha}
+                    alt="Không có sản phẩm"
+                    style={{ marginBottom: "20px" }}
+                  />
+                  <p style={{ fontSize: "18px", color: "#999" }}>
+                    Hiện tại bạn chưa có sản phẩm nào trong danh sách yêu thích.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

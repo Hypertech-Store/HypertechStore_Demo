@@ -1330,30 +1330,39 @@ const Shop = () => {
                               </p>
                             </div>
                             <div>
-                              <div className="d-flex align-items-center mb-1">
+                              <div className="align-items-center mb-1">
                                 {saleInfo ? (
                                   <>
-                                    <p className="me-2 text-body text-decoration-line-through mb-0">
+                                    <h4
+                                      className="mb-0"
+                                      style={{ color: "#dd2f2c" }}
+                                    >
+                                      {numberFormat.format(discountedPrice)} VNĐ
+                                    </h4>
+                                    <p
+                                      className="text-decoration-line-through mb-0 mt-1"
+                                      style={{
+                                        color: "#98a2b3",
+                                        fontSize: "16px",
+                                      }}
+                                    >
                                       {numberFormat.format(
                                         parseFloat(product.gia)
                                       )}{" "}
                                       VNĐ
                                     </p>
-                                    <h3 className="text-body-emphasis mb-0">
-                                      {numberFormat.format(discountedPrice)} VNĐ
-                                    </h3>
                                   </>
                                 ) : (
-                                  <h3 className="text-body-emphasis mb-0">
+                                  <h4 className="text-body-emphasis mb-0">
                                     {numberFormat.format(
                                       parseFloat(product.gia)
                                     )}{" "}
                                     VNĐ
-                                  </h3>
+                                  </h4>
                                 )}
                               </div>
                               {saleInfo && remainingTime && (
-                                <p className="text-success fw-bold fs-9 lh-1 mb-0">
+                                <p className="text-success fw-bold fs-9 lh-1 mb-0 mt-3">
                                   Deal time ends in {remainingTime}
                                 </p>
                               )}

@@ -225,6 +225,7 @@ const ListProducts = () => {
                       <th style={{ width: "10%" }}>Tags</th>
                       <th style={{ width: "10%" }}>Danh mục con</th>
                       <th style={{ width: "10%" }}>Ngày tạo</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
