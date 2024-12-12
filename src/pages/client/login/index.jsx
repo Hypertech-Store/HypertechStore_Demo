@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import HashLoader from "react-spinners/HashLoader"; // Import spinner từ react-icons
 import logo from "../../../assets/img/icons/logo1.png";
 
 const LoginPage = () => {
@@ -29,26 +30,45 @@ const LoginPage = () => {
         }
       );
 
-      const data = await response.json();
-      console.log(data); // Log nội dung JSON nhận được từ API
-      if (response.ok) {
-        const userData = {
-          id: data.user.id,
-          ten_nguoi_dung: data.user.ten_nguoi_dung,
-          email: data.user.email,
-          hinh_anh: data.user.hinh_anh,
-        };
-        sessionStorage.setItem("userInfo", JSON.stringify(userData));
-        sessionStorage.setItem("userToken", data.token || "token");
-        sessionStorage.setItem("userId", data.user.id);
-
-        toast.success("Đăng nhập thành công!");
-        navigate("/");
-      } else {
-        toast.error(data.message || "Đăng nhập thất bại");
+      // Xử lý phản hồi theo trạng thái HTTP
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 401 || response.status === 403) {
+          toast.error(
+            errorData.message ||
+              "Email hoặc mật khẩu không đúng. Vui lòng thử lại."
+          );
+        } else {
+          toast.error(
+            errorData.message ||
+              `Lỗi: ${response.status} - ${response.statusText}`
+          );
+        }
+        return; // Kết thúc ở đây nếu phản hồi không thành công
       }
+
+      const data = await response.json();
+
+      // Đăng nhập thành công
+      const userData = {
+        id: data.user.id,
+        ten_nguoi_dung: data.user.ten_nguoi_dung,
+        email: data.user.email,
+        hinh_anh: data.user.hinh_anh,
+      };
+      sessionStorage.setItem("userInfo", JSON.stringify(userData));
+      sessionStorage.setItem("userToken", data.token || "token");
+      sessionStorage.setItem("userId", data.user.id);
+
+      toast.success("Đăng nhập thành công!");
+      setTimeout(() => {
+        // Dừng spinner sau 2s (demo)
+        setLoading(false);
+      }, 5000);
+      navigate("/");
     } catch (err) {
-      toast.error(`Có lỗi xảy ra, ${err?.message}`);
+      // Xử lý lỗi không mong muốn
+      toast.error(`Có lỗi xảy ra: ${err.message || "Không xác định"}`);
     } finally {
       setLoading(false);
     }
@@ -187,10 +207,26 @@ const LoginPage = () => {
 
             <button
               type="submit"
-              className="btn btn-primary w-100 mb-3"
+              className="btn btn-primary w-100 mb-3 d-flex align-items-center justify-content-center"
               disabled={loading}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              {loading ? "Đang đăng nhập..." : "Sign In"}
+              {loading ? "Signing in" : "Sign In"}
+
+              {loading ? (
+                <HashLoader
+                  color="#ffffff" // Set the color of the loader to white
+                  size={15} // Adjust the size of the loader here (e.g., 20px)
+                  style={{
+                    animation: "spin 1s linear infinite",
+                    marginLeft: "12px", // Space between the text and the icon
+                  }}
+                />
+              ) : null}
             </button>
           </form>
 
@@ -204,5 +240,14 @@ const LoginPage = () => {
     </div>
   );
 };
+// CSS trực tiếp trong React qua @keyframes
+const style = document.createElement("style");
+style.innerHTML = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(style);
 
 export default LoginPage;

@@ -14,112 +14,287 @@ import review4 from "../../../assets/img/e-commerce/review-14.jpg";
 import review5 from "../../../assets/img/e-commerce/review-15.jpg";
 import review6 from "../../../assets/img/e-commerce/review-16.jpg";
 
-import PacmanLoader from "react-spinners/PacmanLoader";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-// import axios from "axios";
-// import { toast } from "react-toastify";
+import { useParams, useLocation } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const link = "http://127.0.0.1:8000/storage/";
 
 const ProductDetails = () => {
   document.title = "Hypertech Store - Chi tiết sản phẩm";
 
-  // const userId = localStorage.getItem("userId");
+  const userId = localStorage.getItem("userId");
   const { search } = useLocation();
   const queryParams = new URLSearchParams(search);
   const productId = queryParams.get("id");
   const [productData, setProductData] = useState(null);
-  const [selectedImage, setSelectedImage] = useState({
-    img: "",
-    zoomImg: "",
-  });
+  const [selectedImage, setSelectedImage] = useState(null);
   const [selectedColor, setSelectedColor] = useState("Black");
   const [selectedSize, setSelectedSize] = useState("");
-  const [remainingTime, setRemainingTime] = useState("");
+  const [remainingTime, setRemainingTime] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  // Check if thumbnails exist
+  const thumbnails = productData?.sanPham?.hinh_anh_san_phams || [];
+  const hasThumbnails = thumbnails.length > 0;
 
   useEffect(() => {
-    const fetchProductData = async () => {
-      try {
-        // Fetch product details
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/san-pham/detail/${productId}`
-        );
-        const data = await response.json();
+    // Fetch product details
+    fetch(`http://127.0.0.1:8000/api/san-pham/detail/${productId}`)
+      .then((response) => response.json())
+      .then((data) => {
         const product = data; // Assuming 'data' is the product object
-
         console.log("Product data:", product);
 
-        // Set product data
         setProductData(product);
-
-        // Set selected image (both main image and zoom image)
         setSelectedImage({
           img: product?.sanPham?.duong_dan_anh,
           zoomImg: product?.sanPham?.duong_dan_anh,
         });
 
-        // Sale timing logic
         const ngayBatDau = new Date(data?.sale?.ngay_bat_dau_sale);
         const ngayKetThuc = new Date(data?.sale?.ngay_ket_thuc_sale);
         const now = new Date();
 
-        console.log("Start Date:", ngayBatDau);
-        console.log("End Date:", ngayKetThuc);
-        console.log("Current Time:", now);
-
         if (now >= ngayBatDau && now <= ngayKetThuc) {
-          const updateRemainingTime = () => {
-            const now = new Date(); // Get current time on every update
-            const difference = ngayKetThuc - now; // Difference in milliseconds
-
-            if (difference > 0) {
-              const hours = Math.floor(difference / (1000 * 60 * 60));
-              const minutes = Math.floor(
-                (difference % (1000 * 60 * 60)) / (1000 * 60)
-              );
-              const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-              const time = `${hours}h ${minutes}m ${seconds}s`;
-              console.log("Remaining Time:", time); // Debugging
-
-              setRemainingTime(time); // Update remaining time
-            } else {
-              setRemainingTime("Sale Ended");
-            }
-          };
-
-          updateRemainingTime(); // Initialize countdown
+          updateRemainingTime(ngayKetThuc); // Initialize countdown
           const interval = setInterval(() => {
-            updateRemainingTime(); // Update every second
-          }, 1000);
+            updateRemainingTime(ngayKetThuc);
+          }, 1000); // Update every second
 
-          // Cleanup interval when component unmounts
-          return () => clearInterval(interval);
-        } else {
-          setRemainingTime("Sale Not Active"); // Handle case if sale is not active
+          return () => clearInterval(interval); // Cleanup on unmount
         }
-      } catch (error) {
-        console.error("Error fetching product data:", error);
-      }
-    };
+      })
+      .catch((error) => console.error("Error fetching product data:", error));
+  }, [productId]);
 
-    fetchProductData(); // Fetch the product data when the component is mounted
-  }, [productId]); // Dependency array ensures the effect runs when productId changes
+  const updateRemainingTime = (endTime) => {
+    const now = new Date();
+    const difference = endTime - now; // Difference in milliseconds
+    if (difference > 0) {
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setRemainingTime(`${hours}h ${minutes}m ${seconds}s`);
+    } else {
+      setRemainingTime("Sale has ended");
+    }
+  };
+
+  // Quantity handling functions
+  // const handleDecrease = () => {
+  //   if (quantity > 1) setQuantity(quantity - 1);
+  // };
+
+  // const handleIncrease = () => {
+  //   setQuantity(quantity + 1);
+  // };
+
+  // // Handle tab click
+  // const handleTabClick = (tab) => {
+  //   setActiveTab(tab);
+  // };
+
+  // // Toggle description expand/collapse
+  // const toggleDescription = () => {
+  //   setIsExpanded(!isExpanded);
+  // };
+
+  // // Truncate text to a specific character limit
+  // const truncateText = (text, wordLimit) => {
+  //   const words = text.split(" ");
+  //   if (words.length > wordLimit) {
+  //     return words.slice(0, wordLimit).join(" ") + "...";
+  //   }
+  //   return text;
+  // };
+
+  // // State to manage the visibility of dropdown sections
+  // const [isOpen, setIsOpen] = useState({
+  //   config: false,
+  //   camera: false,
+  //   battery: false,
+  //   features: false,
+  //   connectivity: false,
+  //   design: false,
+  // });
+
+  // Hàm thay đổi giá trị thuộc tính
+  // const handleAttributeChange = (attribute, value) => {
+  //     setSelectedAttributes(prevState => {
+  //         const newState = { ...prevState, [attribute]: value };
+
+  //         // Log ra đối tượng selectedAttributes sau khi cập nhật
+  //         console.log("Selected Attributes: ", newState);
+
+  //         return newState;
+  //     });
+  // };
+
+  // const handleAttributeChange = (attribute, value, attributeId) => {
+  //   setSelectedAttributes((prevState) => {
+  //     // Nếu giá trị thuộc tính đã được chọn, reset mảng ID về mảng rỗng trước khi thêm ID mới
+  //     let updatedAttributeIds = [];
+
+  //     // Nếu người dùng chọn một giá trị thuộc tính mới, thêm ID vào mảng
+  //     updatedAttributeIds.push(attributeId);
+
+  //     // Tạo state mới với mảng attributeIds chứa chỉ ID mới
+  //     const newState = {
+  //       ...prevState,
+  //       [attribute]: value,
+  //       [`${attribute}_ids`]: updatedAttributeIds,
+  //     };
+
+  //     // Gộp tất cả các mảng attribute_ids thành một mảng duy nhất
+  //     const allAttributeIds = Object.values(newState)
+  //       .filter((value) => Array.isArray(value))
+  //       .flat();
+
+  //     setAllAttributeIds(allAttributeIds);
+
+  //     console.log("Selected Attributes: ", newState);
+  //     console.log("All Combined Attribute IDs: ", allAttributeIds);
+
+  //     return newState;
+  //   });
+  // };
+
+  // const handleAddToCartWithVariant = async () => {
+  //   try {
+  //     console.log("Mảng biến thể", allAttributeIds);
+
+  //     const variantResponse = await axios.post(
+  //       "http://127.0.0.1:8000/api/bien-the-san-pham/kiem-tra-bien-the",
+  //       {
+  //         attributes: allAttributeIds,
+  //       }
+  //     );
+
+  //     console.log(variantResponse);
+
+  //     const priceAfterDiscount = productData?.sale_theo_phan_tram
+  //       ? productData?.sanPham?.gia *
+  //         (1 - parseFloat(productData?.sale_theo_phan_tram) / 100)
+  //       : productData?.sanPham?.gia;
+  //     console.log(priceAfterDiscount);
+
+  //     const giaSanPham =
+  //       (Math.floor(priceAfterDiscount) +
+  //         Math.floor(variantResponse.data.bien_the_san_phams[0]?.gia)) *
+  //       quantity;
+
+  //     console.log("Variant ID:", variantResponse.data.bien_the_san_phams.id);
+  //     // console.log('khach_hang_id', userId);
+  //     // // console.log('gio_hang_id', cartResponse);
+  //     // console.log('san_pham_id', productId);
+  //     // console.log('so_luong', quantity);
+  //     console.log("gia", giaSanPham);
+  //     // Tiến hành thêm vào giỏ hàng nếu biến thể hợp lệ
+  //     // const payload = {
+  //     //     khach_hang_id: userId,
+  //     //     san_pham_id: productId,
+  //     //     bien_the_san_pham_id: variantResponse.data.data.id,
+  //     //     so_luong: quantity,
+  //     //     gia: giaSanPham
+  //     // };
+
+  //     // 2. Gửi yêu cầu thêm sản phẩm vào giỏ hàng
+  //     // const addToCartResponse = await axios.post('http://127.0.0.1:8000/api/gio-hang/them-san-pham', payload);
+
+  //     // if (addToCartResponse.status === 200) {
+  //     //     toast.success('Sản phẩm đã được thêm vào giỏ hàng!');
+  //     // } else {
+  //     //     toast.error('Đã có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.');
+  //     //     console.error('Error:', addToCartResponse.data.message || 'Failed to add product.');
+  //     // }
+  //   } catch (error) {
+  //     toast.error("Đã có lỗi xảy ra. Vui lòng thử lại!");
+  //     console.error("Error:", error);
+  //   }
+  // };
+
+  // Toggle function for dropdown
+  // const toggleDropdown = (section) => {
+  //   setIsOpen((prevState) => ({
+  //     ...prevState,
+  //     [section]: !prevState[section], // Toggle the specific section
+  //   }));
+  // };
+
+  // const styles = {
+  //   wrapper: {
+  //     marginTop: "20px",
+  //   },
+  //   boxSpecifi: {
+  //     marginBottom: "15px",
+  //   },
+  //   link: {
+  //     display: "flex",
+  //     justifyContent: "space-between",
+  //     alignItems: "center",
+  //     padding: "10px",
+  //     backgroundColor: "#f4f4f4",
+  //     color: "#333",
+  //     cursor: "pointer",
+  //     textDecoration: "none",
+  //     borderRadius: "10px",
+  //   },
+  //   linkHover: {
+  //     backgroundColor: "#eaeaea",
+  //   },
+  //   textSpecifi: {
+  //     display: "none",
+  //     paddingLeft: "20px",
+  //   },
+  //   textSpecifiItem: {
+  //     marginTop: "15px",
+  //     display: "flex",
+  //     justifyContent: "space-between", // Đảm bảo thẳng hàng các phần tử theo chiều ngang
+  //     alignItems: "center", // Căn giữa các phần tử theo chiều dọc
+  //     marginBottom: "10px",
+  //   },
+  //   itemLabel: {
+  //     display: "inline-block",
+  //     fontWeight: "600",
+  //     color: "#344054",
+  //     paddingRight: "4px", // Reduced padding-right to bring itemLabel closer to itemValue
+  //   },
+  //   itemValue: {
+  //     fontWeight: "normal",
+  //     paddingLeft: "4px", // Reduced padding-left to bring itemValue closer to itemLabel
+  //     display: "flex", // Chuyển sang flexbox để kiểm soát căn chỉnh các phần tử
+  //     justifyContent: "flex-start", // Căn trái các phần tử trong itemValue
+  //     alignItems: "center", // Căn giữa các phần tử theo chiều dọc
+  //   },
+
+  //   itemValueSpan: {
+  //     marginLeft: "-35pc", // Thêm margin-left vào span để căn chỉnh với itemLabel
+  //   },
+
+  //   activeTextSpecifi: {
+  //     display: "block",
+  //   },
+  //   icon: {
+  //     fontSize: "28px", // Kích thước icon lớn hơn
+  //   },
+  //   h4: {
+  //     fontSize: "15px",
+  //   },
+
+  //   // New style for a custom divider
+  //   itemSeparator: {
+  //     border: "none",
+  //     height: "1px",
+  //     backgroundColor: "#ddd", // Light color for the divider
+  //     margin: "8px 0", // Space between items
+  //     opacity: 0.5, // Make it slightly transparent for a lighter look
+  //   },
+  // };
 
   if (!productData || !productData.grouped_attributes) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "60vh",
-        }}
-      >
-        <PacmanLoader speedMultiplier={0.8} color="#36d7b7" />
-      </div>
-    ); // Show the loader while waiting for data
+    return <div>Loading...</div>; // Or show an error message if the data is missing
   }
 
   const colorAttribute = productData.grouped_attributes["Màu sắc"];
@@ -131,7 +306,6 @@ const ProductDetails = () => {
   const sizeAttribute = productData?.grouped_attributes["Dung lượng"];
   const sizeValues = sizeAttribute?.ten_gia_tri || []; // Size values (e.g., 512GB, 1TB)
   const sizeLabel = sizeAttribute ? "Dung lượng" : ""; // Label for Dung lượng
-
   return (
     <>
       <div>
@@ -171,70 +345,31 @@ const ProductDetails = () => {
                           aria-live="polite"
                           style={{ transform: "translate3d(0px, 0px, 0px)" }}
                         >
-                          {/* Ảnh gốc */}
-                          <div
-                            className={`swiper-slide ${
-                              selectedImage.img ===
-                              productData?.sanPham?.duong_dan_anh
-                                ? "swiper-slide-thumb-active"
-                                : ""
-                            }`}
-                            role="group"
-                            aria-label={`1 / ${
-                              productData?.sanPham?.hinh_anh_san_phams.length +
-                              1
-                            }`}
-                            style={{ height: 84, marginBottom: 16 }}
-                            onClick={() =>
-                              setSelectedImage({
-                                img: productData?.sanPham?.duong_dan_anh,
-                                zoomImg: productData?.sanPham?.duong_dan_anh,
-                              })
-                            }
-                          >
-                            <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                              <img
-                                src={productData?.sanPham?.duong_dan_anh}
-                                alt="Main Product Thumbnail"
-                                className="img-fluid"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Danh sách hình ảnh từ hinh_anh_san_phams */}
-                          {productData?.sanPham?.hinh_anh_san_phams.map(
-                            (item, index) => (
+                          {hasThumbnails &&
+                            thumbnails.map((item, index) => (
                               <div
                                 className={`swiper-slide ${
-                                  selectedImage.img ===
-                                  `${link}${item?.duong_dan_hinh_anh}`
+                                  index === selectedImageIndex
                                     ? "swiper-slide-thumb-active"
                                     : ""
                                 }`}
                                 key={item.id}
                                 role="group"
-                                aria-label={`${index + 2} / ${
-                                  productData?.sanPham?.hinh_anh_san_phams
-                                    .length + 1
+                                aria-label={`${index + 1} / ${
+                                  thumbnails.length
                                 }`}
                                 style={{ height: 84, marginBottom: 16 }}
-                                onClick={() =>
-                                  setSelectedImage({
-                                    img: `${link}${item?.duong_dan_hinh_anh}`,
-                                    zoomImg: `${link}${item?.duong_dan_hinh_anh}`,
-                                  })
-                                }
+                                onClick={() => setSelectedImageIndex(index)} // Set the selected image on click
                               >
                                 <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
                                   <img
                                     src={`${link}${item?.duong_dan_hinh_anh}`}
-                                    alt={`Product Thumbnail ${index + 2}`}
+                                    alt={`Product Thumbnail ${index + 1}`}
                                     className="img-fluid"
                                   />
                                 </div>
                               </div>
-                            )
-                          )}
+                            ))}
                         </div>
                       </div>
                     </div>
@@ -244,8 +379,12 @@ const ProductDetails = () => {
                       <div className="d-flex align-items-center border border-translucent rounded-3 text-center p-5 h-100">
                         <img
                           className="w-100"
-                          src={selectedImage.img}
-                          alt="Selected Product"
+                          src={
+                            hasThumbnails
+                              ? `${link}${thumbnails[selectedImageIndex]?.duong_dan_hinh_anh}`
+                              : `${link}${productData?.sanPham?.duong_dan_hinh_anh}`
+                          }
+                          alt="Main Product"
                         />
                       </div>
                     </div>
@@ -435,9 +574,11 @@ const ProductDetails = () => {
                         </strong>
                       </p>
 
-                      <p className="text-danger-dark fw-bold mb-5 mb-lg-0">
-                        Special offer ends in {remainingTime} hours
-                      </p>
+                      {productData?.sale ? (
+                        <p className="text-danger-dark fw-bold mb-5 mb-lg-0">
+                          Special offer ends in {setRemainingTime} hours
+                        </p>
+                      ) : null}
                     </div>
                     <div>
                       <div className="mb-3">
