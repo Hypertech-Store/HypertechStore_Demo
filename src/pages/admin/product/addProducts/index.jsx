@@ -141,6 +141,14 @@ const AddProducts = () => {
           },
         }
       );
+      const response = await fetch(`http://127.0.0.1:8000/api/danh-muc-con/find-by-id/${categoryId}`, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
       const data = await response.json();
       if (response.ok) {
         setSubCategories(data.data);
