@@ -1,3 +1,9 @@
+// import blueFront from "../../../assets/img/products/details/blue_front.png";
+// import blueBack from "../../../assets/img/products/details/blue_back.png";
+
+// import redFront from "../../../assets/img/products/details/red_front.png";
+// import redBack from "../../../assets/img/products/details/red_back.png";
+
 import products from "../../../assets/img/products/23.png";
 import products1 from "../../../assets/img/products/2.png";
 import products2 from "../../../assets/img/products/16.png";
@@ -25,87 +31,96 @@ const link = "http://127.0.0.1:8000/storage/";
 const ProductDetails = () => {
   document.title = "Hypertech Store - Chi tiết sản phẩm";
 
-  // const userId = localStorage.getItem("userId");
   const { search } = useLocation();
   const queryParams = new URLSearchParams(search);
   const productId = queryParams.get("id");
   const [productData, setProductData] = useState(null);
-  const [selectedImage, setSelectedImage] = useState({
-    img: "",
-    zoomImg: "",
-  });
-  const [selectedColor, setSelectedColor] = useState("Black");
-  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedVariant, setSelectedVariant] = useState(null); // State for product variant
+  const [productVariantsImages, setProductVariantsImages] = useState([]);
   const [remainingTime, setRemainingTime] = useState("");
+  const [thumbImages, setThumbImages] = useState([]);
+  const [selectedImage, setSelectedImage] = useState({
+    img: productData?.sanPham?.duong_dan_anh,
+    zoomImg: productData?.sanPham?.duong_dan_anh,
+  });
 
   useEffect(() => {
     const fetchProductData = async () => {
       try {
-        // Fetch product details
         const response = await fetch(
           `http://127.0.0.1:8000/api/san-pham/detail/${productId}`
         );
         const data = await response.json();
-        const product = data; // Assuming 'data' is the product object
+        console.log(data);
 
-        console.log("Product data:", product);
+        setProductData(data);
 
-        // Set product data
-        setProductData(product);
+        // Parse the correct product variant images from response
+        const productVariantsImages =
+          data?.bienTheSanPhams
+            ?.map((variant) => {
+              return variant.lien_ket_bien_the_va_gia_tri.map((link) => ({
+                id: link.id,
+                duong_dan_hinh_anh: `${link.hinh_anh_san_phams[0]?.duong_dan_hinh_anh}`,
+              }));
+            })
+            .flat() || [];
 
-        // Set selected image (both main image and zoom image)
+        setProductVariantsImages(productVariantsImages);
+
+        // Set default selected image
         setSelectedImage({
-          img: product?.sanPham?.duong_dan_anh,
-          zoomImg: product?.sanPham?.duong_dan_anh,
+          img: data?.sanPham?.duong_dan_anh,
+          zoomImg: data?.sanPham?.duong_dan_anh,
         });
 
-        // Sale timing logic
-        const ngayBatDau = new Date(data?.sale?.ngay_bat_dau_sale);
-        const ngayKetThuc = new Date(data?.sale?.ngay_ket_thuc_sale);
-        const now = new Date();
-
-        console.log("Start Date:", ngayBatDau);
-        console.log("End Date:", ngayKetThuc);
-        console.log("Current Time:", now);
-
-        if (now >= ngayBatDau && now <= ngayKetThuc) {
-          const updateRemainingTime = () => {
-            const now = new Date(); // Get current time on every update
-            const difference = ngayKetThuc - now; // Difference in milliseconds
-
-            if (difference > 0) {
-              const hours = Math.floor(difference / (1000 * 60 * 60));
-              const minutes = Math.floor(
-                (difference % (1000 * 60 * 60)) / (1000 * 60)
-              );
-              const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-              const time = `${hours}h ${minutes}m ${seconds}s`;
-              console.log("Remaining Time:", time); // Debugging
-
-              setRemainingTime(time); // Update remaining time
-            } else {
-              setRemainingTime("Sale Ended");
-            }
-          };
-
-          updateRemainingTime(); // Initialize countdown
-          const interval = setInterval(() => {
-            updateRemainingTime(); // Update every second
-          }, 1000);
-
-          // Cleanup interval when component unmounts
-          return () => clearInterval(interval);
-        } else {
-          setRemainingTime("Sale Not Active"); // Handle case if sale is not active
+        const groupedAttributes = data?.grouped_attributes || {};
+        const firstAttributeKey = Object.keys(groupedAttributes)[0];
+        if (firstAttributeKey) {
+          const firstAttribute = groupedAttributes[firstAttributeKey];
+          setSelectedVariant({
+            tenThuocTinh: firstAttributeKey,
+            tenGiaTri: firstAttribute?.ten_gia_tri?.[0],
+          });
         }
       } catch (error) {
         console.error("Error fetching product data:", error);
       }
     };
 
-    fetchProductData(); // Fetch the product data when the component is mounted
-  }, [productId]); // Dependency array ensures the effect runs when productId changes
+    fetchProductData();
+  }, [productId]);
+
+  // Handle variant selection
+  const handleVariantSelect = (value) => {
+    // Find the corresponding images for the selected variant
+    const selectedImages =
+      productData?.hinh_anh_bien_the_san_pham?.find((variant) =>
+        variant?.hinh_anh?.some((img) => img.ten_gia_tri === value)
+      )?.hinh_anh || [];
+
+    setSelectedVariant({
+      tenThuocTinh: "Màu sắc",
+      tenGiaTri: value,
+      images: selectedImages.map((img) => `${link}${img.duong_dan_hinh_anh}`),
+    });
+
+    // Update thumbnail images
+    setThumbImages(
+      selectedImages.map((img) => `${link}${img.duong_dan_hinh_anh}`)
+    );
+
+    // Set the first selected image as the main product image
+    setSelectedImage({
+      img: selectedImages[0]
+        ? `${link}${selectedImages[0].duong_dan_hinh_anh}`
+        : "",
+      zoomImg: selectedImages[0]
+        ? `${link}${selectedImages[0].duong_dan_hinh_anh}`
+        : "",
+    });
+  };
+  // No need for the repeated productVariantsImages declaration. It is handled above inside the useEffect.
 
   if (!productData || !productData.grouped_attributes) {
     return (
@@ -122,15 +137,15 @@ const ProductDetails = () => {
     ); // Show the loader while waiting for data
   }
 
-  const colorAttribute = productData.grouped_attributes["Màu sắc"];
-  const colorValues = colorAttribute?.ten_gia_tri || [];
-  const colorImageFront = colorAttribute?.hinh_anh_mat_truoc || [];
-  const colorImageBack = colorAttribute?.hinh_anh_mat_sau || [];
+  // const colorAttribute = productData.grouped_attributes["Màu sắc"];
+  // const colorValues = colorAttribute?.ten_gia_tri || [];
+  // const colorImageFront = colorAttribute?.hinh_anh_mat_truoc || [];
+  // const colorImageBack = colorAttribute?.hinh_anh_mat_sau || [];
 
   // Extract size data for Dung lượng from the API response
-  const sizeAttribute = productData?.grouped_attributes["Dung lượng"];
-  const sizeValues = sizeAttribute?.ten_gia_tri || []; // Size values (e.g., 512GB, 1TB)
-  const sizeLabel = sizeAttribute ? "Dung lượng" : ""; // Label for Dung lượng
+  // const sizeAttribute = productData?.grouped_attributes["Dung lượng"];
+  // const sizeValues = sizeAttribute?.ten_gia_tri || []; // Size values (e.g., 512GB, 1TB)
+  // const sizeLabel = sizeAttribute ? "Dung lượng" : ""; // Label for Dung lượng
 
   return (
     <>
@@ -160,18 +175,13 @@ const ProductDetails = () => {
               >
                 <div className="col-12 col-lg-6">
                   <div className="row g-3 mb-3">
-                    {/* Swiper Thumbnails */}
                     <div className="col-12 col-md-2 col-lg-12 col-xl-2">
                       <div
                         className="swiper-products-thumb swiper theme-slider overflow-visible swiper-vertical"
                         id="swiper-products-thumb"
                       >
-                        <div
-                          className="swiper-wrapper"
-                          aria-live="polite"
-                          style={{ transform: "translate3d(0px, 0px, 0px)" }}
-                        >
-                          {/* Ảnh gốc */}
+                        <div className="swiper-wrapper" aria-live="polite">
+                          {/* Main Image Thumbnail */}
                           <div
                             className={`swiper-slide ${
                               selectedImage.img ===
@@ -180,10 +190,7 @@ const ProductDetails = () => {
                                 : ""
                             }`}
                             role="group"
-                            aria-label={`1 / ${
-                              productData?.sanPham?.hinh_anh_san_phams.length +
-                              1
-                            }`}
+                            aria-label={`1 / ${thumbImages.length + 1}`}
                             style={{ height: 84, marginBottom: 16 }}
                             onClick={() =>
                               setSelectedImage({
@@ -201,40 +208,36 @@ const ProductDetails = () => {
                             </div>
                           </div>
 
-                          {/* Danh sách hình ảnh từ hinh_anh_san_phams */}
-                          {productData?.sanPham?.hinh_anh_san_phams.map(
-                            (item, index) => (
-                              <div
-                                className={`swiper-slide ${
-                                  selectedImage.img ===
-                                  `${link}${item?.duong_dan_hinh_anh}`
-                                    ? "swiper-slide-thumb-active"
-                                    : ""
-                                }`}
-                                key={item.id}
-                                role="group"
-                                aria-label={`${index + 2} / ${
-                                  productData?.sanPham?.hinh_anh_san_phams
-                                    .length + 1
-                                }`}
-                                style={{ height: 84, marginBottom: 16 }}
-                                onClick={() =>
-                                  setSelectedImage({
-                                    img: `${link}${item?.duong_dan_hinh_anh}`,
-                                    zoomImg: `${link}${item?.duong_dan_hinh_anh}`,
-                                  })
-                                }
-                              >
-                                <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                                  <img
-                                    src={`${link}${item?.duong_dan_hinh_anh}`}
-                                    alt={`Product Thumbnail ${index + 2}`}
-                                    className="img-fluid"
-                                  />
-                                </div>
+                          {/* Product Variants Thumbnails */}
+                          {thumbImages?.map((imgSrc, index) => (
+                            <div
+                              key={index}
+                              className={`swiper-slide ${
+                                selectedImage.img === imgSrc
+                                  ? "swiper-slide-thumb-active"
+                                  : ""
+                              }`}
+                              role="group"
+                              aria-label={`${index + 1} / ${
+                                thumbImages.length
+                              }`}
+                              style={{ height: 84, marginBottom: 16 }}
+                              onClick={() =>
+                                setSelectedImage({
+                                  img: imgSrc,
+                                  zoomImg: imgSrc,
+                                })
+                              }
+                            >
+                              <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
+                                <img
+                                  src={imgSrc}
+                                  alt={`Variant Thumbnail ${index + 1}`}
+                                  className="img-fluid"
+                                />
                               </div>
-                            )
-                          )}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -244,7 +247,10 @@ const ProductDetails = () => {
                       <div className="d-flex align-items-center border border-translucent rounded-3 text-center p-5 h-100">
                         <img
                           className="w-100"
-                          src={selectedImage.img}
+                          src={
+                            selectedImage.img ||
+                            productData?.sanPham?.duong_dan_anh
+                          }
                           alt="Selected Product"
                         />
                       </div>
@@ -442,84 +448,93 @@ const ProductDetails = () => {
                     <div>
                       <div className="mb-3">
                         <p className="fw-semibold mb-2 text-body">
-                          {Object.keys(productData.grouped_attributes).map(
-                            (attribute) => {
-                              // Check if the attribute is "Màu sắc"
-                              if (attribute === "Màu sắc") {
-                                return (
-                                  <>
-                                    {attribute}:{" "}
-                                    <span className="text-body-emphasis">
-                                      {selectedColor || "Black"}
-                                    </span>
-                                  </>
-                                );
-                              }
-                              return null;
-                            }
-                          )}
+                          {selectedVariant?.tenThuocTinh} :{" "}
+                          <span
+                            className="text-body-emphasis"
+                            data-product-color="data-product-color"
+                          >
+                            {selectedVariant?.tenGiaTri}
+                          </span>
                         </p>
 
                         <div
                           className="d-flex product-color-variants"
                           data-product-color-variants="data-product-color-variants"
                         >
-                          {colorValues.map((color, index) => (
-                            <div
-                              key={color}
-                              className={`rounded-1 border border-translucent me-2 ${
-                                selectedColor === color ? "active" : ""
-                              }`}
-                              data-variant={color}
-                              data-products-images={JSON.stringify([
-                                colorImageFront[index],
-                                colorImageBack[index],
-                              ])}
-                              onClick={() => {
-                                setSelectedColor(color); // Update the selected color
-                              }}
-                              style={{
-                                width: "40px", // Outer div (border) should be 40px
-                                height: "40px", // Outer div (border) should be 40px
-                                display: "flex", // Use flexbox for centering
-                                justifyContent: "center", // Center horizontally
-                                alignItems: "center", // Center vertically
-                              }}
-                            >
-                              <div
-                                style={{
-                                  backgroundColor: color, // Use selected color dynamically
-                                  width: "32px", // Inner div (background) should be 32px
-                                  height: "32px", // Inner div (background) should be 32px
-                                  borderRadius: "4px", // Optional: to ensure background color is rounded
-                                  margin: "auto", // Center the background color inside the border
-                                }}
-                              />
-                            </div>
-                          ))}
+                          {productData?.grouped_attributes &&
+                            Object.entries(productData.grouped_attributes)
+                              .filter(
+                                ([attributeName]) => attributeName === "Màu sắc"
+                              ) // Only get 'Màu sắc' attribute
+                              .map(([attributeName, attributeValue]) => (
+                                <div key={attributeName}>
+                                  <div className="d-flex">
+                                    {attributeValue?.ten_gia_tri.map(
+                                      (value, index) => (
+                                        <div
+                                          key={index}
+                                          className={`rounded-1 border border-translucent me-2 ${
+                                            selectedVariant?.tenGiaTri === value
+                                              ? "active"
+                                              : ""
+                                          }`}
+                                          data-variant={value}
+                                          onClick={() =>
+                                            handleVariantSelect(value)
+                                          } // Trigger variant selection
+                                        >
+                                          <img
+                                            src={`${link}${
+                                              productData
+                                                ?.hinh_anh_bien_the_san_pham?.[
+                                                index
+                                              ]?.hinh_anh?.[0]
+                                                ?.duong_dan_hinh_anh || ""
+                                            }`}
+                                            alt={`Variant ${index + 1}`}
+                                            width={38}
+                                          />
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
                         </div>
                       </div>
 
                       <div className="row g-3 g-sm-5 align-items-end">
-                        <div className="col-12 col-sm-auto">
-                          <p className="fw-semibold mb-2 text-body">
-                            {sizeLabel}
-                          </p>{" "}
-                          {/* Display the Dung lượng label */}
-                          <div className="d-flex align-items-center">
-                            <select
-                              className="form-select w-auto"
-                              value={selectedSize}
-                              onChange={(e) => setSelectedSize(e.target.value)} // Update selected size
-                            >
-                              {sizeValues.map((size, index) => (
-                                <option key={index} value={size}>
-                                  {size}
-                                </option> // Populate the select with size values
-                              ))}
-                            </select>
+                        {productData?.grouped_attributes?.["Dung lượng"] && (
+                          <div className="col-12 col-sm-auto">
+                            <p className="fw-semibold mb-2 text-body">
+                              {Object.keys(
+                                productData?.grouped_attributes || {}
+                              ).includes("Dung lượng") && "Dung lượng: "}
+                            </p>
+
+                            <div className="d-flex align-items-center">
+                              <select
+                                className="form-select w-auto"
+                                onChange={(e) => {
+                                  // Thực hiện hành động nếu cần, ví dụ: cập nhật giá trị được chọn
+                                  console.log(
+                                    "Dung lượng được chọn:",
+                                    e.target.value
+                                  );
+                                }}
+                              >
+                                {productData?.grouped_attributes?.[
+                                  "Dung lượng"
+                                ]?.ten_gia_tri.map((capacity, index) => (
+                                  <option key={index} value={capacity}>
+                                    {capacity}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                           </div>
-                        </div>
+                        )}
+
                         <div className="col-12 col-sm">
                           <p className="fw-semibold mb-2 text-body">
                             Quantity:
@@ -3551,36 +3566,3 @@ const ProductDetails = () => {
   );
 };
 export default ProductDetails;
-
-// function getBackgroundColor(color) {
-//   switch (color.toLowerCase()) {
-//     case "black":
-//       return "#000000"; // Màu đen
-//     case "blue":
-//       return "#4798f3"; // Màu xanh dương
-//     case "maroon":
-//       return "#736751"; // Màu nâu đỏ
-//     case "gray":
-//       return "#c0c0c0"; // Màu xám
-//     case "green":
-//       return "#139c57"; // Màu xanh lá cây
-//     case "yellow":
-//       return "#e28b37"; // Màu vàng
-//     case "red":
-//       return "#e28b37"; // Màu đỏ
-//     case "white":
-//       return "#ffffff"; // Màu trắng
-//     case "silver":
-//       return "#c0c0c0"; // Màu bạc
-//     case "gold":
-//       return "#d4af37"; // Màu vàng kim loại
-//     case "green":
-//       return "#004b49"; // Màu xanh đêm (Apple)
-//     case "purple":
-//       return "#6a0dad"; // Màu tím đậm
-//     case "aqua":
-//       return "#00ffff"; // Màu aqua
-//     default:
-//       return "#000000"; // Màu mặc định nếu không có trong danh sách
-//   }
-// }
