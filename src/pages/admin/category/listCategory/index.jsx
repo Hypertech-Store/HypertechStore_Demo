@@ -1,5 +1,71 @@
-import products from "../../../../assets/img/products/1.png";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { TagsInput } from "react-tag-input-component";
 const listCategory = () => {
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState(null); // Store selected category ID
+  const [categoryDetails, setCategoryDetails] = useState({
+    name: "",
+    description: "",
+    tags: [],
+    dateCreated: "",
+  });
+  const [tags, setTags] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from API on component mount
+    axios
+      .get("http://127.0.0.1:8000/api/danh-muc/getAll")
+      .then((response) => {
+        setCategories(response.data); // Set categories state
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  // Function to format date
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A"; // Return 'N/A' if date is null or undefined
+
+    const date = new Date(dateStr);
+    const options = {
+      day: "numeric", // Day of the month (1, 2, ...)
+      month: "short", // Abbreviated month name (e.g. 'Jan', 'Feb')
+      year: "numeric", // Full year
+      hour: "2-digit", // Hour with two digits (12:00 PM, 01:00 PM)
+      minute: "2-digit", // Minute with two digits (12:05 PM, 01:45 PM)
+      hour12: true, // Use 12-hour time format
+    };
+
+    return date.toLocaleString("en-US", options);
+  };
+
+  // Handle category selection in the table
+  const handleEditCategory = (category) => {
+    setCategoryId(category.id); // Set categoryId
+    setCategoryDetails({
+      name: category.ten_danh_muc,
+      description: category.mo_ta,
+      tags: category.tags || [],
+      dateCreated: category.created_at,
+    });
+    setTags(category.tags || []);
+  };
+  
+  // State to store raw date for the input
+  const [dateCreated, setDateCreated] = useState(categoryDetails.dateCreated);
+
+  // Handle date input change
+  const handleDateChange = (e) => {
+    const newDate = e.target.value;
+    setDateCreated(newDate); // Update raw date for internal state
+    setCategoryDetails({
+      ...categoryDetails,
+      dateCreated: newDate, // Update the parent state if necessary
+    });
+  };
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
@@ -126,902 +192,115 @@ const listCategory = () => {
               <table className="table fs-9 mb-0">
                 <thead>
                   <tr>
-                    <th
-                      className="white-space-nowrap fs-9 align-middle ps-0"
-                      style={{ maxWidth: 20, width: 18 }}
-                    >
+                    <th className="white-space-nowrap fs-9 align-middle ps-0">
                       <div className="form-check mb-0 fs-8">
                         <input
                           className="form-check-input"
                           id="checkbox-bulk-products-select"
                           type="checkbox"
-                          data-bulk-select='{"body":"products-table-body"}'
                         />
                       </div>
                     </th>
-
                     <th
-                      className="align-middle ps-4"
+                      className="white-space-nowrap align-middle ps-4"
                       scope="col"
-                      style={{ width: 125 }}
-                    >
-                      IMAGE
-                    </th>
-                    <th
-                      className="sort white-space-nowrap align-middle ps-4"
-                      scope="col"
-                      style={{ width: 350 }}
+                      style={{ width: "20%" }}
                       data-sort="product"
                     >
                       CATEGORY NAME
                     </th>
-
                     <th
-                      className="sort align-middle ps-3"
+                      className="align-middle ps-3"
                       scope="col"
-                      data-sort="tags"
-                      style={{ width: 250 }}
+                      style={{ width: "20%" }}
+                    >
+                      DESCRIPTION
+                    </th>
+                    <th
+                      className="align-middle ps-3"
+                      scope="col"
+                      style={{ width: "35%" }}
                     >
                       TAGS
                     </th>
-
                     <th
-                      className="sort align-middle ps-4"
+                      className="align-middle ps-4"
                       scope="col"
-                      data-sort="vendor"
-                      style={{ width: 200 }}
-                    >
-                      VENDOR
-                    </th>
-                    <th
-                      className="sort align-middle ps-4"
-                      scope="col"
-                      data-sort="time"
-                      style={{ width: 50 }}
+                      style={{ width: "20%" }}
                     >
                       PUBLISHED ON
                     </th>
-                    <th
-                      className="sort text-end align-middle pe-0 ps-4"
-                      scope="col"
-                    />
+                    <th className="align-middle ps-4" style={{ width: "5%" }}>
+                      ACTION
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Fitbit Sense Advanced Smartwatch with Tools for Heart Health, Stress Management & Skin Temperature Trends, Carbon/Graphite, One Size (S & L Bands...","productImage":"/products/1.png","price":"$39","category":"Plants","tags":["Health","Exercise","Discipline","Lifestyle","Fitness"],"star":false,"vendor":"Blue Olive Plant sellers. Inc","publishedOn":"Nov 12, 10:45 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Fitbit Sense Advanced Smartwatch with Tools for Heart
-                        Health, Stress Management &amp; Skin Temperature Trends,
-                        Carbon/Graphite, One Size (S &amp; ...
-                      </a>
-                    </td>
+                  {categories.map((category) => (
+                    <tr key={category.id}>
+                      <td className="fs-9 align-middle">
+                        <div className="form-check mb-0 fs-8">
+                          <input className="form-check-input" type="checkbox" />
+                        </div>
+                      </td>
 
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Health
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Exercise
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Discipline
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Lifestyle
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Fitness
-                        </span>
-                      </a>
-                    </td>
+                      <td className="product align-middle ps-4">
+                        <a
+                          className="fw-semibold"
+                          href="../landing/product-details.html"
+                        >
+                          {category.ten_danh_muc}
+                        </a>
+                      </td>
 
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Blue Olive Plant sellers. Inc</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 12, 10:45 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
+                      <td className="tags align-middle review pb-2 ps-3">
+                        <a className="text-decoration-none" href="#!">
+                          {category.mo_ta}
+                        </a>
+                      </td>
+                      <td className="tags align-middle review pb-2 ps-3">
+                        <a className="text-decoration-none" href="#!">
+                          <span className="badge badge-tag me-2 mb-2">
+                            Tag1
+                          </span>
+                        </a>
+                      </td>
+
+                      <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                        {formatDate(category.created_at)}
+                      </td>
+
+                      <td className="align-middle white-space-nowrap">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
+                          data-bs-toggle="modal"
+                          data-bs-target="#updateCustomer"
                           aria-haspopup="true"
                           aria-expanded="false"
                           data-bs-reference="parent"
+                          onClick={() => {
+                            // Set the selected customer by using the customer object directly
+                            handleEditCategory(category);
+                          }}
                         >
-                          <span className="fas fa-ellipsis-h fs-10" />
+                          <span className="fa-solid fa-pen-to-square fs-9" />
                         </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"iPhone 13 pro max-Pacific Blue-128GB storage","productImage":"/products/2.png","price":"$87","category":"Furniture","tags":["Class","Camera","Discipline","invincible","Pro","Swag"],"star":true,"vendor":"Beatrice Furnitures","publishedOn":"Nov 11, 7:36 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        iPhone 13 pro max-Pacific Blue-128GB storage
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Class</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Camera
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Discipline
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          invincible
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Pro</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Swag</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Beatrice Furnitures</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 11, 7:36 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
                         >
-                          <span className="fas fa-ellipsis-h fs-10" />
+                          <span className="fa-solid fa-trash fs-9" />
                         </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Apple MacBook Pro 13 inch-M1-8/256GB-space","productImage":"/products/3.png","price":"$9","category":"Plants","tags":["Efficiency","Handy","Apple","Creativity","Gray"],"star":false,"vendor":"PlantPlanet","publishedOn":"Nov 11, 8:16 AM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Apple MacBook Pro 13 inch-M1-8/256GB-space
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Efficiency
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Handy</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Apple</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Creativity
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Gray</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">PlantPlanet</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 11, 8:16 AM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Apple iMac 24\" 4K Retina Display M1 8 Core CPU...","productImage":"/products/4.png","price":"$8 - $58","category":"Toys","tags":["Color","Stunning","Retina","Green","PC killer"],"star":false,"vendor":"Kizzstore","publishedOn":"Nov 8, 6:39 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Apple iMac 24" 4K Retina Display M1 8 Core CPU...
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Color</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Stunning
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Retina
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Green</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          PC killer
-                        </span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Kizzstore</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 8, 6:39 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Razer Kraken v3 x Wired 7.1 Surroung Sound Gaming headset","productImage":"/products/5.png","price":"$120","category":"Fashion","tags":["Music","Audio","Meeting","Record","Sound"],"star":false,"vendor":"Inertia Fashion","publishedOn":"Nov 8, 5:32 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Razer Kraken v3 x Wired 7.1 Surroung Sound Gaming
-                        headset
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Music</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Audio</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Meeting
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Record
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Sound</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Inertia Fashion</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 8, 5:32 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"PlayStation 5 DualSense Wireless Controller","productImage":"/products/6.png","price":"$239","category":"Gadgets","tags":["Game","Control","Nav","Playstation","Wireless"],"star":false,"vendor":"FutureTech Inc","publishedOn":"Nov 6, 11:34 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        PlayStation 5 DualSense Wireless Controller
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Game</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Control
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Nav</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Playstation
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Wireless
-                        </span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">FutureTech Inc</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 6, 11:34 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"2021 Apple 12.9-inch iPad Pro (Wi‑Fi, 128GB) - Space Gray","productImage":"/products/7.png","price":"$4","category":"Food","tags":["Ipad","Pro","Creativity","Thunderbolt","Space"],"star":false,"vendor":"Maimuna’s Bakery","publishedOn":"Nov 1, 7:45 AM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        2021 Apple 12.9-inch iPad Pro (Wi‑Fi, 128GB) - Space
-                        Gray
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Ipad</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Pro</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Creativity
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Thunderbolt
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Space</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Maimuna’s Bakery</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 1, 7:45 AM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Amazon Basics Matte Black Wired Keyboard - US Layout (QWERTY)","productImage":"/products/8.png","price":"$98","category":"Fashion","tags":["Keyboard","Smooth","Butter","RGB","Black"],"star":false,"vendor":"Green fashion","publishedOn":"Nov 3, 12:27 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Amazon Basics Matte Black Wired Keyboard - US Layout
-                        (QWERTY)
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Keyboard
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Smooth
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Butter
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">RGB</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Black</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Green fashion</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 3, 12:27 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Apple Magic Mouse (Wireless, Rechargable) - Silver","productImage":"/products/10.png","price":"$568","category":"Fashion","tags":["Apple","Wireless","Battery","Magic","Performance"],"star":false,"vendor":"Eastacy","publishedOn":"Nov 1, 9:39 AM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Apple Magic Mouse (Wireless, Rechargable) - Silver
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Apple</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Wireless
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Battery
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Magic</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Performance
-                        </span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Eastacy</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 1, 9:39 AM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
             <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
               <div className="col-auto d-flex">
-                <p
-                  className="mb-0 d-none d-sm-block me-3 fw-semibold text-body"
-                  data-list-info="data-list-info"
-                />
-                <a className="fw-semibold" href="#!" data-list-view="*">
-                  View all
-                  <span
-                    className="fas fa-angle-right ms-1"
-                    data-fa-transform="down-1"
-                  />
-                </a>
-                <a
-                  className="fw-semibold d-none"
-                  href="#!"
-                  data-list-view="less"
-                >
-                  View Less
-                  <span
-                    className="fas fa-angle-right ms-1"
-                    data-fa-transform="down-1"
-                  />
-                </a>
+                <p className="mb-0">Showing 1 to 2 of 2 items</p>
               </div>
               <div className="col-auto d-flex">
                 <button className="page-link" data-list-pagination="prev">
@@ -1036,6 +315,109 @@ const listCategory = () => {
           </div>
         </div>
       </div>
+      <div
+        className="modal fade"
+        id="updateCustomer"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+        tabIndex={-1}
+        aria-labelledby="updateCustomer"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-l modal-dialog-centered">
+          <div className="modal-content bg-body-highlight p-6">
+            <div className="modal-header justify-content-between border-0 p-0 mb-2">
+              <h3 className="mb-0">Edit Category</h3>
+              <button
+                className="btn btn-sm btn-phoenix-secondary"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <span className="fas fa-times text-danger" />
+              </button>
+            </div>
+            <div className="modal-body px-0 mt-1">
+              <div className="row g-4">
+                <div className="col-lg-12">
+                  <div className="mb-4">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Category Name
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={categoryDetails.name}
+                      onChange={(e) =>
+                        setCategoryDetails({
+                          ...categoryDetails,
+                          name: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Description
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={categoryDetails.description}
+                      onChange={(e) =>
+                        setCategoryDetails({
+                          ...categoryDetails,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Tags
+                    </label>
+                    {/* TagsInput component */}
+                    <TagsInput
+                      className="form-control mb-xl-3"
+                      value={tags}
+                      onChange={setTags}
+                      name="tags"
+                      inputProps={{
+                        className: "form-control",
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Date Created
+                    </label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={dateCreated} // Store the raw date value here
+                      onChange={handleDateChange} // Handle date selection change
+                    />
+                    <div className="text-muted mt-2">
+                      {formatDate(dateCreated)}{" "}
+                      {/* Display formatted date below */}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer border-0 pt-0 px-0 pb-0">
+              <button
+                className="btn btn-link text-danger px-3 my-0"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                Cancel
+              </button>
+              <button className="btn btn-primary my-0">Update</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <footer className="footer position-absolute">
         <div className="row g-0 justify-content-between align-items-center h-100">
           <div className="col-12 col-sm-auto text-center">
