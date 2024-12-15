@@ -490,7 +490,7 @@ const HomeClient = () => {
                                 </div>
                                 <a
                                   className="stretched-link"
-                                  href="product-details.html"
+                                  href={`/chi-tiet-san-pham?id=${product.id}`}
                                 >
                                   <h6 className="mb-2 lh-sm line-clamp-3 product-name">
                                     {product.san_pham.ten_san_pham}

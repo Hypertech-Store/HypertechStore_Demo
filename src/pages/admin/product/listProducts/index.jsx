@@ -7,9 +7,54 @@ const ListProducts = () => {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+
   const productsPerPage = 9;
 
-  // Lấy danh sách sản phẩm
+  // Lấy danh mục
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/danh-muc/getAll", {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setCategories(data); // Đảm bảo API trả về danh sách phù hợp
+      } else {
+        console.error("Failed to fetch categories:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  // Lấy danh mục con
+  const fetchSubCategories = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/danh-muc-con/getAll", {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSubCategories(data);
+      } else {
+        console.error("Failed to fetch subcategories:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+    }
+  };
+
+  // Lấy sản phẩm
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -17,12 +62,11 @@ const ListProducts = () => {
           `http://127.0.0.1:8000/api/san-pham/allProduct?page=${currentPage}&limit=${productsPerPage}`
         );
         const data = await response.json();
-
         if (data.status === "success" && Array.isArray(data.data.data)) {
           setProducts(data.data.data);
           setTotalProducts(data.data.total);
         } else {
-          console.error("Error: Expected an array but got", typeof data.data.data);
+          console.error("Failed to fetch products:", data);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -32,18 +76,42 @@ const ListProducts = () => {
     fetchProducts();
   }, [currentPage]);
 
-  //xóa sản phẩm
+  // Lấy danh mục và danh mục con khi component mount
+  useEffect(() => {
+    fetchCategories();
+    fetchSubCategories();
+  }, []);
+
+  // Lấy tên danh mục theo ID
+  const getCategoryNameById = (id) => {
+    const category = categories.find((cat) => cat.id === id);
+    return category ? category.ten_danh_muc : "N/A";
+  };
+
+  // Lấy tên danh mục con theo ID
+  const getSubCategoryNameById = (id) => {
+    if (!subCategories || subCategories.length === 0) {
+      return "N/A"; // Trả về giá trị mặc định nếu danh sách rỗng
+    }
+    const subCategory = subCategories.find((subCat) => subCat.id === id);
+    return subCategory ? subCategory.ten_danh_muc_con : "N/A";
+  };
+
+  // Xóa sản phẩm
   const handleRemove = async (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
       try {
-        // Gọi API để xóa sản phẩm
-        await axios.delete(`http://127.0.0.1:8000/api/san-pham/delete/${id}`);
+        await fetch(`http://127.0.0.1:8000/api/san-pham/delete/${id}`, {
+          method: "DELETE",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
         alert("Sản phẩm đã được xóa thành công.");
-
-        // Xóa sản phẩm khỏi danh sách (giả sử bạn đang quản lý danh sách `products` trong state)
         setProducts((prevProducts) => prevProducts.filter((product) => product.id !== id));
       } catch (error) {
-        console.error("Lỗi khi xóa sản phẩm:", error);
+        console.error("Error deleting product:", error);
         alert("Đã xảy ra lỗi khi xóa sản phẩm. Vui lòng thử lại.");
       }
     }
@@ -241,11 +309,11 @@ const ListProducts = () => {
                         </td>
                         <td>{product.ten_san_pham}</td>
                         <td>{Number(product.gia).toLocaleString()}₫</td>
-                        <td>{product.danh_muc_id}</td>
+                        <td>{getCategoryNameById(product.danh_muc_id)}</td>
                         <td>
                           <span className="badge bg-primary">{product.trang_thai || "N/A"}</span>
                         </td>
-                        <td>{product.danh_muc_con_id}</td>
+                        <td>{getSubCategoryNameById(product.danh_muc_con_id)}</td>
                         <td>{new Date(product.created_at).toLocaleDateString()}</td>
                         <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
                           <div className="btn-reveal-trigger position-static">
