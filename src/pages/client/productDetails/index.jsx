@@ -1,9 +1,3 @@
-// import blueFront from "../../../assets/img/products/details/blue_front.png";
-// import blueBack from "../../../assets/img/products/details/blue_back.png";
-
-// import redFront from "../../../assets/img/products/details/red_front.png";
-// import redBack from "../../../assets/img/products/details/red_back.png";
-
 import products from "../../../assets/img/products/23.png";
 import products1 from "../../../assets/img/products/2.png";
 import products2 from "../../../assets/img/products/16.png";
@@ -35,7 +29,14 @@ const ProductDetails = () => {
   const queryParams = new URLSearchParams(search);
   const productId = queryParams.get("id");
   const [productData, setProductData] = useState(null);
-  const [selectedVariant, setSelectedVariant] = useState(null); // State for product variant
+  const [selectedVariant, setSelectedVariant] = useState({
+    image:
+      productData?.hinh_anh_bien_the_san_pham?.[0]?.hinh_anh?.[0]
+        ?.duong_dan_hinh_anh,
+    tenGiaTri: "",
+  });
+  const [variantPrice, setVariantPrice] = useState(0); // lưu giá biến thể
+
   const [productVariantsImages, setProductVariantsImages] = useState([]);
   const [remainingTime, setRemainingTime] = useState("");
   const [thumbImages, setThumbImages] = useState([]);
@@ -69,18 +70,13 @@ const ProductDetails = () => {
         setProductVariantsImages(productVariantsImages);
 
         // Set default selected image
-        setSelectedImage({
-          img: data?.sanPham?.duong_dan_anh,
-          zoomImg: data?.sanPham?.duong_dan_anh,
-        });
-
         const groupedAttributes = data?.grouped_attributes || {};
         const firstAttributeKey = Object.keys(groupedAttributes)[0];
         if (firstAttributeKey) {
           const firstAttribute = groupedAttributes[firstAttributeKey];
           setSelectedVariant({
             tenThuocTinh: firstAttributeKey,
-            tenGiaTri: firstAttribute?.ten_gia_tri?.[0],
+            tenGiaTri: firstAttribute?.ten_gia_tri?.[0] || "",
           });
         }
       } catch (error) {
@@ -91,35 +87,76 @@ const ProductDetails = () => {
     fetchProductData();
   }, [productId]);
 
+  useEffect(() => {
+    if (productData) {
+      // Kiểm tra nếu đã có biến thể active ban đầu
+      const initialVariantValue = selectedVariant.tenGiaTri || ""; // Sử dụng giá trị từ state `selectedVariant`
+
+      // Lấy ảnh tương ứng
+      const initialVariantImage = productData?.hinh_anh_bien_the_san_pham?.find(
+        (variant) =>
+          variant?.hinh_anh?.some(
+            (img) => img.ten_gia_tri === initialVariantValue
+          )
+      )?.hinh_anh?.[0]?.duong_dan_hinh_anh;
+
+      // Cập nhật trạng thái ảnh được chọn ban đầu
+      if (initialVariantImage) {
+        setSelectedImage({
+          img: `${link}${initialVariantImage}`,
+          zoomImg: `${link}${initialVariantImage}`, // Nếu dùng zoom ảnh
+        });
+      }
+
+      // Đồng thời cập nhật biến thể đã chọn ban đầu (nếu cần)
+      setSelectedVariant({
+        tenThuocTinh: "Màu sắc",
+        tenGiaTri: initialVariantValue,
+      });
+    }
+  }, [productData, selectedVariant.tenGiaTri]); // Cập nhật khi `productData` hoặc `selectedVariant.tenGiaTri` thay đổi
+
   // Handle variant selection
   const handleVariantSelect = (value) => {
-    // Find the corresponding images for the selected variant
-    const selectedImages =
-      productData?.hinh_anh_bien_the_san_pham?.find((variant) =>
-        variant?.hinh_anh?.some((img) => img.ten_gia_tri === value)
-      )?.hinh_anh || [];
-
-    setSelectedVariant({
-      tenThuocTinh: "Màu sắc",
-      tenGiaTri: value,
-      images: selectedImages.map((img) => `${link}${img.duong_dan_hinh_anh}`),
-    });
-
-    // Update thumbnail images
-    setThumbImages(
-      selectedImages.map((img) => `${link}${img.duong_dan_hinh_anh}`)
+    // Tìm biến thể theo giá trị được chọn từ danh sách biến thể
+    const selectedVariant = productData?.bienTheSanPhams?.find((variant) =>
+      variant.gia_tri_thuoc_tinh?.some((attr) => attr.ten_gia_tri === value)
     );
 
-    // Set the first selected image as the main product image
-    setSelectedImage({
-      img: selectedImages[0]
-        ? `${link}${selectedImages[0].duong_dan_hinh_anh}`
-        : "",
-      zoomImg: selectedImages[0]
-        ? `${link}${selectedImages[0].duong_dan_hinh_anh}`
-        : "",
-    });
+    if (selectedVariant) {
+      // Tìm giá của biến thể
+      const variantPrice = parseFloat(selectedVariant.gia) || 0; // Giá biến thể, mặc định 0 nếu không có
+
+      // Lấy các hình ảnh của biến thể
+      const selectedImages = selectedVariant?.hinh_anh || [];
+
+      // Cập nhật trạng thái biến thể đã chọn
+      setSelectedVariant({
+        tenThuocTinh: "Màu sắc",
+        tenGiaTri: value,
+        images: selectedImages.map((img) => `${link}${img.duong_dan_hinh_anh}`),
+      });
+
+      // Cập nhật ảnh thu nhỏ
+      setThumbImages(
+        selectedImages.map((img) => `${link}${img.duong_dan_hinh_anh}`)
+      );
+
+      // Cập nhật ảnh chính (Main Product Image)
+      setSelectedImage({
+        img: selectedImages[0]
+          ? `${link}${selectedImages[0].duong_dan_hinh_anh}`
+          : "",
+        zoomImg: selectedImages[0]
+          ? `${link}${selectedImages[0].duong_dan_hinh_anh}`
+          : "",
+      });
+
+      // Cập nhật giá của biến thể
+      setVariantPrice(variantPrice);
+    }
   };
+
   // No need for the repeated productVariantsImages declaration. It is handled above inside the useEffect.
 
   if (!productData || !productData.grouped_attributes) {
@@ -136,17 +173,6 @@ const ProductDetails = () => {
       </div>
     ); // Show the loader while waiting for data
   }
-
-  // const colorAttribute = productData.grouped_attributes["Màu sắc"];
-  // const colorValues = colorAttribute?.ten_gia_tri || [];
-  // const colorImageFront = colorAttribute?.hinh_anh_mat_truoc || [];
-  // const colorImageBack = colorAttribute?.hinh_anh_mat_sau || [];
-
-  // Extract size data for Dung lượng from the API response
-  // const sizeAttribute = productData?.grouped_attributes["Dung lượng"];
-  // const sizeValues = sizeAttribute?.ten_gia_tri || []; // Size values (e.g., 512GB, 1TB)
-  // const sizeLabel = sizeAttribute ? "Dung lượng" : ""; // Label for Dung lượng
-
   return (
     <>
       <div>
@@ -175,90 +201,21 @@ const ProductDetails = () => {
               >
                 <div className="col-12 col-lg-6">
                   <div className="row g-3 mb-3">
-                    <div className="col-12 col-md-2 col-lg-12 col-xl-2">
-                      <div
-                        className="swiper-products-thumb swiper theme-slider overflow-visible swiper-vertical"
-                        id="swiper-products-thumb"
-                      >
-                        <div className="swiper-wrapper" aria-live="polite">
-                          {/* Main Image Thumbnail */}
-                          <div
-                            className={`swiper-slide ${
-                              selectedImage.img ===
-                              productData?.sanPham?.duong_dan_anh
-                                ? "swiper-slide-thumb-active"
-                                : ""
-                            }`}
-                            role="group"
-                            aria-label={`1 / ${thumbImages.length + 1}`}
-                            style={{ height: 84, marginBottom: 16 }}
-                            onClick={() =>
-                              setSelectedImage({
-                                img: productData?.sanPham?.duong_dan_anh,
-                                zoomImg: productData?.sanPham?.duong_dan_anh,
-                              })
-                            }
-                          >
-                            <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                              <img
-                                src={productData?.sanPham?.duong_dan_anh}
-                                alt="Main Product Thumbnail"
-                                className="img-fluid"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Product Variants Thumbnails */}
-                          {thumbImages?.map((imgSrc, index) => (
-                            <div
-                              key={index}
-                              className={`swiper-slide ${
-                                selectedImage.img === imgSrc
-                                  ? "swiper-slide-thumb-active"
-                                  : ""
-                              }`}
-                              role="group"
-                              aria-label={`${index + 1} / ${
-                                thumbImages.length
-                              }`}
-                              style={{ height: 84, marginBottom: 16 }}
-                              onClick={() =>
-                                setSelectedImage({
-                                  img: imgSrc,
-                                  zoomImg: imgSrc,
-                                })
-                              }
-                            >
-                              <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                                <img
-                                  src={imgSrc}
-                                  alt={`Variant Thumbnail ${index + 1}`}
-                                  className="img-fluid"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Main Product Image */}
-                    <div className="col-12 col-md-10 col-lg-12 col-xl-10">
+                    <div className="col-12 col-md-10 col-lg-12 col-xl-11">
                       <div className="d-flex align-items-center border border-translucent rounded-3 text-center p-5 h-100">
                         <img
                           className="w-100"
-                          src={
-                            selectedImage.img ||
-                            productData?.sanPham?.duong_dan_anh
-                          }
+                          src={selectedImage.img || ""}
                           alt="Selected Product"
+                          style={{ height: "360px", objectFit: "cover" }} // Bạn có thể thay đổi giá trị height tại đây
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Buttons */}
-                  <div className="d-flex">
+                  <div className="d-flex col-xl-11">
                     <button className="btn btn-lg btn-outline-warning rounded-pill w-100 me-3 px-2 px-sm-4 fs-9 fs-sm-8">
                       Add to wishlist
                     </button>
@@ -375,7 +332,6 @@ const ProductDetails = () => {
                       </div>
                       <div className="d-flex flex-wrap align-items-center">
                         {productData?.sale_theo_phan_tram ? (
-                          // Nếu có giảm giá, hiển thị giá giảm và giá gốc
                           <>
                             <h1 className="me-3">
                               {new Intl.NumberFormat("vi-VN", {
@@ -383,12 +339,13 @@ const ProductDetails = () => {
                                 currency: "VND",
                               })
                                 .format(
-                                  productData?.sanPham?.gia *
+                                  parseFloat(productData?.sanPham?.gia) *
                                     (1 -
                                       parseFloat(
                                         productData?.sale_theo_phan_tram
                                       ) /
-                                        100)
+                                        100) +
+                                    variantPrice
                                 )
                                 .replace("₫", "VNĐ")}
                             </h1>
@@ -397,24 +354,26 @@ const ProductDetails = () => {
                                 style: "currency",
                                 currency: "VND",
                               })
-                                .format(productData?.sanPham?.gia)
+                                .format(parseFloat(productData?.sanPham?.gia))
                                 .replace("₫", "VNĐ")}
                             </p>
                             <p className="text-warning fw-bolder fs-6 mb-0">
                               {parseFloat(
                                 productData?.sale_theo_phan_tram
-                              ).toFixed(0)}
+                              ).toFixed(0)}{" "}
                               % off
                             </p>
                           </>
                         ) : (
-                          // Nếu không có giảm giá, chỉ hiển thị giá gốc
                           <h1>
                             {new Intl.NumberFormat("vi-VN", {
                               style: "currency",
                               currency: "VND",
                             })
-                              .format(productData?.sanPham?.gia)
+                              .format(
+                                parseFloat(productData?.sanPham?.gia) +
+                                  variantPrice
+                              )
                               .replace("₫", "VNĐ")}
                           </h1>
                         )}
@@ -470,32 +429,40 @@ const ProductDetails = () => {
                                 <div key={attributeName}>
                                   <div className="d-flex">
                                     {attributeValue?.ten_gia_tri.map(
-                                      (value, index) => (
-                                        <div
-                                          key={index}
-                                          className={`rounded-1 border border-translucent me-2 ${
-                                            selectedVariant?.tenGiaTri === value
-                                              ? "active"
-                                              : ""
-                                          }`}
-                                          data-variant={value}
-                                          onClick={() =>
-                                            handleVariantSelect(value)
-                                          } // Trigger variant selection
-                                        >
-                                          <img
-                                            src={`${link}${
-                                              productData
-                                                ?.hinh_anh_bien_the_san_pham?.[
-                                                index
-                                              ]?.hinh_anh?.[0]
-                                                ?.duong_dan_hinh_anh || ""
+                                      (value, index) => {
+                                        // Lấy ảnh liên quan đến biến thể hiện tại
+                                        const variantImage =
+                                          productData?.hinh_anh_bien_the_san_pham?.find(
+                                            (variant) =>
+                                              variant?.hinh_anh?.some(
+                                                (img) =>
+                                                  img.ten_gia_tri === value
+                                              )
+                                          )?.hinh_anh?.[0]
+                                            ?.duong_dan_hinh_anh || "";
+
+                                        return (
+                                          <div
+                                            key={index}
+                                            className={`rounded-1 border border-translucent me-2 ${
+                                              selectedVariant?.tenGiaTri ===
+                                              value
+                                                ? "active"
+                                                : ""
                                             }`}
-                                            alt={`Variant ${index + 1}`}
-                                            width={38}
-                                          />
-                                        </div>
-                                      )
+                                            data-variant={value}
+                                            onClick={() =>
+                                              handleVariantSelect(value)
+                                            } // Chọn ảnh biến thể
+                                          >
+                                            <img
+                                              src={`${link}${variantImage}`}
+                                              alt={`Variant ${index + 1}`}
+                                              width={38}
+                                            />
+                                          </div>
+                                        );
+                                      }
                                     )}
                                   </div>
                                 </div>

@@ -1,19 +1,18 @@
-import icon from "../../../../assets/img/icons/image-icon.png";
-const addCategory = () => {
+const AddCategory = () => {
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <a href="#!">Page 1</a>
+            <a href="#">Page 1</a>
           </li>
           <li className="breadcrumb-item">
-            <a href="#!">Page 2</a>
+            <a href="#">Page 2</a>
           </li>
           <li className="breadcrumb-item active">Default</li>
         </ol>
       </nav>
-      <form className="mb-9">
+      <form>
         <div className="row g-3 flex-between-end mb-5">
           <div className="col-auto">
             <h2 className="mb-2">Add a category</h2>
@@ -22,25 +21,13 @@ const addCategory = () => {
             </h5>
           </div>
           <div className="col-auto">
-            <button
-              className="btn btn-phoenix-secondary me-2 mb-2 mb-sm-0"
-              type="button"
-            >
-              Discard
-            </button>
-            <button
-              className="btn btn-phoenix-primary me-2 mb-2 mb-sm-0"
-              type="button"
-            >
-              Save draft
-            </button>
             <button className="btn btn-primary mb-2 mb-sm-0" type="submit">
-              Publish category
+              Save draft
             </button>
           </div>
         </div>
         <div className="row g-5">
-          <div className="col-12 col-xl-8">
+          <div className="col-12 col-xl-12">
             <h4 className="mb-3">Category Title</h4>
             <input
               className="form-control mb-5"
@@ -57,97 +44,6 @@ const addCategory = () => {
                 style={{ height: 100 }}
                 defaultValue={""}
               />
-            </div>
-            <h4 className="mb-3">Display images</h4>
-            <div
-              className="dropzone dropzone-multiple p-0 mb-5"
-              id="my-awesome-dropzone"
-              data-dropzone="data-dropzone"
-            >
-              <div className="fallback">
-                <input name="file" type="file" multiple="multiple" />
-              </div>
-              <div className="dz-preview d-flex flex-wrap">
-                <div
-                  className="border border-translucent bg-body-emphasis rounded-3 d-flex flex-center position-relative me-2 mb-2"
-                  style={{ height: 80, width: 80 }}
-                >
-                  <img
-                    className="dz-image"
-                    src="../../../assets/img/products/23.png"
-                    alt="..."
-                    data-dz-thumbnail="data-dz-thumbnail"
-                  />
-                  <a
-                    className="dz-remove text-body-quaternary"
-                    href="#!"
-                    data-dz-remove="data-dz-remove"
-                  >
-                    <span data-feather="x" />
-                  </a>
-                </div>
-              </div>
-              <div
-                className="dz-message text-body-tertiary text-opacity-85"
-                data-dz-message="data-dz-message"
-              >
-                Drag your photo here
-                <span className="text-body-secondary px-1">or</span>
-                <button className="btn btn-link p-0" type="button">
-                  Browse from device
-                </button>
-                <br />
-                <img className="mt-3 me-2" src={icon} width={40} alt />
-              </div>
-            </div>
-          </div>
-          <div className="col-12 col-xl-4">
-            <div className="row g-2">
-              <div className="col-10 col-xl-12">
-                <div className="card mb-3">
-                  <div className="card-body">
-                    <h4 className="card-title mb-4">Organize</h4>
-                    <div className="row gx-3">
-                      <div className="col-12 col-sm-6 col-xl-12">
-                        <div className="mb-4">
-                          <h5 className="mb-2 text-body-highlight">
-                            Collection
-                          </h5>
-                          <input
-                            className="form-control mb-xl-3"
-                            type="text"
-                            placeholder="Collection"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-floating">
-                        <div className="d-flex flex-wrap mb-2">
-                          <h5 className="mb-0 text-body-highlight me-2">
-                            Tags
-                          </h5>
-                          <a className="fw-bold fs-9 lh-sm" href="#!">
-                            View all tags
-                          </a>
-                        </div>
-                        <select
-                          className="form-select"
-                          id="floaTingLabelMultipleSelect"
-                          data-choices="data-choices"
-                          multiple="multiple"
-                          data-options='{"removeItemButton":true,"placeholder":true}'
-                        >
-                          <option selected="selected">
-                            Massachusetts Institute of Technology
-                          </option>
-                          <option>University of Chicago</option>
-                          <option>GSAS Open Labs At Harvard</option>
-                          <option>California Institute of Technology</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -174,4 +70,5 @@ const addCategory = () => {
     </div>
   );
 };
-export default addCategory;
+
+export default AddCategory;
