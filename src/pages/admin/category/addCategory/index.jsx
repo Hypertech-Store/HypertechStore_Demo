@@ -1,4 +1,43 @@
+import React, { useState } from "react";
+
 const AddCategory = () => {
+  const [tenDanhMuc, setTenDanhMuc] = useState("");
+  const [moTa, setMoTa] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/danh-muc/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ten_danh_muc: tenDanhMuc,
+          mo_ta: moTa,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add category");
+      }
+
+      const data = await response.json();
+      alert("Category added successfully!");
+      setTenDanhMuc("");
+      setMoTa("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
@@ -12,7 +51,7 @@ const AddCategory = () => {
           <li className="breadcrumb-item active">Default</li>
         </ol>
       </nav>
-      <form>
+      <form onSubmit={handleSubmit}>
         <div className="row g-3 flex-between-end mb-5">
           <div className="col-auto">
             <h2 className="mb-2">Add a category</h2>
@@ -21,8 +60,12 @@ const AddCategory = () => {
             </h5>
           </div>
           <div className="col-auto">
-            <button className="btn btn-primary mb-2 mb-sm-0" type="submit">
-              Save draft
+            <button
+              className="btn btn-primary mb-2 mb-sm-0"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? "Saving..." : "Save draft"}
             </button>
           </div>
         </div>
@@ -33,20 +76,24 @@ const AddCategory = () => {
               className="form-control mb-5"
               type="text"
               placeholder="Write title here..."
+              value={tenDanhMuc}
+              onChange={(e) => setTenDanhMuc(e.target.value)}
+              required
             />
             <div className="mb-6">
-              <h4 className="mb-3"> Category Description</h4>
-
+              <h4 className="mb-3">Category Description</h4>
               <textarea
                 className="form-control"
                 id="floatingTextarea2"
                 placeholder="Leave a comment here"
                 style={{ height: 100 }}
-                defaultValue={""}
+                value={moTa}
+                onChange={(e) => setMoTa(e.target.value)}
               />
             </div>
           </div>
         </div>
+        {error && <p className="text-danger">Error: {error}</p>}
       </form>
       <footer className="footer position-absolute">
         <div className="row g-0 justify-content-between align-items-center h-100">
