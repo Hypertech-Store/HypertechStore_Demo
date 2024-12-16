@@ -3,26 +3,35 @@ import axios from "axios";
 import { TagsInput } from "react-tag-input-component";
 const listCategory = () => {
   const [categories, setCategories] = useState([]);
-  const [categoryId, setCategoryId] = useState(null); // Store selected category ID
   const [categoryDetails, setCategoryDetails] = useState({
     name: "",
     description: "",
-    tags: [],
-    dateCreated: "",
   });
+  const [categoryId, setCategoryId] = useState(null);
   const [tags, setTags] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [CategorysPerPage, setCategorysPerPage] = useState(10);
 
   useEffect(() => {
     // Fetch data from API on component mount
     axios
-      .get("http://127.0.0.1:8000/api/danh-muc/getAll")
+      .get(`http://127.0.0.1:8000/api/danh-muc?page=${currentPage}&limit=${CategorysPerPage}`)
       .then((response) => {
-        setCategories(response.data); // Set categories state
+        setCategories(response.data.data); // Set categories state from the response data's 'data' field
+        setTotalPages(response.data.last_page); // Set total pages from the response data's 'last_page' field
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
-  }, []);
+  }, [currentPage, CategorysPerPage]); // Add CategorysPerPage to the dependency array if you plan to change it.
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
 
   // Function to format date
   const formatDate = (dateStr) => {
@@ -42,17 +51,64 @@ const listCategory = () => {
   };
 
   // Handle category selection in the table
+  const updateCategory = async () => {
+    try {
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/danh-muc/${categoryId}`,
+        {
+          ten_danh_muc: categoryDetails.name,
+          mo_ta: categoryDetails.description,
+        }
+      );
+      if (response.status === 200) {
+        alert("Cập nhật danh mục thành công!");
+        // Cập nhật danh sách categories sau khi sửa
+        setCategories((prev) =>
+          prev.map((cat) =>
+            cat.id === categoryId
+              ? { ...cat, ten_danh_muc: categoryDetails.name, mo_ta: categoryDetails.description }
+              : cat
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Lỗi khi cập nhật danh mục:", error);
+      alert("Không thể cập nhật danh mục.");
+    }
+  };
+
+  // Hàm xóa danh mục
+  const deleteCategory = async (id) => {
+    // Hiển thị hộp thoại xác nhận
+    const isConfirmed = window.confirm("Bạn có chắc chắn muốn xóa danh mục này?");
+    
+    if (!isConfirmed) {
+      return; // Nếu người dùng không xác nhận, không thực hiện hành động xóa
+    }
+  
+    try {
+      const response = await axios.delete(
+        `http://127.0.0.1:8000/api/danh-muc-con/${id}`
+      );
+      if (response.status === 200) {
+        alert("Xóa danh mục thành công!");
+        // Loại bỏ danh mục khỏi danh sách
+        setCategories((prev) => prev.filter((cat) => cat.id !== id));
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa danh mục:", error);
+      alert("Không thể xóa danh mục.");
+    }
+  };
+
   const handleEditCategory = (category) => {
-    setCategoryId(category.id); // Set categoryId
+    setCategoryId(category.id);
     setCategoryDetails({
       name: category.ten_danh_muc,
       description: category.mo_ta,
-      tags: category.tags || [],
-      dateCreated: category.created_at,
     });
-    setTags(category.tags || []);
   };
-  
+
   // State to store raw date for the input
   const [dateCreated, setDateCreated] = useState(categoryDetails.dateCreated);
 
@@ -192,71 +248,23 @@ const listCategory = () => {
               <table className="table fs-9 mb-0">
                 <thead>
                   <tr>
-                    <th className="white-space-nowrap fs-9 align-middle ps-0">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          id="checkbox-bulk-products-select"
-                          type="checkbox"
-                        />
-                      </div>
-                    </th>
-                    <th
-                      className="white-space-nowrap align-middle ps-4"
-                      scope="col"
-                      style={{ width: "20%" }}
-                      data-sort="product"
-                    >
-                      CATEGORY NAME
-                    </th>
-                    <th
-                      className="align-middle ps-3"
-                      scope="col"
-                      style={{ width: "20%" }}
-                    >
-                      DESCRIPTION
-                    </th>
-                    <th
-                      className="align-middle ps-3"
-                      scope="col"
-                      style={{ width: "35%" }}
-                    >
-                      TAGS
-                    </th>
-                    <th
-                      className="align-middle ps-4"
-                      scope="col"
-                      style={{ width: "20%" }}
-                    >
-                      PUBLISHED ON
-                    </th>
-                    <th className="align-middle ps-4" style={{ width: "5%" }}>
-                      ACTION
-                    </th>
+                    <th style={{ width: "5%" }}>STT</th>
+                    <th style={{ width: "35%" }}>Tên danh mục</th>
+                    <th style={{ width: "20%" }}>Mô tả</th>
+                    <th style={{ width: "20%" }}>Tags</th>
+                    <th style={{ width: "10%" }}>Ngày tạo</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
-                  {categories.map((category) => (
+                  {categories.map((category, index) => (
                     <tr key={category.id}>
-                      <td className="fs-9 align-middle">
-                        <div className="form-check mb-0 fs-8">
-                          <input className="form-check-input" type="checkbox" />
-                        </div>
-                      </td>
-
+                      <td>{(currentPage - 1) * CategorysPerPage + index + 1}</td>
                       <td className="product align-middle ps-4">
-                        <a
-                          className="fw-semibold"
-                          href="../landing/product-details.html"
-                        >
-                          {category.ten_danh_muc}
-                        </a>
+                        {category.ten_danh_muc}
                       </td>
-
                       <td className="tags align-middle review pb-2 ps-3">
-                        <a className="text-decoration-none" href="#!">
-                          {category.mo_ta}
-                        </a>
+                        {category.mo_ta}
                       </td>
                       <td className="tags align-middle review pb-2 ps-3">
                         <a className="text-decoration-none" href="#!">
@@ -289,6 +297,7 @@ const listCategory = () => {
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
+                          onClick={() => deleteCategory(category.id)}
                         >
                           <span className="fa-solid fa-trash fs-9" />
                         </button>
@@ -300,14 +309,32 @@ const listCategory = () => {
             </div>
             <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
               <div className="col-auto d-flex">
-                <p className="mb-0">Showing 1 to 2 of 2 items</p>
+                <p className="mb-0 me-3 fw-semibold text-body">
+                  Trang {currentPage} / {totalPages}
+                </p>
               </div>
               <div className="col-auto d-flex">
-                <button className="page-link" data-list-pagination="prev">
+                <button
+                  className="page-link"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
                   <span className="fas fa-chevron-left" />
                 </button>
-                <ul className="mb-0 pagination" />
-                <button className="page-link pe-0" data-list-pagination="next">
+                {[...Array(totalPages).keys()].map((_, index) => (
+                  <button
+                    key={index}
+                    className={`page-link ${currentPage === index + 1 ? 'active' : ''}`}
+                    onClick={() => goToPage(index + 1)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+                <button
+                  className="page-link pe-0"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
                   <span className="fas fa-chevron-right" />
                 </button>
               </div>
@@ -371,36 +398,6 @@ const listCategory = () => {
                       }
                     />
                   </div>
-                  <div className="mb-4">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Tags
-                    </label>
-                    {/* TagsInput component */}
-                    <TagsInput
-                      className="form-control mb-xl-3"
-                      value={tags}
-                      onChange={setTags}
-                      name="tags"
-                      inputProps={{
-                        className: "form-control",
-                      }}
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Date Created
-                    </label>
-                    <input
-                      className="form-control"
-                      type="date"
-                      value={dateCreated} // Store the raw date value here
-                      onChange={handleDateChange} // Handle date selection change
-                    />
-                    <div className="text-muted mt-2">
-                      {formatDate(dateCreated)}{" "}
-                      {/* Display formatted date below */}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -412,11 +409,17 @@ const listCategory = () => {
               >
                 Cancel
               </button>
-              <button className="btn btn-primary my-0">Update</button>
+              <button
+                className="btn btn-primary my-0"
+                onClick={updateCategory}
+              >
+                Update
+              </button>
             </div>
           </div>
         </div>
       </div>
+
 
       <footer className="footer position-absolute">
         <div className="row g-0 justify-content-between align-items-center h-100">
