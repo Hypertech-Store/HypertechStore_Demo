@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom"; // Import NavLink từ react-router-dom
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 
 import logo from "../../../../assets/img/icons/logo1.png";
 import team from "../../../../assets/img/team/40x40/30.webp";
@@ -15,20 +16,35 @@ import defaultAvatar from "../../../../assets/img/team/image-default.png";
 const HeaderClient = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
 
+  // Kiểm tra thông tin người dùng trong sessionStorage khi component mount
   useEffect(() => {
     const storedUserInfo = sessionStorage.getItem("userInfo");
     if (storedUserInfo) {
       const user = JSON.parse(storedUserInfo);
       setUserInfo(user);
-      setLoggedIn(true); // Set loggedIn to true when user info exists
+      setLoggedIn(true);
       console.log("Thông tin người dùng từ sessionStorage:", user);
     }
-  }, []); // Only run on mount
+  }, []); // Chỉ chạy khi component mount
 
+  // Lấy danh mục từ API
+  useEffect(() => {
+    axios.get('http://127.0.0.1:8000/api/danh-muc/')
+      .then(response => {
+        setCategories(response.data); // Cập nhật danh mục
+      })
+      .catch(error => {
+        console.error('Error fetching categories:', error); // Xử lý lỗi nếu có
+      });
+  }, []);
+  console.log(categories);
+
+
+  // Xử lý đăng xuất
   const handleLogout = () => {
-    // Hiển thị thông báo xác nhận đăng xuất
     Swal.fire({
       title: "Bạn có chắc chắn muốn đăng xuất?",
       text: "Bạn sẽ không thể hoàn tác hành động này!",
@@ -60,7 +76,6 @@ const HeaderClient = () => {
       }
     });
   };
-
   return (
     <>
       <div className="container-small">
@@ -901,366 +916,34 @@ const HeaderClient = () => {
               data-bs-toggle="dropdown"
             >
               <span className="fas fa-bars me-2" />
-              Category
+              Danh mục
             </button>
             <div className="dropdown-menu border border-translucent py-0 category-dropdown-menu">
-              <div
-                className="card border-0 scrollbar"
-                style={{ maxHeight: 657 }}
-              >
+              <div className="card border-0 scrollbar" style={{ maxHeight: 657 }}>
                 <div className="card-body p-6 pb-3">
                   <div className="row gx-7 gy-5 mb-5">
-                    <div className="col-12 col-sm-6 col-md-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <span
-                          className="text-primary me-2"
-                          data-feather="pocket"
-                          style={{ strokeWidth: 3 }}
-                        />
-                        <h6 className="text-body-highlight mb-0 text-nowrap">
-                          Collectibles &amp; Art
-                        </h6>
+                    {categories?.map((category, index) => (
+                      <div key={index} className="col-12 col-sm-6 col-md-4">
+                        <div className="d-flex align-items-center mb-3">
+                          <span className="text-primary me-2" data-feather="pocket" style={{ strokeWidth: 3 }} />
+                          <h6 className="text-body-highlight mb-0 text-nowrap">
+                            {category.ten_danh_muc} {/* Hiển thị tên danh mục chính */}
+                          </h6>
+                        </div>
+                        <div className="ms-n2">
+                          {/* Render danh mục con nếu có */}
+                          {category.danh_muc_cons?.map((item, idx) => (
+                            <a
+                              key={idx}
+                              className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
+                              href="#!"
+                            >
+                              {item.ten_danh_muc_con} {/* Hiển thị tên danh mục con */}
+                            </a>
+                          ))}
+                        </div>
                       </div>
-                      <div className="ms-n2">
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Collectibles
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Antiques
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Sports memorabilia{" "}
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Art
-                        </a>
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <span
-                          className="text-primary me-2"
-                          data-feather="home"
-                          style={{ strokeWidth: 3 }}
-                        />
-                        <h6 className="text-body-highlight mb-0 text-nowrap">
-                          Home &amp; Gardan
-                        </h6>
-                      </div>
-                      <div className="ms-n2">
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Yard, Garden &amp; Outdoor
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Crafts
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Home Improvement
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Pet Supplies
-                        </a>
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <span
-                          className="text-primary me-2"
-                          data-feather="globe"
-                          style={{ strokeWidth: 3 }}
-                        />
-                        <h6 className="text-body-highlight mb-0 text-nowrap">
-                          Sporting Goods
-                        </h6>
-                      </div>
-                      <div className="ms-n2">
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Outdoor Sports
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Team Sports
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Exercise &amp; Fitness
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Golf
-                        </a>
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <span
-                          className="text-primary me-2"
-                          data-feather="monitor"
-                          style={{ strokeWidth: 3 }}
-                        />
-                        <h6 className="text-body-highlight mb-0 text-nowrap">
-                          Electronics
-                        </h6>
-                      </div>
-                      <div className="ms-n2">
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Computers &amp; Tablets
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Camera &amp; Photo
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          TV, Audio &amp; Surveillance
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Cell Ohone &amp; Accessories
-                        </a>
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <span
-                          className="text-primary me-2"
-                          data-feather="truck"
-                          style={{ strokeWidth: 3 }}
-                        />
-                        <h6 className="text-body-highlight mb-0 text-nowrap">
-                          Auto Parts &amp; Accessories
-                        </h6>
-                      </div>
-                      <div className="ms-n2">
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          GPS &amp; Security Devices
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Rader &amp; Laser Detectors
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Care &amp; Detailing
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Scooter Parts &amp; Accessories
-                        </a>
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <span
-                          className="text-primary me-2"
-                          data-feather="codesandbox"
-                          style={{ strokeWidth: 3 }}
-                        />
-                        <h6 className="text-body-highlight mb-0 text-nowrap">
-                          Toys &amp; Hobbies
-                        </h6>
-                      </div>
-                      <div className="ms-n2">
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Radio Control
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Kids Toys
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Action Figures
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Dolls &amp; Bears
-                        </a>
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <span
-                          className="text-primary me-2"
-                          data-feather="watch"
-                          style={{ strokeWidth: 3 }}
-                        />
-                        <h6 className="text-body-highlight mb-0 text-nowrap">
-                          Fashion
-                        </h6>
-                      </div>
-                      <div className="ms-n2">
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Women
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Men
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Jewelry &amp; Watches
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Shoes
-                        </a>
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <span
-                          className="text-primary me-2"
-                          data-feather="music"
-                          style={{ strokeWidth: 3 }}
-                        />
-                        <h6 className="text-body-highlight mb-0 text-nowrap">
-                          Musical Instruments &amp; Gear
-                        </h6>
-                      </div>
-                      <div className="ms-n2">
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Guitar
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Pro Audio Equipment
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          String
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Stage Lighting &amp; Effects
-                        </a>
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <span
-                          className="text-primary me-2"
-                          data-feather="grid"
-                          style={{ strokeWidth: 3 }}
-                        />
-                        <h6 className="text-body-highlight mb-0 text-nowrap">
-                          Other Categories
-                        </h6>
-                      </div>
-                      <div className="ms-n2">
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Video Games &amp; Consoles
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Health &amp; Beauty
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Baby
-                        </a>
-                        <a
-                          className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                          href="#!"
-                        >
-                          Business &amp; Industrial
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center border-top border-translucent pt-3">
-                    <a className="fw-bold" href="#!">
-                      See all Categories
-                      <span
-                        className="fas fa-angle-right ms-1"
-                        data-fa-transform="down-1"
-                      />
-                    </a>
+                    ))}
                   </div>
                 </div>
               </div>
