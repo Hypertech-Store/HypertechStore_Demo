@@ -32,7 +32,7 @@ const HeaderClient = () => {
 
   // Lấy danh mục từ API
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/danh-muc/')
+    axios.get('http://127.0.0.1:8000/api/danh-muc/getAll')
       .then(response => {
         setCategories(response.data); // Cập nhật danh mục
       })
