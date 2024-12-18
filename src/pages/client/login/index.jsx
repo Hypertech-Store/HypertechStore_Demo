@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import HashLoader from "react-spinners/HashLoader"; // Import spinner từ react-icons
@@ -11,7 +11,13 @@ const LoginPage = () => {
   const [mat_khau, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate(); // Khởi tạo useNavigate để điều hướng
-
+  useEffect(() => {
+    const userInfo = sessionStorage.getItem("userInfo");
+    if (userInfo) {
+      // Nếu đã đăng nhập, chuyển hướng về trang chính
+      navigate("/");
+    }
+  }, [navigate]); 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -36,12 +42,12 @@ const LoginPage = () => {
         if (response.status === 401 || response.status === 403) {
           toast.error(
             errorData.message ||
-              "Email hoặc mật khẩu không đúng. Vui lòng thử lại."
+            "Email hoặc mật khẩu không đúng. Vui lòng thử lại."
           );
         } else {
           toast.error(
             errorData.message ||
-              `Lỗi: ${response.status} - ${response.statusText}`
+            `Lỗi: ${response.status} - ${response.statusText}`
           );
         }
         return; // Kết thúc ở đây nếu phản hồi không thành công
