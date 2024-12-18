@@ -14,9 +14,9 @@ const HeaderAdmin = () => {
   const adminAvatar = sessionStorage.getItem("adminAvatar");
   const link = "http://127.0.0.1:8000/storage/";
 
-  console.log(adminId);
-  console.log(adminName);
-  console.log(adminAvatar);
+  // console.log(adminId);
+  // console.log(adminName);
+  // console.log(adminAvatar);
 
   const handleLogout = () => {
     Swal.fire({
