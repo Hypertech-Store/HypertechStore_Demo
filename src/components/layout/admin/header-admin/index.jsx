@@ -9,14 +9,14 @@ import { useNavigate } from "react-router-dom";
 
 const HeaderAdmin = () => {
   const navigate = useNavigate();
-  const userId = sessionStorage.getItem("userId");
-  const userName = sessionStorage.getItem("userName");
-  const userAvatar = sessionStorage.getItem("userAvatar");
+  const adminId = sessionStorage.getItem("adminId");
+  const adminName = sessionStorage.getItem("adminName");
+  const adminAvatar = sessionStorage.getItem("adminAvatar");
   const link = "http://127.0.0.1:8000/storage/";
 
-  // console.log(userId);
-  // console.log(userName);
-  // console.log(userAvatar);
+  console.log(adminId);
+  console.log(adminName);
+  console.log(adminAvatar);
 
   const handleLogout = () => {
     Swal.fire({
@@ -30,9 +30,9 @@ const HeaderAdmin = () => {
       cancelButtonText: "Hủy bỏ"
     }).then((result) => {
       if (result.isConfirmed) {
-        sessionStorage.removeItem('userId');
-        sessionStorage.removeItem('userName');
-        sessionStorage.removeItem('userAvatar');
+        sessionStorage.removeItem('adminId');
+        sessionStorage.removeItem('adminName');
+        sessionStorage.removeItem('adminAvatar');
         sessionStorage.removeItem('customRole');
         toast.success("Đăng xuất thành công!");
         setTimeout(() => {
@@ -602,7 +602,7 @@ const HeaderAdmin = () => {
                             <div className="avatar avatar-m status-online me-3">
                               <img
                                 className="rounded-circle"
-                                src={userAvatar}
+                                src={adminAvatar}
                                 alt
                               />
                             </div>
@@ -713,7 +713,7 @@ const HeaderAdmin = () => {
                 aria-expanded="false"
               >
                 <div className="avatar avatar-l">
-                  <img className="rounded-circle" src={`${link}${userAvatar}`} alt />
+                  <img className="rounded-circle" src={`${link}${adminAvatar}`} alt />
                 </div>
               </a>
               <div
@@ -724,10 +724,10 @@ const HeaderAdmin = () => {
                   <div className="card-body p-0">
                     <div className="text-center pt-4 pb-3">
                       <div className="avatar avatar-xl">
-                        <img className="rounded-circle" src={`${link}${userAvatar}`} alt="User Avatar" />
+                        <img className="rounded-circle" src={`${link}${adminAvatar}`} alt="User Avatar" />
                       </div>
                       <h6 className="mt-2 text-body-emphasis">
-                        {userName}
+                        {adminName}
                       </h6>
                     </div>
                     <div className="mb-3 mx-3">
