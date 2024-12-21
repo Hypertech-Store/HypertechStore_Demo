@@ -2,6 +2,7 @@ import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
+import 'react-toastify/dist/ReactToastify.css';
 
 import "./assets/img/favicons/manifest.json";
 import "./assets/vendors/simplebar/simplebar.min.js"; // SimpleBar JS (Ensure this is only imported once)

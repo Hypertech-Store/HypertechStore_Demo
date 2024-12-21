@@ -11,18 +11,18 @@ const Footer = () => {
           <div className="row justify-content-between gy-4">
             <div className="col-12 col-lg-4">
               <div className="d-flex align-items-center mb-3">
-                <img src={logo} alt="phoenix" width={27} />
-                <h5 className="logo-text ms-2">phoenix</h5>
+                <img src={logo} alt="hypertech store" width={27} />
+                <h5 className="logo-text ms-2">hypertech store</h5>
               </div>
               <p className="text-body-tertiary mb-1 fw-semibold lh-sm fs-9">
-                Phoenix is an admin dashboard template with fascinating features
-                and amazing layout. The template is responsive to all major
-                browsers and is compatible with all available devices and screen
-                sizes.
+                hypertech store is an admin dashboard template with fascinating
+                features and amazing layout. The template is responsive to all
+                major browsers and is compatible with all available devices and
+                screen sizes.
               </p>
             </div>
             <div className="col-6 col-md-auto">
-              <h5 className="fw-bolder mb-3">About Phoenix</h5>
+              <h5 className="fw-bolder mb-3">About hypertech store</h5>
               <div className="d-flex flex-column">
                 <a
                   className="text-body-tertiary fw-semibold fs-9 mb-1"
@@ -88,7 +88,7 @@ const Footer = () => {
                   className="text-body-tertiary fw-semibold fs-9 mb-1"
                   href="#!"
                 >
-                  Community of Phoenix
+                  Community of hypertech store
                 </a>
               </div>
             </div>

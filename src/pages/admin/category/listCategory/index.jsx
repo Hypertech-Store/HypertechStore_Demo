@@ -1,50 +1,159 @@
-import products from "../../../../assets/img/products/1.png";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Link, useLocation } from "react-router-dom";
 const listCategory = () => {
+  const breadcrumbTitles = {
+    "admin/danh-sach-danh-muc": "List category", // Đây là URL không có "/"
+  };
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [categories, setCategories] = useState([]);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [categoryDetails, setCategoryDetails] = useState({
+    name: "",
+    description: "",
+  });
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [categoryId, setCategoryId] = useState(null);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [currentPage, setCurrentPage] = useState(1);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [totalPages, setTotalPages] = useState(1);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [CategorysPerPage] = useState(10);
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    // Fetch data from API on component mount
+    axios
+      .get(
+        `http://127.0.0.1:8000/api/danh-muc?page=${currentPage}&limit=${CategorysPerPage}`
+      )
+      .then((response) => {
+        setCategories(response.data.data); // Set categories state from the response data's 'data' field
+        setTotalPages(response.data.last_page); // Set total pages from the response data's 'last_page' field
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, [currentPage, CategorysPerPage]); // Add CategorysPerPage to the dependency array if you plan to change it.
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // Function to format date
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A"; // Return 'N/A' if date is null or undefined
+
+    const date = new Date(dateStr);
+    const options = {
+      day: "numeric", // Day of the month (1, 2, ...)
+      month: "short", // Abbreviated month name (e.g. 'Jan', 'Feb')
+      year: "numeric", // Full year
+      hour: "2-digit", // Hour with two digits (12:00 PM, 01:00 PM)
+      minute: "2-digit", // Minute with two digits (12:05 PM, 01:45 PM)
+      hour12: true, // Use 12-hour time format
+    };
+
+    return date.toLocaleString("en-US", options);
+  };
+
+  // Handle category selection in the table
+  const updateCategory = async () => {
+    try {
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/danh-muc/${categoryId}`,
+        {
+          ten_danh_muc: categoryDetails.name,
+          mo_ta: categoryDetails.description,
+        }
+      );
+      if (response.status === 200) {
+        alert("Cập nhật danh mục thành công!");
+        // Cập nhật danh sách categories sau khi sửa
+        setCategories((prev) =>
+          prev.map((cat) =>
+            cat.id === categoryId
+              ? {
+                  ...cat,
+                  ten_danh_muc: categoryDetails.name,
+                  mo_ta: categoryDetails.description,
+                }
+              : cat
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Lỗi khi cập nhật danh mục:", error);
+      alert("Không thể cập nhật danh mục.");
+    }
+  };
+
+  // Hàm xóa danh mục
+  const deleteCategory = async (id) => {
+    // Hiển thị hộp thoại xác nhận
+    const isConfirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa danh mục này?"
+    );
+
+    if (!isConfirmed) {
+      return; // Nếu người dùng không xác nhận, không thực hiện hành động xóa
+    }
+
+    try {
+      const response = await axios.delete(
+        `http://127.0.0.1:8000/api/danh-muc-con/${id}`
+      );
+      if (response.status === 200) {
+        alert("Xóa danh mục thành công!");
+        // Loại bỏ danh mục khỏi danh sách
+        setCategories((prev) => prev.filter((cat) => cat.id !== id));
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa danh mục:", error);
+      alert("Không thể xóa danh mục.");
+    }
+  };
+
+  const handleEditCategory = (category) => {
+    setCategoryId(category.id);
+    setCategoryDetails({
+      name: category.ten_danh_muc,
+      description: category.mo_ta,
+    });
+  };
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <a href="#!">Page 1</a>
+            <Link to="/admin">Dashboard</Link>
           </li>
-          <li className="breadcrumb-item">
-            <a href="#!">Page 2</a>
+
+          <li className="breadcrumb-item active" aria-current="page">
+            {currentTitle}
           </li>
-          <li className="breadcrumb-item active">Default</li>
         </ol>
       </nav>
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">Category</h2>
+            <h2 className="mb-0">List category</h2>
           </div>
         </div>
-        <ul className="nav nav-links mb-3 mb-lg-2 mx-n3">
-          <li className="nav-item">
-            <a className="nav-link active" aria-current="page" href="#">
-              <span>All </span>
-              <span className="text-body-tertiary fw-semibold">(68817)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Published </span>
-              <span className="text-body-tertiary fw-semibold">(70348)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Drafts </span>
-              <span className="text-body-tertiary fw-semibold">(17)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>On discount </span>
-              <span className="text-body-tertiary fw-semibold">(810)</span>
-            </a>
-          </li>
-        </ul>
+
         <div
           id="products"
           data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
@@ -62,58 +171,8 @@ const listCategory = () => {
                   <span className="fas fa-search search-box-icon" />
                 </form>
               </div>
-              <div className="scrollbar overflow-hidden-y">
-                <div className="btn-group position-static" role="group">
-                  <div className="btn-group position-static text-nowrap">
-                    <button
-                      className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      data-boundary="window"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                      data-bs-reference="parent"
-                    >
-                      {""}
-                      Vendor
-                      <span className="fas fa-angle-down ms-2" />
-                    </button>
-                    <ul className="dropdown-menu">
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Action
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Another action
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Something else here
-                        </a>
-                      </li>
-                      <li>
-                        <hr className="dropdown-divider" />
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Separated link
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <button className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0">
-                    More filters
-                  </button>
-                </div>
-              </div>
+
               <div className="ms-xxl-auto ms-auto">
-                <button className="btn btn-link text-body me-4 px-0">
-                  <span className="fa-solid fa-file-export fs-9 me-2" />
-                  Export
-                </button>
                 <button className="btn btn-primary" id="addBtn">
                   <span className="fas fa-plus me-2" />
                   Add product
@@ -128,907 +187,128 @@ const listCategory = () => {
                   <tr>
                     <th
                       className="white-space-nowrap fs-9 align-middle ps-0"
-                      style={{ maxWidth: 20, width: 18 }}
+                      scope="col"
+                      style={{ width: "15%" }}
                     >
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          id="checkbox-bulk-products-select"
-                          type="checkbox"
-                          data-bulk-select='{"body":"products-table-body"}'
-                        />
-                      </div>
+                      STT
+                    </th>
+                    <th
+                      className="white-space-nowrap align-middle ps-4"
+                      scope="col"
+                      style={{ width: "30%" }}
+                      data-sort="product"
+                    >
+                      CATEGORY NAME
+                    </th>
+                    <th
+                      className="align-middle ps-3"
+                      scope="col"
+                      style={{ width: "25%" }}
+                    >
+                      DESCRIPTION
                     </th>
 
                     <th
                       className="align-middle ps-4"
                       scope="col"
-                      style={{ width: 125 }}
-                    >
-                      IMAGE
-                    </th>
-                    <th
-                      className="sort white-space-nowrap align-middle ps-4"
-                      scope="col"
-                      style={{ width: 350 }}
-                      data-sort="product"
-                    >
-                      CATEGORY NAME
-                    </th>
-
-                    <th
-                      className="sort align-middle ps-3"
-                      scope="col"
-                      data-sort="tags"
-                      style={{ width: 250 }}
-                    >
-                      TAGS
-                    </th>
-
-                    <th
-                      className="sort align-middle ps-4"
-                      scope="col"
-                      data-sort="vendor"
-                      style={{ width: 200 }}
-                    >
-                      VENDOR
-                    </th>
-                    <th
-                      className="sort align-middle ps-4"
-                      scope="col"
-                      data-sort="time"
-                      style={{ width: 50 }}
+                      style={{ width: "25%" }}
                     >
                       PUBLISHED ON
                     </th>
-                    <th
-                      className="sort text-end align-middle pe-0 ps-4"
-                      scope="col"
-                    />
+                    <th className="align-middle ps-4" style={{ width: "5%" }}>
+                      ACTION
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Fitbit Sense Advanced Smartwatch with Tools for Heart Health, Stress Management & Skin Temperature Trends, Carbon/Graphite, One Size (S & L Bands...","productImage":"/products/1.png","price":"$39","category":"Plants","tags":["Health","Exercise","Discipline","Lifestyle","Fitness"],"star":false,"vendor":"Blue Olive Plant sellers. Inc","publishedOn":"Nov 12, 10:45 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Fitbit Sense Advanced Smartwatch with Tools for Heart
-                        Health, Stress Management &amp; Skin Temperature Trends,
-                        Carbon/Graphite, One Size (S &amp; ...
-                      </a>
-                    </td>
+                  {categories.map((category, index) => (
+                    <tr key={category.id}>
+                      <td>
+                        {(currentPage - 1) * CategorysPerPage + index + 1}
+                      </td>
+                      <td className="product align-middle ps-4">
+                        {category.ten_danh_muc}
+                      </td>
+                      <td className="tags align-middle review pb-2 ps-3">
+                        {category.mo_ta}
+                      </td>
 
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Health
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Exercise
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Discipline
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Lifestyle
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Fitness
-                        </span>
-                      </a>
-                    </td>
+                      <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                        {formatDate(category.created_at)}
+                      </td>
 
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Blue Olive Plant sellers. Inc</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 12, 10:45 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
+                      <td className="align-middle white-space-nowrap">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
+                          data-bs-toggle="modal"
+                          data-bs-target="#updateCustomer"
                           aria-haspopup="true"
                           aria-expanded="false"
                           data-bs-reference="parent"
+                          onClick={() => {
+                            // Set the selected customer by using the customer object directly
+                            handleEditCategory(category);
+                          }}
                         >
-                          <span className="fas fa-ellipsis-h fs-10" />
+                          <span className="fa-solid fa-pen-to-square fs-9" />
                         </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"iPhone 13 pro max-Pacific Blue-128GB storage","productImage":"/products/2.png","price":"$87","category":"Furniture","tags":["Class","Camera","Discipline","invincible","Pro","Swag"],"star":true,"vendor":"Beatrice Furnitures","publishedOn":"Nov 11, 7:36 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        iPhone 13 pro max-Pacific Blue-128GB storage
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Class</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Camera
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Discipline
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          invincible
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Pro</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Swag</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Beatrice Furnitures</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 11, 7:36 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
+                          onClick={() => deleteCategory(category.id)}
                         >
-                          <span className="fas fa-ellipsis-h fs-10" />
+                          <span className="fa-solid fa-trash fs-9" />
                         </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Apple MacBook Pro 13 inch-M1-8/256GB-space","productImage":"/products/3.png","price":"$9","category":"Plants","tags":["Efficiency","Handy","Apple","Creativity","Gray"],"star":false,"vendor":"PlantPlanet","publishedOn":"Nov 11, 8:16 AM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Apple MacBook Pro 13 inch-M1-8/256GB-space
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Efficiency
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Handy</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Apple</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Creativity
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Gray</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">PlantPlanet</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 11, 8:16 AM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Apple iMac 24\" 4K Retina Display M1 8 Core CPU...","productImage":"/products/4.png","price":"$8 - $58","category":"Toys","tags":["Color","Stunning","Retina","Green","PC killer"],"star":false,"vendor":"Kizzstore","publishedOn":"Nov 8, 6:39 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Apple iMac 24" 4K Retina Display M1 8 Core CPU...
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Color</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Stunning
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Retina
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Green</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          PC killer
-                        </span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Kizzstore</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 8, 6:39 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Razer Kraken v3 x Wired 7.1 Surroung Sound Gaming headset","productImage":"/products/5.png","price":"$120","category":"Fashion","tags":["Music","Audio","Meeting","Record","Sound"],"star":false,"vendor":"Inertia Fashion","publishedOn":"Nov 8, 5:32 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Razer Kraken v3 x Wired 7.1 Surroung Sound Gaming
-                        headset
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Music</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Audio</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Meeting
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Record
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Sound</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Inertia Fashion</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 8, 5:32 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"PlayStation 5 DualSense Wireless Controller","productImage":"/products/6.png","price":"$239","category":"Gadgets","tags":["Game","Control","Nav","Playstation","Wireless"],"star":false,"vendor":"FutureTech Inc","publishedOn":"Nov 6, 11:34 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        PlayStation 5 DualSense Wireless Controller
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Game</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Control
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Nav</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Playstation
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Wireless
-                        </span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">FutureTech Inc</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 6, 11:34 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"2021 Apple 12.9-inch iPad Pro (Wi‑Fi, 128GB) - Space Gray","productImage":"/products/7.png","price":"$4","category":"Food","tags":["Ipad","Pro","Creativity","Thunderbolt","Space"],"star":false,"vendor":"Maimuna’s Bakery","publishedOn":"Nov 1, 7:45 AM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        2021 Apple 12.9-inch iPad Pro (Wi‑Fi, 128GB) - Space
-                        Gray
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Ipad</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Pro</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Creativity
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Thunderbolt
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Space</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Maimuna’s Bakery</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 1, 7:45 AM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Amazon Basics Matte Black Wired Keyboard - US Layout (QWERTY)","productImage":"/products/8.png","price":"$98","category":"Fashion","tags":["Keyboard","Smooth","Butter","RGB","Black"],"star":false,"vendor":"Green fashion","publishedOn":"Nov 3, 12:27 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Amazon Basics Matte Black Wired Keyboard - US Layout
-                        (QWERTY)
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Keyboard
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Smooth
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Butter
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">RGB</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Black</span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Green fashion</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 3, 12:27 PM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="position-static">
-                    <td className="fs-9 align-middle">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Apple Magic Mouse (Wireless, Rechargable) - Silver","productImage":"/products/10.png","price":"$568","category":"Fashion","tags":["Apple","Wireless","Battery","Magic","Performance"],"star":false,"vendor":"Eastacy","publishedOn":"Nov 1, 9:39 AM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="d-block border border-translucent rounded-2"
-                        style={{ width: 54.6 }}
-                        href="../landing/product-details.html"
-                      >
-                        <img src={products} alt width={53} />
-                      </a>
-                    </td>
-                    <td className="product align-middle ps-4">
-                      <a
-                        className="fw-semibold line-clamp-3 mb-0"
-                        href="../landing/product-details.html"
-                      >
-                        Apple Magic Mouse (Wireless, Rechargable) - Silver
-                      </a>
-                    </td>
-
-                    <td
-                      className="tags align-middle review pb-2 ps-3"
-                      style={{ minWidth: 225 }}
-                    >
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Apple</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Wireless
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Battery
-                        </span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">Magic</span>
-                      </a>
-                      <a className="text-decoration-none" href="#!">
-                        <span className="badge badge-tag me-2 mb-2">
-                          Performance
-                        </span>
-                      </a>
-                    </td>
-
-                    <td className="vendor align-middle text-start fw-semibold ps-4">
-                      <a href="#!">Eastacy</a>
-                    </td>
-                    <td className="time align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4">
-                      Nov 1, 9:39 AM
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
             <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
               <div className="col-auto d-flex">
-                <p
-                  className="mb-0 d-none d-sm-block me-3 fw-semibold text-body"
-                  data-list-info="data-list-info"
-                />
-                <a className="fw-semibold" href="#!" data-list-view="*">
-                  View all
-                  <span
-                    className="fas fa-angle-right ms-1"
-                    data-fa-transform="down-1"
-                  />
-                </a>
-                <a
-                  className="fw-semibold d-none"
-                  href="#!"
-                  data-list-view="less"
-                >
-                  View Less
-                  <span
-                    className="fas fa-angle-right ms-1"
-                    data-fa-transform="down-1"
-                  />
-                </a>
+                <p className="mb-0 me-3 fw-semibold text-body">
+                  Trang {currentPage} / {totalPages}
+                </p>
+                {/* Showing{" "}
+                {currentPage === 1
+                  ? 1
+                  : (currentPage - 1) * CategorysPerPage + 1}{" "}
+                to {Math.min(currentPage * CategorysPerPage, categories.length)}{" "}
+                of {categories.length} items */}
               </div>
               <div className="col-auto d-flex">
-                <button className="page-link" data-list-pagination="prev">
+                <button
+                  className={`page-link ${currentPage === 1 ? "disabled" : ""}`}
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
                   <span className="fas fa-chevron-left" />
                 </button>
-                <ul className="mb-0 pagination" />
-                <button className="page-link pe-0" data-list-pagination="next">
+                <ul className="mb-0 pagination">
+                  {[...Array(totalPages)].map((_, index) => (
+                    <li
+                      key={index}
+                      className={currentPage === index + 1 ? "active" : ""}
+                    >
+                      <button
+                        className="page"
+                        type="button"
+                        onClick={() => goToPage(index + 1)}
+                      >
+                        {index + 1}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  className={`page-link ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
                   <span className="fas fa-chevron-right" />
                 </button>
               </div>
@@ -1036,6 +316,81 @@ const listCategory = () => {
           </div>
         </div>
       </div>
+      <div
+        className="modal fade"
+        id="updateCustomer"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+        tabIndex={-1}
+        aria-labelledby="updateCustomer"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-l modal-dialog-centered">
+          <div className="modal-content bg-body-highlight p-6">
+            <div className="modal-header justify-content-between border-0 p-0 mb-2">
+              <h3 className="mb-0">Edit Category</h3>
+              <button
+                className="btn btn-sm btn-phoenix-secondary"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <span className="fas fa-times text-danger" />
+              </button>
+            </div>
+            <div className="modal-body px-0 mt-1">
+              <div className="row g-4">
+                <div className="col-lg-12">
+                  <div className="mb-4">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Category Name
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={categoryDetails.name}
+                      onChange={(e) =>
+                        setCategoryDetails({
+                          ...categoryDetails,
+                          name: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Description
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={categoryDetails.description}
+                      onChange={(e) =>
+                        setCategoryDetails({
+                          ...categoryDetails,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer border-0 pt-0 px-0 pb-0">
+              <button
+                className="btn btn-link text-danger px-3 my-0"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                Cancel
+              </button>
+              <button className="btn btn-primary my-0" onClick={updateCategory}>
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <footer className="footer position-absolute">
         <div className="row g-0 justify-content-between align-items-center h-100">
           <div className="col-12 col-sm-auto text-center">

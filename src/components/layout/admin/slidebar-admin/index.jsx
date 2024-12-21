@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+
 const SlidebarAdmin = () => {
   return (
     <>
@@ -94,13 +95,16 @@ const SlidebarAdmin = () => {
                               {/* more inner pages*/}
                             </li>
                             <li className="nav-item">
-                              <a className="nav-link" href="danh-sach-san-pham">
+                              <Link
+                                className="nav-link"
+                                to="danh-sach-san-pham"
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     List Products
                                   </span>
                                 </div>
-                              </a>
+                              </Link>
                               {/* more inner pages*/}
                             </li>
                           </ul>
@@ -139,13 +143,16 @@ const SlidebarAdmin = () => {
                               {/* more inner pages*/}
                             </li>
                             <li className="nav-item">
-                              <a className="nav-link" href="danh-sach-danh-muc">
+                              <Link
+                                className="nav-link"
+                                to="danh-sach-danh-muc"
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     List category
                                   </span>
                                 </div>
-                              </a>
+                              </Link>
                               {/* more inner pages*/}
                             </li>
                           </ul>
@@ -184,16 +191,16 @@ const SlidebarAdmin = () => {
                               {/* more inner pages*/}
                             </li>
                             <li className="nav-item">
-                              <a
+                              <Link
                                 className="nav-link"
-                                href="danh-sach-danh-muc-con"
+                                to="danh-sach-danh-muc-con"
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     List subcategory
                                   </span>
                                 </div>
-                              </a>
+                              </Link>
                               {/* more inner pages*/}
                             </li>
                           </ul>

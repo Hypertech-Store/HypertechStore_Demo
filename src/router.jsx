@@ -33,6 +33,8 @@ import Profile from "./pages/client/profile";
 import Login from "./pages/client/login";
 import Register from "./pages/client/register";
 import ForPassword from "./pages/client/forgotPassword";
+import Verification from "./pages/client/2FAVerification";
+// import ResetPassword from "./pages/client/ressetPassword";
 
 const Router = () => {
   return (
@@ -75,6 +77,7 @@ const Router = () => {
           <Route path="dang-nhap" element={<Login />} />
           <Route path="dang-ky" element={<Register />} />
           <Route path="quen-mat-khau" element={<ForPassword />} />
+          <Route path="xac-minh-2-lop" element={<Verification />} />
         </Route>
 
         {/* Admin Routes */}

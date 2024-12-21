@@ -4343,7 +4343,7 @@ textarea.form-control-lg {
   > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(
     .valid-feedback
   ):not(.invalid-tooltip):not(.invalid-feedback) {
-  margin-left: calc(var(--phoenix-border-width) * -1);
+  margin-left: calc(var(--phoenix-border-width) * -50);
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
@@ -12257,6 +12257,10 @@ textarea.form-control.is-invalid {
 }
 .ps-15 {
   padding-left: 7.5rem !important;
+}
+
+.ps-16 {
+  padding-left: -0.25rem !important;
 }
 .gap-0 {
   gap: 0 !important;
@@ -28427,7 +28431,7 @@ h3,
 .nav-underline .nav-link {
   color: var(--phoenix-body-color);
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 .nav-links .nav-link {
   font-weight: 700;
@@ -31811,7 +31815,7 @@ html:not(.navbar-vertical-collapsed)
   }
 }
 .dropdown-profile {
-  min-width: 18.3125rem;
+  width: 18.3125rem;
 }
 .dropdown-profile .nav .nav-link {
   --phoenix-nav-link-color: var(--phoenix-body-highlight-color);
@@ -31822,6 +31826,17 @@ html:not(.navbar-vertical-collapsed)
 .dropdown-profile .nav .nav-link:hover {
   background: var(--phoenix-body-highlight-bg);
 }
+
+.dropdown-profile-1 .nav .nav-link {
+  --phoenix-nav-link-color: var(--phoenix-body-highlight-color);
+  --phoenix-nav-link-hover-color: var(--phoenix-emphasis-color);
+  padding: 0.5rem 2.5rem 0.5rem 2.5rem;
+  font-weight: 600;
+}
+.dropdown-profile-1 .nav .nav-link:hover {
+  background: var(--phoenix-body-highlight-bg);
+}
+
 .notification-dropdown-menu {
   min-width: 260px;
 }
@@ -35587,7 +35602,7 @@ html:not(.navbar-vertical-collapsed)
 .search-box {
   position: relative;
   font-size: 0.8rem;
-  width: 20rem;
+  width: 25rem;
 }
 .search-box .search-box-icon {
   position: absolute;
@@ -35768,8 +35783,8 @@ html:not(.navbar-vertical-collapsed)
   border-radius: 0 !important;
 }
 .avatar-m {
-  height: 2rem;
-  width: 2rem;
+  height: 50px;
+  width: 50px;
 }
 .avatar-m .avatar-name {
   font-size: 1.0526315789rem;
@@ -37445,8 +37460,9 @@ html:not(.navbar-vertical-collapsed)
 }
 .product-card .product-verified-badge {
   position: absolute;
-  bottom: 0.75rem;
+  top: 0.75rem;
   left: 0.75rem;
+  padding: 5px;
 }
 .product-card:hover .product-name {
   color: var(--phoenix-primary);

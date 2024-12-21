@@ -1,19 +1,8 @@
-import blueFront from "../../../assets/img/products/details/blue_front.png";
-import blueBack from "../../../assets/img/products/details/blue_back.png";
-import redFront from "../../../assets/img/products/details/red_front.png";
-import redBack from "../../../assets/img/products/details/red_back.png";
-import greenFront from "../../../assets/img/products/details/green_front.png";
-import greenBack from "../../../assets/img/products/details/green_back.png";
-import purpleFront from "../../../assets/img/products/details/purple_front.png";
-import purpleBack from "../../../assets/img/products/details/purple_back.png";
-import silverFront from "../../../assets/img/products/details/silver_front.png";
-import silverBack from "../../../assets/img/products/details/silver_back.png";
-import yellowFront from "../../../assets/img/products/details/yellow_front.png";
-import yellowBack from "../../../assets/img/products/details/yellow_back.png";
-import orangeFront from "../../../assets/img/products/details/orange_front.png";
-import orangeBack from "../../../assets/img/products/details/orange_back.png";
-
-import products from "../../../assets/img/products/23.png";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { toast } from "react-toastify"; // Thư viện toast cho thông báo
+import PacmanLoader from "react-spinners/PacmanLoader";
+import { useNavigate } from "react-router-dom"; // Import hook điều hướng
 import products1 from "../../../assets/img/products/2.png";
 import products2 from "../../../assets/img/products/16.png";
 import products3 from "../../../assets/img/products/10.png";
@@ -30,7 +19,340 @@ import review5 from "../../../assets/img/e-commerce/review-15.jpg";
 import review6 from "../../../assets/img/e-commerce/review-16.jpg";
 
 const ProductDetails = () => {
-  document.title = "Hypertech Store - Chi tiết sản phẩm";
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
+  const navigate = useNavigate();
+  const productId = queryParams.get("id");
+  const [productData, setProductData] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [variantPrice, setVariantPrice] = useState(0); // lưu giá biến thể
+  const [remainingTime, setRemainingTime] = useState("");
+  const [ngayKetThucSale, setNgayKetThucSale] = useState(null);
+  const [images, setImages] = useState([]);
+  const [colorAttribute, setColorAttribute] = useState("");
+  const [colorName, setColorName] = useState("");
+  const [dungLuongOptions, setDungLuongOptions] = useState([]);
+
+  const [selectedDungLuong, setSelectedDungLuong] = useState(null); // Dung lượng được chọn
+  const [finalPrice, setFinalPrice] = useState(0);
+  const [dungLuongName, setDungLuongName] = useState(""); // State for the attribute name "Dung lượng"
+  const [colorVariants, setColorVariants] = useState([]);
+  const [otherAttributes, setOtherAttributes] = useState([]);
+
+  // eslint-disable-next-line no-unused-vars
+  const [isAttributesComplete, setIsAttributesComplete] = useState(false);
+
+  const baseUrl = "http://127.0.0.1:8000/storage/";
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/san-pham/detail/${productId}`
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Product data:", data);
+        setProductData(data);
+
+        setNgayKetThucSale(data.sale?.ngay_ket_thuc_sale || null);
+
+        if (data.hinh_anh_bien_the_san_pham) {
+          const imageLinks = data.hinh_anh_bien_the_san_pham.flatMap((item) =>
+            item.hinh_anh.map(
+              (image) => `${baseUrl}${image.duong_dan_hinh_anh}`
+            )
+          );
+          setImages(imageLinks);
+        }
+
+        // Xử lý thuộc tính "Màu sắc"
+        const colorAttributeData = data.gia_tri_thuoc_tinh?.find(
+          (item) => item.thuoc_tinh_san_pham?.ten_thuoc_tinh === "Màu sắc"
+        );
+        setColorAttribute(
+          colorAttributeData?.thuoc_tinh_san_pham?.ten_thuoc_tinh || "Màu sắc"
+        );
+        setColorName(colorAttributeData?.gia_tri || "Chưa chọn màu");
+
+        // Hiển thị các biến thể màu sắc (nếu có)
+        if (data.hinh_anh_bien_the_san_pham) {
+          const colorVariantsData = data.hinh_anh_bien_the_san_pham.flatMap(
+            (item) =>
+              item.hinh_anh.map((image) => ({
+                colorName: image.ten_gia_tri,
+                imageUrl: `${baseUrl}${image.duong_dan_hinh_anh}`,
+              }))
+          );
+          setColorVariants(colorVariantsData);
+        }
+
+        // Xử lý thuộc tính "Dung lượng"
+        const capacityAttributeData = data.grouped_attributes?.["Dung lượng"];
+        if (capacityAttributeData) {
+          setDungLuongOptions(capacityAttributeData.ten_gia_tri || []);
+          setDungLuongName("Dung lượng");
+        }
+
+        // Xử lý các thuộc tính khác (không phải Màu sắc và Dung lượng)
+        const otherAttributesData = Object.keys(
+          data.grouped_attributes || {}
+        ).filter((key) => key !== "Màu sắc" && key !== "Dung lượng");
+        setOtherAttributes(otherAttributesData);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+
+    if (productId) {
+      fetchProductData();
+    }
+  }, [productId]);
+
+  // Dependency on `productId` and `baseUrl`
+
+  useEffect(() => {
+    if (productData) {
+      document.title = `${productData?.sanPham?.ten_san_pham}`;
+    }
+  }, [productData]); // Mỗi khi productData thay đổi, cập nhật lại tiêu đề trang
+
+  useEffect(() => {
+    // Hàm tính thời gian đếm ngược
+    const calculateRemainingTime = () => {
+      if (!ngayKetThucSale) return;
+
+      const endTime = new Date(
+        new Date(ngayKetThucSale).toLocaleString("en-US", {
+          timeZone: "Asia/Ho_Chi_Minh",
+        })
+      ).getTime();
+      const now = new Date().getTime();
+      const timeLeft = endTime - now;
+
+      if (timeLeft > 0) {
+        const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24)); // Số ngày
+        const hours = Math.floor(
+          (timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        ); // Số giờ còn lại
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)); // Số phút
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000); // Số giây
+
+        setRemainingTime(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+      } else {
+        setRemainingTime(null); // Nếu hết hạn, xóa thời gian
+      }
+    };
+
+    // Cập nhật mỗi giây nếu `ngayKetThucSale` tồn tại
+    if (ngayKetThucSale) {
+      const timer = setInterval(calculateRemainingTime, 1000);
+      return () => clearInterval(timer); // Xóa bộ đếm khi unmounted
+    }
+  }, [ngayKetThucSale]);
+
+  useEffect(() => {
+    // Kiểm tra xem tất cả các thuộc tính đã được chọn hay chưa
+    const isColorSelected = colorName && colorName !== "Chưa chọn màu";
+    const isDungLuongSelected = selectedDungLuong && selectedDungLuong !== "";
+    const areOtherAttributesSelected = otherAttributes.every(
+      (attribute) =>
+        productData.grouped_attributes[attribute]?.ten_gia_tri.length > 0
+    );
+
+    setIsAttributesComplete(
+      isColorSelected && isDungLuongSelected && areOtherAttributesSelected
+    );
+  }, [colorName, selectedDungLuong, otherAttributes, productData]);
+  // State để lưu chỉ số ảnh hiện tại
+  const [activeImageIndex, setActiveImageIndex] = useState(0); // Mặc định là ảnh chính
+
+  // Thêm ảnh chính vào đầu danh sách
+  const imageArray = [productData?.sanPham?.duong_dan_anh, ...images];
+
+  const handleImageClick = (index, color = "") => {
+    if (index === 0) {
+      setActiveImageIndex(0);
+      setColorName("");
+      setVariantPrice(0); // No variant price
+    } else {
+      setActiveImageIndex(index);
+      setColorName(color);
+
+      if (selectedDungLuong) {
+        const selectedVariant = productData?.bienTheSanPhams?.find(
+          (variant) =>
+            variant.gia_tri_thuoc_tinh?.some(
+              (attr) => attr.ten_gia_tri === color
+            ) &&
+            variant.gia_tri_thuoc_tinh?.some(
+              (attr) => attr.ten_gia_tri === selectedDungLuong
+            )
+        );
+
+        if (selectedVariant) {
+          const variantPrice = parseFloat(selectedVariant.gia) || 0;
+          setVariantPrice(variantPrice);
+
+          // Format price with currency
+          console.log(
+            `Giá biến thể: ${new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(variantPrice)}`
+          );
+
+          setFinalPrice(calculateFinalPrice(variantPrice)); // Tính giá cuối
+        }
+      }
+    }
+  };
+
+  const handleDungLuongChange = (event) => {
+    const selectedCapacity = event.target.value;
+    setSelectedDungLuong(selectedCapacity);
+
+    if (colorName) {
+      const selectedVariant = productData?.bienTheSanPhams?.find(
+        (variant) =>
+          variant.gia_tri_thuoc_tinh?.some(
+            (attr) => attr.ten_gia_tri === colorName
+          ) &&
+          variant.gia_tri_thuoc_tinh?.some(
+            (attr) => attr.ten_gia_tri === selectedCapacity
+          )
+      );
+
+      if (selectedVariant) {
+        const variantPrice = parseFloat(selectedVariant.gia) || 0;
+        setVariantPrice(variantPrice);
+
+        // Log the price with currency format
+        console.log(
+          `Giá biến thể: ${new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          }).format(variantPrice)}`
+        );
+
+        setFinalPrice(calculateFinalPrice(variantPrice)); // Tính giá cuối
+      }
+    }
+  };
+
+  const calculateFinalPrice = (variantPrice = 0) => {
+    let basePrice = parseFloat(productData?.sanPham?.gia) || 0; // Giá gốc
+    if (productData?.sale_theo_phan_tram) {
+      // Nếu có giảm giá
+      basePrice =
+        basePrice -
+        (basePrice * parseFloat(productData?.sale_theo_phan_tram || 0)) / 100; // Giá sau khi giảm
+    }
+    let finalPrice = basePrice + variantPrice;
+    return finalPrice;
+  };
+  // Dùng giá mặc định ban đầu (gốc hoặc đã giảm)
+  useEffect(() => {
+    const initialPrice = calculateFinalPrice(0); // Giá mặc định khi chưa có biến thể
+    setFinalPrice(initialPrice);
+  }, [productData]);
+
+  const handleAddToCart = async () => {
+    // Lấy thông tin người dùng từ sessionStorage
+    const userData = JSON.parse(sessionStorage.getItem("userInfo")); // Sửa lại key lấy là "userInfo" thay vì "user"
+
+    // Kiểm tra xem người dùng có đăng nhập chưa
+    if (!userData || !userData.id) {
+      toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
+      return;
+    }
+
+    // Kiểm tra biến thể sản phẩm đã được chọn
+    const selectedVariant = productData?.bienTheSanPhams?.find(
+      (variant) =>
+        variant.gia_tri_thuoc_tinh?.some(
+          (attr) => attr.ten_gia_tri === colorName
+        ) &&
+        variant.gia_tri_thuoc_tinh?.some(
+          (attr) => attr.ten_gia_tri === selectedDungLuong
+        )
+    );
+
+    if (selectedVariant) {
+      const stock = selectedVariant.so_luong_kho || 0;
+
+      if (stock === 0) {
+        // Nếu sản phẩm hết hàng
+        toast.error("Sản phẩm biến thể này đã hết hàng.");
+      } else {
+        const totalPrice = finalPrice; // Tổng giá sản phẩm đã tính (bao gồm biến thể)
+
+        // Chuẩn bị dữ liệu gửi lên API
+        const productDataToSend = {
+          khach_hang_id: userData.id, // Lấy ID người dùng từ sessionStorage
+          san_pham_id: selectedVariant.san_pham_id,
+          so_luong: 1, // Giả sử người dùng mua 1 sản phẩm
+          bien_the_san_pham_id: selectedVariant.id,
+          attributes: selectedVariant.gia_tri_thuoc_tinh.map((attr) => ({
+            gia_tri_thuoc_tinh_id: attr.id,
+            ten_gia_tri: attr.ten_gia_tri,
+          })),
+          gia: totalPrice, // Sử dụng giá đã tính
+        };
+
+        try {
+          // Gửi dữ liệu lên API
+          const response = await fetch(
+            "http://127.0.0.1:8000/api/gio-hang/them-gio-hang",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(productDataToSend),
+            }
+          );
+
+          if (response.ok) {
+            const responseData = await response.json();
+            toast.success("Sản phẩm đã được thêm vào giỏ hàng!");
+            // Log dữ liệu khi thêm thành công
+            console.log("Sản phẩm đã được thêm vào giỏ hàng:", responseData);
+            navigate("/gio-hang");
+          } else {
+            const errorData = await response.json();
+            toast.error(
+              errorData.message ||
+                "Đã có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng."
+            );
+          }
+          // eslint-disable-next-line no-unused-vars
+        } catch (error) {
+          toast.error("Không thể kết nối với máy chủ, vui lòng thử lại.");
+        }
+      }
+    } else {
+      toast.error("Vui lòng chọn đầy đủ thuộc tính của sản phẩm.");
+    }
+  };
+
+  if (!productData || !productData.grouped_attributes) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "70vh",
+        }}
+      >
+        <PacmanLoader speedMultiplier={0.8} color="#36d7b7" />
+      </div>
+    ); // Show the loader while waiting for data
+  }
   return (
     <>
       <div>
@@ -70,42 +392,35 @@ const ProductDetails = () => {
                           aria-live="polite"
                           style={{ transform: "translate3d(0px, 0px, 0px)" }}
                         >
-                          <div
-                            className="swiper-slide swiper-slide-active swiper-slide-visible swiper-slide-fully-visible swiper-slide-thumb-active"
-                            role="group"
-                            aria-label="1 / 3"
-                            style={{ height: 84, marginBottom: 16 }}
-                          >
-                            <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                              <img src={blueFront} alt />
+                          {/* Duyệt qua các ảnh khác (các ảnh con) */}
+                          {images.map((image, index) => (
+                            <div
+                              key={index}
+                              className={`swiper-slide ${
+                                activeImageIndex === index + 1 // Chỉnh lại logic tính toán active
+                                  ? "swiper-slide-thumb-active"
+                                  : ""
+                              }`}
+                              role="group"
+                              aria-label={`${index + 2} / ${imageArray.length}`}
+                              style={{ height: 84, marginBottom: 16 }}
+                              onClick={() =>
+                                handleImageClick(
+                                  index + 1, // Cập nhật chỉ số chính xác khi chọn ảnh con
+                                  colorVariants[index]?.colorName || "",
+                                  true
+                                )
+                              } // Gọi với isVariant = true cho các ảnh con
+                            >
+                              <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
+                                <img
+                                  src={image}
+                                  alt={`Product Image ${index + 2}`}
+                                />
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            className="swiper-slide swiper-slide-next swiper-slide-visible swiper-slide-fully-visible"
-                            role="group"
-                            aria-label="2 / 3"
-                            style={{ height: 84, marginBottom: 16 }}
-                          >
-                            <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                              <img src={blueBack} alt />
-                            </div>
-                          </div>
-                          <div
-                            className="swiper-slide swiper-slide-visible swiper-slide-fully-visible"
-                            role="group"
-                            aria-label="3 / 3"
-                            style={{ height: 84, marginBottom: 16 }}
-                          >
-                            <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
-                              <img src={blueFront} alt />
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                        <span
-                          className="swiper-notification"
-                          aria-live="assertive"
-                          aria-atomic="true"
-                        />
                       </div>
                     </div>
                     <div className="col-12 col-md-10 col-lg-12 col-xl-10">
@@ -123,26 +438,23 @@ const ProductDetails = () => {
                             <div
                               className="swiper-slide swiper-slide-active"
                               role="group"
-                              aria-label="1 / 3"
+                              aria-label={`${activeImageIndex + 1} / ${
+                                imageArray.length
+                              }`}
                               style={{ width: 411 }}
                             >
-                              <img className="w-100" src={blueFront} alt />
-                            </div>
-                            <div
-                              className="swiper-slide swiper-slide-next"
-                              role="group"
-                              aria-label="2 / 3"
-                              style={{ width: 411 }}
-                            >
-                              <img className="w-100" src={blueBack} alt />
-                            </div>
-                            <div
-                              className="swiper-slide "
-                              role="group"
-                              aria-label="3 / 3"
-                              style={{ width: 411 }}
-                            >
-                              <img className="w-100" src={blueFront} alt />
+                              {/* Hiển thị ảnh active */}
+                              <img
+                                className="w-100"
+                                src={`${
+                                  imageArray[activeImageIndex]?.startsWith(
+                                    "http"
+                                  )
+                                    ? imageArray[activeImageIndex]
+                                    : baseUrl + imageArray[activeImageIndex]
+                                }`}
+                                alt={`Product image ${activeImageIndex + 1}`}
+                              />
                             </div>
                           </div>
                           <span
@@ -175,7 +487,10 @@ const ProductDetails = () => {
                       {/* <span class="me-2 far fa-heart"></span> Font Awesome fontawesome.com */}
                       Add to wishlist
                     </button>
-                    <button className="btn btn-lg btn-warning rounded-pill w-100 fs-9 fs-sm-8">
+                    <button
+                      className="btn btn-lg btn-warning rounded-pill w-100 fs-9 fs-sm-8"
+                      onClick={handleAddToCart}
+                    >
                       <svg
                         className="svg-inline--fa fa-cart-shopping me-2"
                         aria-hidden="true"
@@ -192,7 +507,6 @@ const ProductDetails = () => {
                           d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"
                         />
                       </svg>
-                      {/* <span class="fas fa-shopping-cart me-2"></span> Font Awesome fontawesome.com */}
                       Add to cart
                     </button>
                   </div>
@@ -293,8 +607,7 @@ const ProductDetails = () => {
                         </p>
                       </div>
                       <h3 className="mb-3 lh-sm">
-                        24" iMac® with Retina 4.5K display - Apple M1 8GB Memory
-                        - 256GB SSD - w/Touch ID (Latest Model) - Blue
+                        {productData?.sanPham?.ten_san_pham}
                       </h3>
                       <div className="d-flex flex-wrap align-items-start mb-3">
                         <span className="badge text-bg-success fs-9 rounded-pill me-2 fw-semibold">
@@ -305,173 +618,167 @@ const ProductDetails = () => {
                         </a>
                       </div>
                       <div className="d-flex flex-wrap align-items-center">
-                        <h1 className="me-3">$1349.99</h1>
-                        <p className="text-body-quaternary text-decoration-line-through fs-6 mb-0 me-3">
-                          $1499.99
-                        </p>
-                        <p className="text-warning fw-bolder fs-6 mb-0">
-                          10% off
-                        </p>
+                        {productData?.sale_theo_phan_tram ? (
+                          <>
+                            <h1 className="me-3">
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              })
+                                .format(
+                                  parseFloat(productData?.sanPham?.gia) *
+                                    (1 -
+                                      parseFloat(
+                                        productData?.sale_theo_phan_tram
+                                      ) /
+                                        100) +
+                                    variantPrice
+                                )
+                                .replace("₫", "VNĐ")}
+                            </h1>
+                            <p className="text-body-quaternary text-decoration-line-through fs-6 mb-0 me-3">
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              })
+                                .format(parseFloat(productData?.sanPham?.gia))
+                                .replace("₫", "VNĐ")}
+                            </p>
+                            <p className="text-warning fw-bolder fs-6 mb-0">
+                              {parseFloat(
+                                productData?.sale_theo_phan_tram
+                              ).toFixed(0)}{" "}
+                              % off
+                            </p>
+                          </>
+                        ) : (
+                          <h1>
+                            {new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            })
+                              .format(
+                                parseFloat(productData?.sanPham?.gia) +
+                                  variantPrice
+                              )
+                              .replace("₫", "VNĐ")}
+                          </h1>
+                        )}
                       </div>
+
                       <p className="text-success fw-semibold fs-7 mb-2">
                         In stock
                       </p>
                       <p className="mb-2 text-body-secondary">
-                        <strong className="text-body-highlight">
-                          Do you want it on Saturday, July 29th?
-                        </strong>{" "}
-                        Choose{" "}
-                        <strong className="text-body-highlight">
-                          Saturday Delivery{" "}
-                        </strong>
-                        at checkout if you want your order delivered within 12
-                        hours 43 minutes,{" "}
-                        <a className="fw-bold" href="#!">
-                          Details.{" "}
-                        </a>
-                        <strong className="text-body-highlight">
-                          Gift wrapping is available.
-                        </strong>
+                        {productData?.sanPham?.mo_ta}
+
+                        {/* <a className="fw-bold" href="#!">
+                            {""}Xem thêm
+                          </a> */}
                       </p>
-                      <p className="text-danger-dark fw-bold mb-5 mb-lg-0">
-                        Special offer ends in 23:00:45 hours
-                      </p>
+                      {remainingTime && (
+                        <p className="text-danger-dark fw-bold mb-5 mb-lg-0">
+                          Special offer ends in {remainingTime} hours
+                        </p>
+                      )}
                     </div>
                     <div>
-                      <div className="mb-3">
-                        <p className="fw-semibold mb-2 text-body">
-                          Color:{" "}
-                          <span
-                            className="text-body-emphasis"
-                            data-product-color="data-product-color"
-                          >
-                            Blue
-                          </span>
-                        </p>
-                        <div
-                          className="d-flex product-color-variants"
-                          data-product-color-variants="data-product-color-variants"
-                        >
-                          <div
-                            className="rounded-1 border border-translucent me-2 active"
-                            data-variant="Blue"
-                            data-products-images={[blueFront, blueBack]}
-                          >
-                            <img src={blueFront} alt="Blue Front" width={38} />
-                          </div>
-                          <div
-                            className="rounded-1 border border-translucent me-2"
-                            data-variant="Red"
-                            data-products-images={[redFront, redBack]}
-                          >
-                            <img src={redFront} alt="Red Front" width={38} />
-                          </div>
-                          <div
-                            className="rounded-1 border border-translucent me-2"
-                            data-variant="Green"
-                            data-products-images={[greenFront, greenBack]}
-                          >
-                            <img
-                              src={greenFront}
-                              alt="Green Front"
-                              width={38}
-                            />
-                          </div>
-                          <div
-                            className="rounded-1 border border-translucent me-2"
-                            data-variant="Purple"
-                            data-products-images={[purpleFront, purpleBack]}
-                          >
-                            <img
-                              src={purpleFront}
-                              alt="Purple Front"
-                              width={38}
-                            />
-                          </div>
-                          <div
-                            className="rounded-1 border border-translucent me-2"
-                            data-variant="Silver"
-                            data-products-images={[silverFront, silverBack]}
-                          >
-                            <img
-                              src={silverFront}
-                              alt="Silver Front"
-                              width={38}
-                            />
-                          </div>
-                          <div
-                            className="rounded-1 border border-translucent me-2"
-                            data-variant="Yellow"
-                            data-products-images={[yellowFront, yellowBack]}
-                          >
-                            <img
-                              src={yellowFront}
-                              alt="Yellow Front"
-                              width={38}
-                            />
-                          </div>
-                          <div
-                            className="rounded-1 border border-translucent me-2"
-                            data-variant="Orange"
-                            data-products-images={[orangeFront, orangeBack]}
-                          >
-                            <img
-                              src={orangeFront}
-                              alt="Orange Front"
-                              width={38}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="row g-3 g-sm-5 align-items-end">
-                        <div className="col-12 col-sm-auto">
-                          <p className="fw-semibold mb-2 text-body">Size:</p>
-                          <div className="d-flex align-items-center">
-                            <select className="form-select w-auto">
-                              <option value={44}>44</option>
-                              <option value={22}>22</option>
-                              <option value={18}>18</option>
-                            </select>
-                            <a className="ms-2 fs-9 fw-semibold" href="#!">
-                              Size chart
-                            </a>
-                          </div>
-                        </div>
-                        <div className="col-12 col-sm">
+                      {/* Màu sắc */}
+                      {colorAttribute === "Màu sắc" && (
+                        <div className="mb-3">
                           <p className="fw-semibold mb-2 text-body">
-                            Quantity:
+                            <span>{colorAttribute}: </span>
+                            <span className="text-body-emphasis">
+                              {colorName || "Chưa chọn màu"}
+                            </span>
                           </p>
-                          <div className="d-flex justify-content-between align-items-end">
-                            <div
-                              className="d-flex flex-between-center"
-                              data-quantity="data-quantity"
-                            >
-                              <button
-                                className="btn btn-phoenix-primary px-3"
-                                data-type="minus"
+                          <div className="d-flex product-color-variants">
+                            {colorVariants.map((variant, index) => (
+                              <div
+                                key={index}
+                                className={`rounded-1 border border-translucent me-2 ${
+                                  activeImageIndex === index + 1 ? "active" : ""
+                                }`}
+                                onClick={() =>
+                                  handleImageClick(index + 1, variant.colorName)
+                                }
+                                style={{ padding: "5px", borderWidth: "3px" }}
                               >
-                                -
-                              </button>
-                              <input
-                                className="form-control text-center input-spin-none bg-transparent border-0 outline-none"
-                                style={{ width: 50 }}
-                                type="number"
-                                min={1}
-                                defaultValue={2}
-                              />
-                              <button
-                                className="btn btn-phoenix-primary px-3"
-                                data-type="plus"
-                              >
-                                +
-                              </button>
-                            </div>
-                            <button className="btn btn-phoenix-primary px-3 border-0">
-                              <span className="fas fa-share-alt fs-7" />
-                            </button>
+                                <img
+                                  src={variant.imageUrl}
+                                  alt={variant.colorName}
+                                  width={30}
+                                  height={30}
+                                  style={{
+                                    width: "30px",
+                                    height: "30px",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      </div>
+                      )}
+
+                      {/* Dung lượng */}
+                      {dungLuongName === "Dung lượng" && (
+                        <div className="row g-3 g-sm-5 align-items-end">
+                          <div className="col-12 col-sm-auto">
+                            <p className="fw-semibold mb-2 text-body">
+                              {dungLuongName}
+                            </p>
+                            <div className="d-flex align-items-center">
+                              {dungLuongOptions.length > 0 ? (
+                                dungLuongOptions.map((option, index) => (
+                                  <div
+                                    key={index}
+                                    className={`d-flex align-items-center me-3 rounded-1 border cursor-pointer ${
+                                      selectedDungLuong === option
+                                        ? "border border-primary"
+                                        : "border border-1"
+                                    }`} // Ensure `option.name` is compared with selectedDungLuong
+                                    onClick={() =>
+                                      handleDungLuongChange({
+                                        target: { value: option },
+                                      })
+                                    }
+                                    style={{
+                                      padding: "7px 10px",
+                                      borderWidth: "3px",
+                                      fontSize: "13px",
+                                    }}
+                                  >
+                                    <span>{option}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-muted">
+                                  No capacity options available
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hiển thị các thuộc tính khác nếu có */}
+                      {otherAttributes.length > 0 && (
+                        <div className="mb-3">
+                          {otherAttributes.map((attribute) => (
+                            <div key={attribute}>
+                              <p className="fw-semibold mb-2 text-body">
+                                <span>{attribute}: </span>
+                                <span className="text-body-emphasis">
+                                  {productData.grouped_attributes[
+                                    attribute
+                                  ]?.ten_gia_tri.join(", ")}
+                                </span>
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -488,19 +795,6 @@ const ProductDetails = () => {
                 <li className="nav-item" role="presentation">
                   <a
                     className="nav-link active"
-                    id="description-tab"
-                    data-bs-toggle="tab"
-                    href="#tab-description"
-                    role="tab"
-                    aria-controls="tab-description"
-                    aria-selected="true"
-                  >
-                    Description
-                  </a>
-                </li>
-                <li className="nav-item" role="presentation">
-                  <a
-                    className="nav-link"
                     id="specification-tab"
                     data-bs-toggle="tab"
                     href="#tab-specification"
@@ -509,7 +803,7 @@ const ProductDetails = () => {
                     aria-selected="false"
                     tabIndex={-1}
                   >
-                    Specification
+                    Thông số kỹ thuật
                   </a>
                 </li>
                 <li className="nav-item" role="presentation">
@@ -523,78 +817,19 @@ const ProductDetails = () => {
                     aria-selected="false"
                     tabIndex={-1}
                   >
-                    Ratings &amp; reviews
+                    Đánh giá & nhận xét
                   </a>
                 </li>
               </ul>
               <div className="row gx-3 gy-7">
-                <div className="col-12 col-lg-7 col-xl-8">
+                <div className="col-12 col-lg-7 col-xl-12">
                   <div className="tab-content" id="productTabContent">
                     <div
                       className="tab-pane pe-lg-6 pe-xl-12 fade show active text-body-emphasis"
-                      id="tab-description"
-                      role="tabpanel"
-                      aria-labelledby="description-tab"
-                    >
-                      <p className="mb-5">
-                        CUPERTINO, CA , The M1 CPU allows Apple to deliver an
-                        all-new iMac with a lot more compact and impressively
-                        thin design. The new iMac delivers tremendous
-                        performance in an 11.5-millimeter-thin design with a
-                        stunning side profile that almost vanishes. iMac
-                        includes a 24-inch 4.5K Retina display with 11.3 million
-                        pixels, 500 nits of brightness, and over a billion
-                        colors, giving a beautiful and vivid viewing experience.
-                        It is available in a variety of striking colors to match
-                        a user's own style and brighten any area. A 1080p
-                        FaceTime HD camera, studio-quality mics, and a
-                        six-speaker sound system are all included in the new
-                        iMac, making it the greatest camera and audio system
-                        ever in a Mac. Touch ID is also making its debut on the
-                        iMac, making it easier than ever to securely log in,
-                        make Apple Pay transactions, and switch user accounts
-                        with the touch of a finger. Apps launch at lightning
-                        speed, everyday chores seem astonishingly fast and
-                        fluid, and demanding workloads like editing 4K video and
-                        working with large photos are faster than ever before
-                        thanks to the power and performance of M1 and macOS Big
-                        Sur.
-                      </p>
-                      <a href={products} data-gallery="gallery-description">
-                        <img
-                          className="img-fluid mb-5 rounded-3"
-                          src={products}
-                          alt
-                        />
-                      </a>
-                      <p className="mb-0">
-                        The new iMac joins Apple's fantastic M1-powered Mac
-                        family, which includes the MacBook Air, 13-inch MacBook
-                        Pro, and Mac mini, and represents yet another step ahead
-                        in the company's shift to Apple silicon. Customers may
-                        order iMac starting Friday, April 30. It's the most
-                        personal, powerful, capable, and enjoyable it's ever
-                        been. In the second half of May, the iMac will be
-                        available."M1 is a huge step forward for the Mac," said
-                        Greg Joswiak, Apple's senior vice president of Worldwide
-                        Marketing. "Today, we're delighted to present the
-                        all-new iMac, the first Mac developed around the
-                        groundbreaking M1 processor." "The new iMac takes
-                        everything people love about iMac to an entirely new
-                        level, with its beautiful design in seven breathtaking
-                        colors, its immersive 4.5K Retina display, the greatest
-                        camera, mics, and speakers ever in a Mac, and Touch ID,
-                        combined with M1's incredible performance and macOS Big
-                        Sur's power."
-                      </p>
-                    </div>
-                    <div
-                      className="tab-pane pe-lg-6 pe-xl-12 fade"
                       id="tab-specification"
                       role="tabpanel"
                       aria-labelledby="specification-tab"
                     >
-                      <h3 className="mb-0 ms-4 fw-bold">Processor/Chipset</h3>
                       <table className="table">
                         <thead>
                           <tr>
@@ -603,234 +838,23 @@ const ProductDetails = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Chip name
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">Apple M1 chip</td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Cpu core
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">
-                              8 (4 performance and 4 efficiency)
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Gpu core
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">7</td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Neural engine
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">16 cores</td>
-                          </tr>
+                          {productData?.sanPham?.thong_so &&
+                            productData?.sanPham?.thong_so.map(
+                              (spec, index) => (
+                                <tr key={index}>
+                                  <td className="bg-body-highlight align-middle">
+                                    <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
+                                      {spec.thong_so}
+                                    </h6>
+                                  </td>
+                                  <td className="px-5 mb-0">{spec.mo_ta}</td>
+                                </tr>
+                              )
+                            )}
                         </tbody>
                       </table>
-                      <h3 className="mb-0 mt-6 ms-4 fw-bold">Storage</h3>
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th style={{ width: "40%" }} />
-                            <th style={{ width: "60%" }} />
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Memory
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">8 GB unified</td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                SSD
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">256 GB</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                      <h3 className="mb-0 mt-6 ms-4 fw-bold">Display</h3>
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th style={{ width: "40%" }}> </th>
-                            <th style={{ width: "60%" }} />
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Display type
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">Retina</td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Size
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">
-                              24” (actual diagonal 23.5”)
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Resolution
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">4480 x 2520 </td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Brightness
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">500 nits</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                      <h3 className="mb-0 mt-6 ms-4 fw-bold">
-                        Additional Specifications
-                      </h3>
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th style={{ width: "40%" }}> </th>
-                            <th style={{ width: "60%" }} />
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Camera
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">
-                              1080p FaceTime HD camera
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight">
-                              <h6 className="mb-0 mt-1 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Video{" "}
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">
-                              Full native resolution on built-in display at 1
-                              billion colors; <br />
-                              One external display with up to 6K resolution at
-                              60Hz
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight">
-                              <h6 className="mb-0 mt-1 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Audio
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">
-                              High-fidelity six-speaker with force-cancelling
-                              woofers <br />
-                              Wide stereo sound <br />
-                              Spatial audio with Dolby Atmos3
-                              <br />
-                              Studio-quality three-mic array with directional
-                              beamforming
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight">
-                              <h6 className="mb-0 mt-1 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Inputs{" "}
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">
-                              Magic Keyboard
-                              <br />
-                              Magic Mouse
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight">
-                              <h6 className="mb-0 mt-1 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Wireless{" "}
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">
-                              802.11ax Wi-Fi 6 (IEEE 802.11a/b/g/n/ac
-                              compatible)
-                              <br />
-                              Bluetooth 5.0 wireless technology
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight">
-                              <h6 className="mb-0 mt-1 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                I/O &amp; expantions{" "}
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">
-                              Thunderbolt / USB 4 ports x 2<br />
-                              3.5 mm headphone jack
-                              <br />
-                              Gigabit Ethernet
-                              <br />
-                              USB 3 ports x2
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="bg-body-highlight align-middle">
-                              <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
-                                Operating System
-                              </h6>
-                            </td>
-                            <td className="px-5 mb-0">macOS Monterey </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                      <h3 className="mb-3 mt-6 ms-4 fw-bold">In The Box</h3>
-                      <p className="lh-sm border-top border-translucent mb-0 py-3 px-4">
-                        iMac 24”
-                      </p>
-                      <p className="lh-sm border-top border-translucent mb-0 py-3 px-4">
-                        Magic Keyboard{" "}
-                      </p>
-                      <p className="lh-sm border-top border-translucent mb-0 py-3 px-4">
-                        Magic Mouse
-                      </p>
-                      <p className="lh-sm border-top border-translucent mb-0 py-3 px-4">
-                        143W power adapter
-                      </p>
-                      <p className="lh-sm border-top border-translucent mb-0 py-3 px-4">
-                        2m Power Cord
-                      </p>
-                      <p className="lh-sm border-y border-translucent mb-0 py-3 px-4">
-                        USB-C to Lightning Cable
-                      </p>
                     </div>
+
                     <div
                       className="tab-pane fade"
                       id="tab-reviews"
@@ -1938,136 +1962,6 @@ const ProductDetails = () => {
                               </li>
                             </ul>
                           </nav>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-12 col-lg-5 col-xl-4">
-                  <div className="card">
-                    <div className="card-body">
-                      <h5 className="text-body-emphasis">
-                        Usually Bought Together
-                      </h5>
-                      <div className="w-75">
-                        <p className="text-body-tertiary fs-9 fw-bold line-clamp-1">
-                          with 24" iMac® with Retina 4.5K display - Apple M1 8GB
-                          Memory - 256GB SSD - w/Touch ID (Latest Model) - Blue
-                        </p>
-                      </div>
-                      <div className="border-dashed border-y border-translucent py-4">
-                        <div className="d-flex align-items-center mb-5">
-                          <div className="form-check mb-0">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              defaultChecked="checked"
-                            />
-                            <label className="form-check-label" />
-                          </div>
-                          <a href="product-details.html">
-                            {" "}
-                            <img
-                              className="border border-translucent rounded"
-                              src={products1}
-                              width={53}
-                              alt
-                            />
-                          </a>
-                          <div className="ms-2">
-                            <a
-                              className="fs-9 fw-bold line-clamp-2 mb-2"
-                              href="product-details.html"
-                            >
-                              {" "}
-                              iPhone 13 pro max-Pacific Blue- 128GB
-                            </a>
-                            <h5>$899.99</h5>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center mb-5">
-                          <div className="form-check mb-0">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              defaultChecked="checked"
-                            />
-                            <label className="form-check-label" />
-                          </div>
-                          <a href="product-details.html">
-                            {" "}
-                            <img
-                              className="border border-translucent rounded"
-                              src={products2}
-                              width={53}
-                              alt
-                            />
-                          </a>
-                          <div className="ms-2">
-                            <a
-                              className="fs-9 fw-bold line-clamp-2 mb-2"
-                              href="product-details.html"
-                            >
-                              Apple AirPods Pro
-                            </a>
-                            <h5>$59.00</h5>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center mb-0">
-                          <div className="form-check mb-0">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                            />
-                            <label className="form-check-label" />
-                          </div>
-                          <a href="product-details.html">
-                            {" "}
-                            <img
-                              className="border border-translucent rounded"
-                              src={products3}
-                              width={53}
-                              alt
-                            />
-                          </a>
-                          <div className="ms-2">
-                            <a
-                              className="fs-9 fw-bold line-clamp-2 mb-2"
-                              href="product-details.html"
-                            >
-                              Apple Magic Mouse (Wireless, Rechargable) -
-                              Silver, Worst mouse ever
-                            </a>
-                            <h5>$89.00</h5>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-end justify-content-between pt-3">
-                        <div>
-                          <h5 className="mb-2 text-body-tertiary text-opacity-85">
-                            Total
-                          </h5>
-                          <h4 className="mb-0 text-body-emphasis">$958.99</h4>
-                        </div>
-                        <div className="btn btn-outline-warning">
-                          Add 3 items to cart
-                          <svg
-                            className="svg-inline--fa fa-cart-shopping ms-2"
-                            aria-hidden="true"
-                            focusable="false"
-                            data-prefix="fas"
-                            data-icon="cart-shopping"
-                            role="img"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 576 512"
-                            data-fa-i2svg
-                          >
-                            <path
-                              fill="currentColor"
-                              d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"
-                            />
-                          </svg>
-                          {/* <span class="fas fa-shopping-cart ms-2"></span> Font Awesome fontawesome.com */}
                         </div>
                       </div>
                     </div>
