@@ -4,14 +4,15 @@ import { toast } from "react-toastify";
 
 const Shop = () => {
   document.title = "Hypertech Store - Cửa hàng";
-
+  const baseUrl = "http://127.0.0.1:8000/storage/";
   // const [userId] = useState(() => localStorage.getItem('userId'));
   const [products, setProducts] = useState([]);
   // const [wishlist, setWishlist] = useState(new Set());
 
+  // eslint-disable-next-line no-unused-vars
   const [newProducts, setNewProducts] = useState([]);
   const [saleProducts, setSaleProducts] = useState([]);
-
+  // eslint-disable-next-line no-unused-vars
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,65 +51,6 @@ const Shop = () => {
       setCurrentPage(page); // Update the current page
     }
   };
-
-  //   const addToCart = (productId, price, variationId) => {
-  //     const cartData = {
-  //       khach_hang_id: userId,
-  //       san_pham_id: productId,
-  //       so_luong: 1,
-  //       bien_the_san_pham_id: variationId, // Use selected variation id
-  //       gia: price,
-  //     };
-
-  //     fetch("http://127.0.0.1:8000/api/gio-hang/them-san-pham", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(cartData),
-  //     })
-  //       .then((response) => response.json())
-  //       .then((data) => {
-  //         console.log("API response:", data); // In ra để kiểm tra dữ liệu trả về từ API
-
-  //         // Kiểm tra nếu API trả về một message thành công
-  //         if (
-  //           data &&
-  //           data.message === "Sản phẩm đã được thêm vào giỏ hàng thành công"
-  //         ) {
-  //           console.log("Product added to cart:", data);
-  //           toast.success("Thêm sản phẩm thành công vào giỏ hàng!", {
-  //             position: "top-right",
-  //             autoClose: 5000,
-  //             hideProgressBar: false,
-  //             closeOnClick: true,
-  //             pauseOnHover: true,
-  //             draggable: true,
-  //           });
-  //         } else {
-  //           console.error("Failed to add product to cart:", data);
-  //           toast.error("Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng!", {
-  //             position: "top-right",
-  //             autoClose: 5000,
-  //             hideProgressBar: false,
-  //             closeOnClick: true,
-  //             pauseOnHover: true,
-  //             draggable: true,
-  //           });
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error adding product to cart:", error);
-  //         toast.error("Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng!", {
-  //           position: "top-right",
-  //           autoClose: 5000,
-  //           hideProgressBar: false,
-  //           closeOnClick: true,
-  //           pauseOnHover: true,
-  //           draggable: true,
-  //         });
-  //       });
-  //   };
 
   // Hàm để lấy sản phẩm mới
   const fetchNewProducts = async () => {
@@ -153,7 +95,6 @@ const Shop = () => {
 
     const seconds = Math.floor((timeLeft / 1000) % 60);
     const minutes = Math.floor((timeLeft / 1000 / 60) % 60);
-    const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
 
     // Tính tổng số giờ còn lại
     const totalHours = Math.floor(timeLeft / (1000 * 60 * 60));
@@ -162,10 +103,6 @@ const Shop = () => {
       return `${totalHours}h ${minutes}m ${seconds}s`;
     }
   };
-
-  // const storedUserInfo = sessionStorage.getItem("userInfo");
-  // const user = JSON.parse(storedUserInfo);
-  // const userId = user.id;
 
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null); // Khởi tạo state userId mặc định là null
@@ -1300,7 +1237,7 @@ const Shop = () => {
 
                                 <img
                                   className="img-fluid"
-                                  src={product.duong_dan_anh}
+                                  src={`${baseUrl}${product.duong_dan_anh}`}
                                   alt={product.ten_san_pham}
                                 />
                                 {label && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 // Import ảnh
 import whoopingBannerProduct from "../../../assets/img/e-commerce/whooping_banner_product.png";
@@ -7,9 +7,7 @@ import giftItemsBannerBg from "../../../assets/img/e-commerce/gift-items-banner-
 import bestInMarketBg from "../../../assets/img/e-commerce/best-in-market-bg.png";
 import productImage from "../../../assets/img/e-commerce/5.png";
 import product1 from "../../../assets/img/products/1.png";
-import product2 from "../../../assets/img/products/2.png";
-import product3 from "../../../assets/img/products/3.png";
-import product4 from "../../../assets/img/products/4.png";
+
 import product5 from "../../../assets/img/products/5.png";
 import product7 from "../../../assets/img/products/7.png";
 import product8 from "../../../assets/img/products/8.png";

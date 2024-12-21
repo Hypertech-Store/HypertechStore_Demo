@@ -1,4 +1,4 @@
-import products from "../../../../assets/img/products/1.png";
+// import products from "../../../../assets/img/products/1.png";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -10,7 +10,7 @@ const ListSubcategory = () => {
     description: "",
   });
   const [categoryId, setCategoryId] = useState(null);
-  const [tags, setTags] = useState([]);
+  // const [tags, setTags] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);   
   const [CategorysPerPage, setCategorysPerPage] = useState(10);

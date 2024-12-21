@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom"; // Import NavLink từ react-router-dom
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
+import axios from "axios";
 
 import logo from "../../../../assets/img/icons/logo1.png";
 import team from "../../../../assets/img/team/40x40/30.webp";
@@ -17,6 +17,8 @@ const HeaderClient = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+
   const navigate = useNavigate();
 
   // Kiểm tra thông tin người dùng trong sessionStorage khi component mount
@@ -32,16 +34,17 @@ const HeaderClient = () => {
 
   // Lấy danh mục từ API
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/danh-muc/')
-      .then(response => {
+    axios
+      .get("http://127.0.0.1:8000/api/danh-muc/getAll")
+      .then((response) => {
         setCategories(response.data); // Cập nhật danh mục
       })
-      .catch(error => {
-        console.error('Error fetching categories:', error); // Xử lý lỗi nếu có
+      .catch((error) => {
+        console.error("Error fetching categories:", error); // Xử lý lỗi nếu có
       });
-  }, []);
-  console.log(categories);
+  }, []); // Hàm này chạy khi component mount
 
+  console.log(categories); // Log thông tin danh mục
 
   // Xử lý đăng xuất
   const handleLogout = () => {
@@ -76,6 +79,30 @@ const HeaderClient = () => {
       }
     });
   };
+
+  // Lấy tổng số sản phẩm từ giỏ hàng
+  useEffect(() => {
+    const fetchTotalProducts = async () => {
+      const storedUserInfo = sessionStorage.getItem("userInfo"); // Kiểm tra userInfo có trong sessionStorage
+      if (!storedUserInfo) {
+        return; // Nếu chưa có thông tin người dùng thì không gọi API
+      }
+
+      const { id } = JSON.parse(storedUserInfo); // Lấy id khách hàng từ storedUserInfo
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/gio-hang/${id}`
+        );
+        setTotalProducts(response.data.total_products); // Cập nhật tổng sản phẩm
+        console.log(response.data.total_products); // Log số sản phẩm trong giỏ hàng
+      } catch (error) {
+        console.error("Error fetching total products:", error);
+      }
+    };
+
+    fetchTotalProducts(); // Gọi API khi có thông tin người dùng
+  }, [userInfo]); // Gọi lại khi `userInfo` thay đổi
+
   return (
     <>
       <div className="container-small">
@@ -109,7 +136,20 @@ const HeaderClient = () => {
                         data-bs-title="Switch theme"
                         style={{ height: 32, width: 32 }}
                       >
-                        <span className="icon" data-feather="moon" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-moon icon"
+                        >
+                          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                        </svg>
                       </label>
                       <label
                         className="mb-0 theme-control-toggle-label theme-control-toggle-dark"
@@ -167,7 +207,9 @@ const HeaderClient = () => {
                         <circle cx={20} cy={21} r={1} />
                         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                       </svg>
-                      <span className="icon-indicator-number">3</span>
+                      <span className="icon-indicator-number">
+                        {totalProducts}
+                      </span>
                     </a>
                   </li>
 
@@ -570,7 +612,7 @@ const HeaderClient = () => {
                         >
                           <div className="card position-relative border-0">
                             <div className="card-body p-0">
-                              <div className="text-center pt-4 pb-3">
+                              <div className="text-center pt-4">
                                 <div className="avatar avatar-xl ">
                                   <img
                                     className="rounded-circle"
@@ -582,19 +624,13 @@ const HeaderClient = () => {
                                   {userInfo?.ten_nguoi_dung ||
                                     "Chưa cập nhật tên"}
                                 </h6>
-                              </div>
-                              <div className="mb-3 mx-3">
-                                <input
-                                  className="form-control form-control-sm"
-                                  id="statusUpdateInput"
-                                  type="text"
-                                  placeholder="Update your status"
-                                />
+                                <hr />
                               </div>
                             </div>
+
                             <div
                               className="overflow-auto scrollbar"
-                              style={{ height: "10rem" }}
+                              style={{ height: "9rem" }}
                             >
                               <ul className="nav d-flex flex-column mb-2 pb-1">
                                 <li className="nav-item">
@@ -622,7 +658,7 @@ const HeaderClient = () => {
                                   </a>
                                 </li>
 
-                                <li className="nav-item">
+                                {/* <li className="nav-item">
                                   <a
                                     className="nav-link px-3 d-block"
                                     href="#!"
@@ -652,7 +688,7 @@ const HeaderClient = () => {
                                     </svg>
                                     Posts &amp; Activity
                                   </a>
-                                </li>
+                                </li> */}
                                 <li className="nav-item">
                                   <a
                                     className="nav-link px-3 d-block"
@@ -734,36 +770,7 @@ const HeaderClient = () => {
                                 </li>
                               </ul>
                             </div>
-                            <div className="card-footer p-0 border-top border-translucent">
-                              <ul className="nav d-flex flex-column my-3">
-                                <li className="nav-item">
-                                  <a
-                                    className="nav-link px-3 d-block"
-                                    href="#!"
-                                  >
-                                    {" "}
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="16px"
-                                      height="16px"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth={2}
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      className="feather feather-user-plus me-2 text-body align-bottom"
-                                    >
-                                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                      <circle cx="8.5" cy={7} r={4} />
-                                      <line x1={20} y1={8} x2={20} y2={14} />
-                                      <line x1={23} y1={11} x2={17} y2={11} />
-                                    </svg>
-                                    Add another account
-                                  </a>
-                                </li>
-                              </ul>
-                              <hr />
+                            <div className="card-footer border-top border-translucent pb-3">
                               <div className="px-3">
                                 {" "}
                                 <a
@@ -919,15 +926,23 @@ const HeaderClient = () => {
               Danh mục
             </button>
             <div className="dropdown-menu border border-translucent py-0 category-dropdown-menu">
-              <div className="card border-0 scrollbar" style={{ maxHeight: 657 }}>
+              <div
+                className="card border-0 scrollbar"
+                style={{ maxHeight: 657 }}
+              >
                 <div className="card-body p-6 pb-3">
                   <div className="row gx-7 gy-5 mb-5">
                     {categories?.map((category, index) => (
                       <div key={index} className="col-12 col-sm-6 col-md-4">
                         <div className="d-flex align-items-center mb-3">
-                          <span className="text-primary me-2" data-feather="pocket" style={{ strokeWidth: 3 }} />
+                          <span
+                            className="text-primary me-2"
+                            data-feather="pocket"
+                            style={{ strokeWidth: 3 }}
+                          />
                           <h6 className="text-body-highlight mb-0 text-nowrap">
-                            {category.ten_danh_muc} {/* Hiển thị tên danh mục chính */}
+                            {category.ten_danh_muc}{" "}
+                            {/* Hiển thị tên danh mục chính */}
                           </h6>
                         </div>
                         <div className="ms-n2">
@@ -938,7 +953,8 @@ const HeaderClient = () => {
                               className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
                               href="#!"
                             >
-                              {item.ten_danh_muc_con} {/* Hiển thị tên danh mục con */}
+                              {item.ten_danh_muc_con}{" "}
+                              {/* Hiển thị tên danh mục con */}
                             </a>
                           ))}
                         </div>

@@ -1,13 +1,36 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import PropagateLoader from "react-spinners/PropagateLoader";
+import PulseLoader from "react-spinners/PulseLoader";
+import { Link, useLocation } from "react-router-dom";
+
+import avatar from "../../../../assets/img/team/150x150/avatar.png";
 const listCustomer = () => {
+  const link = "http://127.0.0.1:8000/storage/";
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [customers, setCustomers] = useState([]);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [currentPage, setCurrentPage] = useState(1);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [loading, setLoading] = useState(true); // Thêm state loading
+
+  const breadcrumbTitles = {
+    "admin/danh-sach-khach-hang": "List customer", // Đây là URL không có "/"
+  };
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+
+  console.log(currentTitle);
   const customersPerPage = 10;
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     // Set loading to true initially
     setLoading(true);
@@ -31,7 +54,7 @@ const listCustomer = () => {
 
   // Calculate total pages
   const totalPages = Math.ceil(customers.length / customersPerPage);
-
+  console.log(totalPages);
   // Get current customers to display based on the page
   const indexOfLastCustomer = currentPage * customersPerPage;
   const indexOfFirstCustomer = indexOfLastCustomer - customersPerPage;
@@ -50,174 +73,43 @@ const listCustomer = () => {
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <a href="#!">Page 1</a>
+            <Link to="/admin">Dashboard</Link>
           </li>
-          <li className="breadcrumb-item">
-            <a href="#!">Page 2</a>
+
+          <li className="breadcrumb-item active" aria-current="page">
+            {currentTitle}
           </li>
-          <li className="breadcrumb-item active">Default</li>
         </ol>
       </nav>
       <div className="mb-9">
         <div className="row g-2 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">Customers</h2>
+            <h2 className="mb-0 mt-5">List customers</h2>
+          </div>
+          <div className="col-auto ms-auto">
+            <div className="search-box">
+              <form className="position-relative">
+                <input
+                  className="form-control search-input search"
+                  type="search"
+                  placeholder="Search customers"
+                  aria-label="Search"
+                />
+                <span className="fas fa-search search-box-icon" />
+              </form>
+            </div>
           </div>
         </div>
-        <ul className="nav nav-links mb-3 mb-lg-2 mx-n3">
-          <li className="nav-item">
-            <a className="nav-link active" aria-current="page" href="#">
-              <span>All </span>
-              <span className="text-body-tertiary fw-semibold">(68817)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>New </span>
-              <span className="text-body-tertiary fw-semibold">(6)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Abandoned checkouts </span>
-              <span className="text-body-tertiary fw-semibold">(17)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Locals </span>
-              <span className="text-body-tertiary fw-semibold">(6,810)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Email subscribers </span>
-              <span className="text-body-tertiary fw-semibold">(8)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Top reviews </span>
-              <span className="text-body-tertiary fw-semibold">(2)</span>
-            </a>
-          </li>
-        </ul>
+
         <div
           id="products"
           data-list='{"valueNames":["customer","email","total-orders","total-spent","city","last-seen","last-order"],"page":10,"pagination":true}'
         >
-          <div className="mb-4">
-            <div className="row g-3">
-              <div className="col-auto">
-                <div className="search-box">
-                  <form className="position-relative">
-                    <input
-                      className="form-control search-input search"
-                      type="search"
-                      placeholder="Search customers"
-                      aria-label="Search"
-                    />
-                    <span className="fas fa-search search-box-icon" />
-                  </form>
-                </div>
-              </div>
-              <div className="col-auto scrollbar overflow-hidden-y flex-grow-1">
-                <div className="btn-group position-static" role="group">
-                  <div className="btn-group position-static text-nowrap">
-                    <button
-                      className="btn btn-phoenix-secondary px-7 flex-shrink-0"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      data-boundary="window"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                      data-bs-reference="parent"
-                    >
-                      {""}
-                      Country
-                      <span className="fas fa-angle-down ms-2" />
-                    </button>
-                    <ul className="dropdown-menu">
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          US
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Uk
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Australia
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="btn-group position-static text-nowrap">
-                    <button
-                      className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      data-boundary="window"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                      data-bs-reference="parent"
-                    >
-                      {""}
-                      VIP
-                      <span className="fas fa-angle-down ms-2" />
-                    </button>
-                    <ul className="dropdown-menu">
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          VIP 1
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          VIP 2
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          VIP 3
-                        </a>
-                      </li>
-                      <li />
-                    </ul>
-                  </div>
-                  <button className="btn btn-phoenix-secondary px-7 flex-shrink-0">
-                    More filters
-                  </button>
-                </div>
-              </div>
-              <div className="col-auto">
-                <button
-                  className="btn btn-phoenix-secondary flex-shrink-0"
-                  type="button"
-                >
-                  <span className="fa-solid fa-file-export fs-9 me-2" />
-                  Export
-                </button>
-              </div>
-            </div>
-          </div>
           <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis border-top border-bottom border-translucent position-relative top-1">
             <div className="table-responsive scrollbar-overlay mx-n1 px-1">
               <table className="table table-sm fs-9 mb-0">
                 <thead>
                   <tr>
-                    <th className="white-space-nowrap fs-9 align-middle ps-0">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          id="checkbox-bulk-customers-select"
-                          type="checkbox"
-                        />
-                      </div>
-                    </th>
                     <th className="align-middle" style={{ width: "10%" }}>
                       IMAGE
                     </th>
@@ -244,19 +136,11 @@ const listCustomer = () => {
                 {/* Conditionally render tbody after loading */}
                 {!loading && (
                   <tbody>
-                    {customers.map((customer) => (
+                    {currentCustomers.map((customer) => (
                       <tr
                         key={customer.id}
                         className="hover-actions-trigger btn-reveal-trigger position-static"
                       >
-                        <td className="fs-9 align-middle ps-0 py-3">
-                          <div className="form-check mb-0 fs-8">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                            />
-                          </div>
-                        </td>
                         <td className="customer align-middle white-space-nowrap">
                           <a
                             className="d-flex align-items-center text-body-emphasis"
@@ -266,8 +150,9 @@ const listCustomer = () => {
                               <img
                                 className="rounded-circle"
                                 src={
-                                  customer.hinh_anh ||
-                                  "https://via.placeholder.com/50"
+                                  customer.hinh_anh
+                                    ? `${link}${customer.hinh_anh}`
+                                    : avatar
                                 }
                                 alt="Customer Avatar"
                               />
@@ -323,7 +208,7 @@ const listCustomer = () => {
                   height: "100px", // Set a height for the loading row
                 }}
               >
-                <PropagateLoader speedMultiplier={1} color="#36d7b7" />
+                <PulseLoader size={10} speedMultiplier={1} color="#36d7b7" />
               </div>
             )}
 
@@ -407,18 +292,23 @@ const listCustomer = () => {
               <div className="row g-4">
                 {/* Left column with customer details */}
                 <div className="col-lg-5">
-                  <div className="mb-5 mt-1 flex-column align-items-center justify-content-between">
+                  <div className="mb-5 flex-column align-items-center justify-content-between">
                     <img
                       src={
-                        selectedCustomer?.hinh_anh ||
-                        "https://via.placeholder.com/150"
-                      } // default image
+                        selectedCustomer?.hinh_anh
+                          ? `${link}${selectedCustomer.hinh_anh}` // Concatenates link with image path
+                          : avatar // Default placeholder image
+                      }
                       alt="User Image"
-                      className="img-fluid"
-                      style={{ maxWidth: "150px" }}
+                      className="img-thumbnail"
+                      style={{
+                        width: "170px",
+                        height: "170px",
+                        marginLeft: "50px",
+                      }}
                     />
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <label className="text-body-highlight fw-bold mb-2">
                       Fullname
                     </label>
@@ -429,7 +319,7 @@ const listCustomer = () => {
                       readOnly
                     />
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <label className="text-body-highlight fw-bold mb-2">
                       Username
                     </label>
@@ -444,7 +334,7 @@ const listCustomer = () => {
 
                 {/* Right column with more details */}
                 <div className="col-lg-7">
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <label className="text-body-highlight fw-bold mb-2">
                       Email
                     </label>
@@ -455,7 +345,7 @@ const listCustomer = () => {
                       readOnly
                     />
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <label className="text-body-highlight fw-bold mb-2">
                       Phone
                     </label>
@@ -466,7 +356,7 @@ const listCustomer = () => {
                       readOnly
                     />
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <label className="text-body-highlight fw-bold mb-2">
                       Address
                     </label>
@@ -477,7 +367,7 @@ const listCustomer = () => {
                       readOnly
                     />
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <label className="text-body-highlight fw-bold mb-2">
                       Gender
                     </label>
