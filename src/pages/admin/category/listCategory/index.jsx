@@ -1,22 +1,42 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { TagsInput } from "react-tag-input-component";
+import { Link, useLocation } from "react-router-dom";
 const listCategory = () => {
+  const breadcrumbTitles = {
+    "admin/danh-sach-danh-muc": "List category", // Đây là URL không có "/"
+  };
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [categories, setCategories] = useState([]);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [categoryDetails, setCategoryDetails] = useState({
     name: "",
     description: "",
   });
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [categoryId, setCategoryId] = useState(null);
-  const [tags, setTags] = useState([]);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [currentPage, setCurrentPage] = useState(1);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [totalPages, setTotalPages] = useState(1);
-  const [CategorysPerPage, setCategorysPerPage] = useState(10);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [CategorysPerPage] = useState(10);
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     // Fetch data from API on component mount
     axios
-      .get(`http://127.0.0.1:8000/api/danh-muc?page=${currentPage}&limit=${CategorysPerPage}`)
+      .get(
+        `http://127.0.0.1:8000/api/danh-muc?page=${currentPage}&limit=${CategorysPerPage}`
+      )
       .then((response) => {
         setCategories(response.data.data); // Set categories state from the response data's 'data' field
         setTotalPages(response.data.last_page); // Set total pages from the response data's 'last_page' field
@@ -31,7 +51,6 @@ const listCategory = () => {
       setCurrentPage(page);
     }
   };
-
 
   // Function to format date
   const formatDate = (dateStr) => {
@@ -66,7 +85,11 @@ const listCategory = () => {
         setCategories((prev) =>
           prev.map((cat) =>
             cat.id === categoryId
-              ? { ...cat, ten_danh_muc: categoryDetails.name, mo_ta: categoryDetails.description }
+              ? {
+                  ...cat,
+                  ten_danh_muc: categoryDetails.name,
+                  mo_ta: categoryDetails.description,
+                }
               : cat
           )
         );
@@ -80,12 +103,14 @@ const listCategory = () => {
   // Hàm xóa danh mục
   const deleteCategory = async (id) => {
     // Hiển thị hộp thoại xác nhận
-    const isConfirmed = window.confirm("Bạn có chắc chắn muốn xóa danh mục này?");
-    
+    const isConfirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa danh mục này?"
+    );
+
     if (!isConfirmed) {
       return; // Nếu người dùng không xác nhận, không thực hiện hành động xóa
     }
-  
+
     try {
       const response = await axios.delete(
         `http://127.0.0.1:8000/api/danh-muc-con/${id}`
@@ -109,64 +134,26 @@ const listCategory = () => {
     });
   };
 
-  // State to store raw date for the input
-  const [dateCreated, setDateCreated] = useState(categoryDetails.dateCreated);
-
-  // Handle date input change
-  const handleDateChange = (e) => {
-    const newDate = e.target.value;
-    setDateCreated(newDate); // Update raw date for internal state
-    setCategoryDetails({
-      ...categoryDetails,
-      dateCreated: newDate, // Update the parent state if necessary
-    });
-  };
-
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <a href="#!">Page 1</a>
+            <Link to="/admin">Dashboard</Link>
           </li>
-          <li className="breadcrumb-item">
-            <a href="#!">Page 2</a>
+
+          <li className="breadcrumb-item active" aria-current="page">
+            {currentTitle}
           </li>
-          <li className="breadcrumb-item active">Default</li>
         </ol>
       </nav>
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">Category</h2>
+            <h2 className="mb-0">List category</h2>
           </div>
         </div>
-        <ul className="nav nav-links mb-3 mb-lg-2 mx-n3">
-          <li className="nav-item">
-            <a className="nav-link active" aria-current="page" href="#">
-              <span>All </span>
-              <span className="text-body-tertiary fw-semibold">(68817)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Published </span>
-              <span className="text-body-tertiary fw-semibold">(70348)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Drafts </span>
-              <span className="text-body-tertiary fw-semibold">(17)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>On discount </span>
-              <span className="text-body-tertiary fw-semibold">(810)</span>
-            </a>
-          </li>
-        </ul>
+
         <div
           id="products"
           data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
@@ -184,58 +171,8 @@ const listCategory = () => {
                   <span className="fas fa-search search-box-icon" />
                 </form>
               </div>
-              <div className="scrollbar overflow-hidden-y">
-                <div className="btn-group position-static" role="group">
-                  <div className="btn-group position-static text-nowrap">
-                    <button
-                      className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      data-boundary="window"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                      data-bs-reference="parent"
-                    >
-                      {""}
-                      Vendor
-                      <span className="fas fa-angle-down ms-2" />
-                    </button>
-                    <ul className="dropdown-menu">
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Action
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Another action
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Something else here
-                        </a>
-                      </li>
-                      <li>
-                        <hr className="dropdown-divider" />
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Separated link
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <button className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0">
-                    More filters
-                  </button>
-                </div>
-              </div>
+
               <div className="ms-xxl-auto ms-auto">
-                <button className="btn btn-link text-body me-4 px-0">
-                  <span className="fa-solid fa-file-export fs-9 me-2" />
-                  Export
-                </button>
                 <button className="btn btn-primary" id="addBtn">
                   <span className="fas fa-plus me-2" />
                   Add product
@@ -248,30 +185,52 @@ const listCategory = () => {
               <table className="table fs-9 mb-0">
                 <thead>
                   <tr>
-                    <th style={{ width: "5%" }}>STT</th>
-                    <th style={{ width: "35%" }}>Tên danh mục</th>
-                    <th style={{ width: "20%" }}>Mô tả</th>
-                    <th style={{ width: "20%" }}>Tags</th>
-                    <th style={{ width: "10%" }}>Ngày tạo</th>
-                    <th></th>
+                    <th
+                      className="white-space-nowrap fs-9 align-middle ps-0"
+                      scope="col"
+                      style={{ width: "15%" }}
+                    >
+                      STT
+                    </th>
+                    <th
+                      className="white-space-nowrap align-middle ps-4"
+                      scope="col"
+                      style={{ width: "30%" }}
+                      data-sort="product"
+                    >
+                      CATEGORY NAME
+                    </th>
+                    <th
+                      className="align-middle ps-3"
+                      scope="col"
+                      style={{ width: "25%" }}
+                    >
+                      DESCRIPTION
+                    </th>
+
+                    <th
+                      className="align-middle ps-4"
+                      scope="col"
+                      style={{ width: "25%" }}
+                    >
+                      PUBLISHED ON
+                    </th>
+                    <th className="align-middle ps-4" style={{ width: "5%" }}>
+                      ACTION
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
                   {categories.map((category, index) => (
                     <tr key={category.id}>
-                      <td>{(currentPage - 1) * CategorysPerPage + index + 1}</td>
+                      <td>
+                        {(currentPage - 1) * CategorysPerPage + index + 1}
+                      </td>
                       <td className="product align-middle ps-4">
                         {category.ten_danh_muc}
                       </td>
                       <td className="tags align-middle review pb-2 ps-3">
                         {category.mo_ta}
-                      </td>
-                      <td className="tags align-middle review pb-2 ps-3">
-                        <a className="text-decoration-none" href="#!">
-                          <span className="badge badge-tag me-2 mb-2">
-                            Tag1
-                          </span>
-                        </a>
                       </td>
 
                       <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
@@ -312,26 +271,41 @@ const listCategory = () => {
                 <p className="mb-0 me-3 fw-semibold text-body">
                   Trang {currentPage} / {totalPages}
                 </p>
+                {/* Showing{" "}
+                {currentPage === 1
+                  ? 1
+                  : (currentPage - 1) * CategorysPerPage + 1}{" "}
+                to {Math.min(currentPage * CategorysPerPage, categories.length)}{" "}
+                of {categories.length} items */}
               </div>
               <div className="col-auto d-flex">
                 <button
-                  className="page-link"
+                  className={`page-link ${currentPage === 1 ? "disabled" : ""}`}
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
                   <span className="fas fa-chevron-left" />
                 </button>
-                {[...Array(totalPages).keys()].map((_, index) => (
-                  <button
-                    key={index}
-                    className={`page-link ${currentPage === index + 1 ? 'active' : ''}`}
-                    onClick={() => goToPage(index + 1)}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
+                <ul className="mb-0 pagination">
+                  {[...Array(totalPages)].map((_, index) => (
+                    <li
+                      key={index}
+                      className={currentPage === index + 1 ? "active" : ""}
+                    >
+                      <button
+                        className="page"
+                        type="button"
+                        onClick={() => goToPage(index + 1)}
+                      >
+                        {index + 1}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
                 <button
-                  className="page-link pe-0"
+                  className={`page-link ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
@@ -409,17 +383,13 @@ const listCategory = () => {
               >
                 Cancel
               </button>
-              <button
-                className="btn btn-primary my-0"
-                onClick={updateCategory}
-              >
+              <button className="btn btn-primary my-0" onClick={updateCategory}>
                 Update
               </button>
             </div>
           </div>
         </div>
       </div>
-
 
       <footer className="footer position-absolute">
         <div className="row g-0 justify-content-between align-items-center h-100">

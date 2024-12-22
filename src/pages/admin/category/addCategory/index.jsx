@@ -1,10 +1,11 @@
-import React, { useState } from "react";
-
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 const AddCategory = () => {
   const [tenDanhMuc, setTenDanhMuc] = useState("");
   const [moTa, setMoTa] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Khởi tạo useNavigate để điều hướng
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,6 +32,7 @@ const AddCategory = () => {
       alert("Category added successfully!");
       setTenDanhMuc("");
       setMoTa("");
+      navigate("/admin/danh-sach-danh-muc");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -54,7 +56,7 @@ const AddCategory = () => {
       <form onSubmit={handleSubmit}>
         <div className="row g-3 flex-between-end mb-5">
           <div className="col-auto">
-            <h2 className="mb-2">Add a category</h2>
+            <h2 className="mb-2">Thêm danh mục</h2>
             <h5 className="text-body-tertiary fw-semibold">
               Orders placed across your store
             </h5>
@@ -65,13 +67,13 @@ const AddCategory = () => {
               type="submit"
               disabled={loading}
             >
-              {loading ? "Saving..." : "Save draft"}
+              {loading ? "Đang tạo danh mục..." : "Tạo danh mục "}
             </button>
           </div>
         </div>
         <div className="row g-5">
           <div className="col-12 col-xl-12">
-            <h4 className="mb-3">Category Title</h4>
+            <h4 className="mb-3">Tên danh mục</h4>
             <input
               className="form-control mb-5"
               type="text"
@@ -81,7 +83,7 @@ const AddCategory = () => {
               required
             />
             <div className="mb-6">
-              <h4 className="mb-3">Category Description</h4>
+              <h4 className="mb-3">Mô tả</h4>
               <textarea
                 className="form-control"
                 id="floatingTextarea2"
