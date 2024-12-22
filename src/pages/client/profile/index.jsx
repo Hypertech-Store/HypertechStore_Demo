@@ -161,6 +161,7 @@ function Profile() {
           id: item.san_pham_id,
         }));
         setProducts(productList);
+        console.log("Data API:", productList);
         setWishlistCount(productList.length);
       })
       .catch((error) => console.error("Error fetching wishlist data:", error));

@@ -1,10 +1,7 @@
 import products2 from "../../../assets/img/products/2.png";
 import products1 from "../../../assets/img/products/1.png";
 import products3 from "../../../assets/img/products/3.png";
-import visa from "../../../assets/img/logos/visa.png";
-// import discover from "../../../assets/img/logos/discover.png";
-import mastercard from "../../../assets/img/logos/mastercard.png";
-import express from "../../../assets/img/logos/american_express.png";
+import { TbEdit } from "react-icons/tb";
 const Checkout = () => {
   document.title = "Hypertech Store - Thanh toán";
   return (
@@ -24,14 +21,14 @@ const Checkout = () => {
               </li>
             </ol>
           </nav>
-          <h2 className="mb-5">Check out</h2>
+          <h2 className="mb-5">Thanh toán</h2>
           <div className="row justify-content-between">
             <div className="col-lg-7 col-xl-6">
               <form>
                 <div className="d-flex align-items-end">
-                  <h3 className="mb-0 me-3">Shipping Details</h3>
+                  <h3 className="mb-0 me-3">Người đặt hàng</h3>
                   <button className="btn btn-link p-0" type="button">
-                    Edit
+                    <TbEdit style={{ height: "1.3em", width: "1.3em" }} />
                   </button>
                 </div>
                 <table className="table table-borderless mt-4">
@@ -46,7 +43,7 @@ const Checkout = () => {
                           >
                             {" "}
                           </span>
-                          <h5 className="lh-sm me-4">Name</h5>
+                          <h5 className="lh-sm me-4">Họ tên</h5>
                         </div>
                       </td>
                       <td className="py-2 fw-bold lh-sm">:</td>
@@ -66,7 +63,7 @@ const Checkout = () => {
                           >
                             {" "}
                           </span>
-                          <h5 className="lh-sm me-4">Address</h5>
+                          <h5 className="lh-sm me-4">Địa chỉ</h5>
                         </div>
                       </td>
                       <td className="py-2 fw-bold lh-sm">:</td>
@@ -87,7 +84,7 @@ const Checkout = () => {
                           >
                             {" "}
                           </span>
-                          <h5 className="lh-sm me-4">Phone</h5>
+                          <h5 className="lh-sm me-4">Số điện thoại</h5>
                         </div>
                       </td>
                       <td className="py-2 fw-bold lh-sm">: </td>
@@ -226,11 +223,22 @@ const Checkout = () => {
                 </div>
               </form>
             </div>
-            <div className="col-lg-5 col-xl-5">
+            <div className="col-lg-5 col-xl-6">
               <div className="card mt-3 mt-lg-0">
                 <div className="card-body">
+                  <div className="input-group mb-3">
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Voucher"
+                    />
+                    <button className="btn btn-phoenix-primary px-5">
+                      Apply
+                    </button>
+                  </div>
+
                   <div className="d-flex align-items-center justify-content-between">
-                    <h3 className="mb-0">Summary</h3>
+                    <h3 className="mb-0">Thông tin đơn hàng</h3>
                     <button className="btn btn-link pe-0" type="button">
                       Edit cart
                     </button>
@@ -332,64 +340,87 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
-              <hr className="my-6" />
-              <h3 className="mb-5">Payment Method</h3>
-              <div className="row g-4 mb-7">
-                <div className="col-12">
-                  <div className="row gx-lg-2">
-                    <div className="col-md-auto">
-                      <div className="form-check">
+              <div className="card mt-3 mt-lg-0">
+                <div className="card-body">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <h3 className="mb-0">Phương thức thanh toán</h3>
+                  </div>
+                </div>
+                <div className="rounded-[8px] bg-bgGrayDefault">
+                  <div className="flex h-15 cursor-pointer items-center gap-2 px-3 py-2.5">
+                    <div className="flex h-5 w-5 items-center">
+                      <div>
                         <input
-                          className="form-check-input"
-                          id="creditCard"
+                          id="radioButtonId-0.8045627888226872cod"
+                          className="Radio_toggleRadio__e5mia"
                           type="radio"
-                          name="paymentMethod"
-                          defaultChecked="checked"
+                          defaultValue="cod"
+                          name
                         />
                         <label
-                          className="form-check-label fs-8 text-body text-nowrap d-flex gap-2"
-                          htmlFor="creditCard"
-                        >
-                          Credit card
-                          <img className="h-100" src={visa} alt />
-                        </label>
+                          htmlFor="radioButtonId-0.8045627888226872cod"
+                          className="Radio_toggleRadioLabel__7E50Q text-textOnWhitePrimary b2-regular Radio_labelRadioMedium__vLq0n"
+                        />
                       </div>
                     </div>
-                    <div className="col-12 col-md-auto">
-                      <div className="form-check">
+                    <img
+                      alt="Thanh toán khi nhận hàng"
+                      loading="lazy"
+                      width={40}
+                      height={40}
+                      decoding="async"
+                      data-nimg={1}
+                      className="h-10 w-10 object-contain"
+                      srcSet="https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/cod.png?w=48&q=100 1x, https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/cod.png?w=96&q=100 2x"
+                      src="https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/cod.png?w=96&q=100"
+                      style={{ color: "transparent" }}
+                    />
+                    <div className="grid gap-0.5">
+                      <span className="text-textOnWhitePrimary f1-medium">
+                        Thanh toán khi nhận hàng
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className>
+                  <div className="flex h-15 cursor-pointer items-center gap-2 px-3 py-2.5">
+                    <div className="flex h-5 w-5 items-center">
+                      <div>
                         <input
-                          className="form-check-input"
-                          id="paypal"
+                          id="radioButtonId-0.053011392258364376VNPay"
+                          className="Radio_toggleRadio__e5mia"
                           type="radio"
-                          name="paymentMethod"
+                          defaultValue="VNPay"
+                          name
                         />
                         <label
-                          className="form-check-label fs-8 text-body"
-                          htmlFor="paypal"
-                        >
-                          Paypal <img className="h-100" src={mastercard} alt />
-                        </label>
+                          htmlFor="radioButtonId-0.053011392258364376VNPay"
+                          className="Radio_toggleRadioLabel__7E50Q text-textOnWhitePrimary b2-regular Radio_labelRadioMedium__vLq0n"
+                        />
                       </div>
                     </div>
-                    <div className="col-12 col-md-auto">
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          id="coupon"
-                          type="radio"
-                          name="paymentMethod"
-                        />
-                        <label
-                          className="form-check-label fs-8 text-body"
-                          htmlFor="coupon"
-                        >
-                          Coupon <img className="h-100" src={express} alt />
-                        </label>
-                      </div>
+                    <img
+                      alt="Thanh toán bằng thẻ ATM nội địa (Qua VNPay)"
+                      loading="lazy"
+                      width={40}
+                      height={40}
+                      decoding="async"
+                      data-nimg={1}
+                      className="h-10 w-10 object-contain"
+                      srcSet="https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/vnpay.png?w=48&q=100 1x, https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/vnpay.png?w=96&q=100 2x"
+                      src="https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/vnpay.png?w=96&q=100"
+                      style={{ color: "transparent" }}
+                    />
+                    <div className="grid gap-0.5">
+                      <span className="text-textOnWhitePrimary f1-normal">
+                        Thanh toán bằng thẻ ATM nội địa (Qua VNPay)
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
+              <hr className="my-6" />
+
               <div className="card mt-3 mt-lg-0">
                 <button className="btn btn-primary" type="submit">
                   Payment
@@ -397,6 +428,11 @@ const Checkout = () => {
               </div>
             </div>
           </div>
+          {/* <div className="row justify-content-between">
+            <div className="col-lg-7 col-xl-12">
+              
+            </div>
+          </div> */}
         </div>
         {/* end of .container*/}
       </section>

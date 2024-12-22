@@ -1,0 +1,220 @@
+{
+  "sanPham": {
+    "id": 1,
+    "danh_muc_id": 2,
+    "danh_muc_con_id": 3,
+    "ten_san_pham": "Điện thoại iPhone 16 Pro Max 256GB",
+    "mo_ta": "iPhone 16 Pro Max 256GB có màn hình Super Retina XDR 6.7 inch, chip A18 Bionic mạnh mẽ, camera chính 48MP, quay video 8K. Dung lượng 256GB, pin lâu, hỗ trợ sạc nhanh và MagSafe. Máy có Face ID, kháng nước, bụi IP68 và chạy iOS mới nhất.",
+    "gia": "34990000.00",
+    "so_luong_ton_kho": 50,
+    "duong_dan_anh": "hinh_anh_san_phams\\black.png",
+    "luot_xem": 0,
+    "created_at": "2024-12-08T16:07:46.000000Z",
+    "updated_at": "2024-11-06T16:07:46.000000Z",
+    "thong_sos": []
+  },
+  "ten_danh_muc": "Điện thoại",
+  "ten_danh_muc_con": "APPLE",
+  "bienTheSanPhams": [
+    {
+      "id": 1,
+      "san_pham_id": 1,
+      "gia": "300000.00",
+      "so_luong_kho": 50,
+      "created_at": "2024-11-10T00:36:51.000000Z",
+      "updated_at": "2024-11-10T00:36:51.000000Z",
+      "gia_tri_thuoc_tinh": [
+        {
+          "id": 1,
+          "thuoc_tinh_san_pham_id": 1,
+          "ten_gia_tri": "Titan Sa Mạc",
+          "created_at": "2024-11-28T14:22:22.000000Z",
+          "updated_at": "2024-12-19T00:11:01.000000Z",
+          "pivot": {
+            "bien_the_san_pham_id": 1,
+            "gia_tri_thuoc_tinh_id": 1
+          },
+          "thuoc_tinh_san_pham": {
+            "id": 1,
+            "ten_thuoc_tinh": "Màu sắc",
+            "created_at": "2024-11-28T14:21:59.000000Z",
+            "updated_at": "2024-11-28T14:21:59.000000Z"
+          }
+        },
+        {
+          "id": 2,
+          "thuoc_tinh_san_pham_id": 1,
+          "ten_gia_tri": "Titan Trắng",
+          "created_at": "2024-11-28T14:22:22.000000Z",
+          "updated_at": "2024-12-18T17:49:09.000000Z",
+          "pivot": {
+            "bien_the_san_pham_id": 1,
+            "gia_tri_thuoc_tinh_id": 2
+          },
+          "thuoc_tinh_san_pham": {
+            "id": 1,
+            "ten_thuoc_tinh": "Màu sắc",
+            "created_at": "2024-11-28T14:21:59.000000Z",
+            "updated_at": "2024-11-28T14:21:59.000000Z"
+          }
+        }
+      ],
+      "lien_ket_bien_the_va_gia_tri": [
+        {
+          "id": 7,
+          "bien_the_san_pham_id": 1,
+          "gia_tri_thuoc_tinh_id": 1,
+          "created_at": "2024-12-18T17:48:46.000000Z",
+          "updated_at": "2024-12-18T17:48:46.000000Z",
+          "hinh_anh_san_phams": [
+            {
+              "id": 2,
+              "lien_ket_bien_the_va_gia_tri_thuoc_tinh_id": 7,
+              "duong_dan_hinh_anh": "hinh_anh_san_phams\\DesertTitan.png",
+              "created_at": null,
+              "updated_at": null
+            }
+          ],
+          "gia_tri_thuoc_tinh": {
+            "id": 1,
+            "thuoc_tinh_san_pham_id": 1,
+            "ten_gia_tri": "Titan Sa Mạc",
+            "created_at": "2024-11-28T14:22:22.000000Z",
+            "updated_at": "2024-12-19T00:11:01.000000Z"
+          }
+        },
+        {
+          "id": 8,
+          "bien_the_san_pham_id": 1,
+          "gia_tri_thuoc_tinh_id": 2,
+          "created_at": "2024-12-18T17:48:46.000000Z",
+          "updated_at": "2024-12-18T17:48:46.000000Z",
+          "hinh_anh_san_phams": [
+            {
+              "id": 1,
+              "lien_ket_bien_the_va_gia_tri_thuoc_tinh_id": 8,
+              "duong_dan_hinh_anh": "hinh_anh_san_phams\\white.png",
+              "created_at": null,
+              "updated_at": null
+            }
+          ],
+          "gia_tri_thuoc_tinh": {
+            "id": 2,
+            "thuoc_tinh_san_pham_id": 1,
+            "ten_gia_tri": "Titan Trắng",
+            "created_at": "2024-11-28T14:22:22.000000Z",
+            "updated_at": "2024-12-18T17:49:09.000000Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "san_pham_id": 1,
+      "gia": "150000.00",
+      "so_luong_kho": 10,
+      "created_at": null,
+      "updated_at": null,
+      "gia_tri_thuoc_tinh": [
+        {
+          "id": 3,
+          "thuoc_tinh_san_pham_id": 2,
+          "ten_gia_tri": "512GB",
+          "created_at": "2024-11-28T14:22:44.000000Z",
+          "updated_at": "2024-11-28T14:22:44.000000Z",
+          "pivot": {
+            "bien_the_san_pham_id": 2,
+            "gia_tri_thuoc_tinh_id": 3
+          },
+          "thuoc_tinh_san_pham": {
+            "id": 2,
+            "ten_thuoc_tinh": "Dung lượng",
+            "created_at": "2024-11-28T14:21:59.000000Z",
+            "updated_at": "2024-11-28T14:21:59.000000Z"
+          }
+        },
+        {
+          "id": 4,
+          "thuoc_tinh_san_pham_id": 2,
+          "ten_gia_tri": "1TB",
+          "created_at": "2024-11-28T14:22:44.000000Z",
+          "updated_at": "2024-11-28T14:22:44.000000Z",
+          "pivot": {
+            "bien_the_san_pham_id": 2,
+            "gia_tri_thuoc_tinh_id": 4
+          },
+          "thuoc_tinh_san_pham": {
+            "id": 2,
+            "ten_thuoc_tinh": "Dung lượng",
+            "created_at": "2024-11-28T14:21:59.000000Z",
+            "updated_at": "2024-11-28T14:21:59.000000Z"
+          }
+        }
+      ],
+      "lien_ket_bien_the_va_gia_tri": [
+        {
+          "id": 9,
+          "bien_the_san_pham_id": 2,
+          "gia_tri_thuoc_tinh_id": 3,
+          "created_at": "2024-12-18T19:09:29.000000Z",
+          "updated_at": "2024-12-18T19:09:29.000000Z",
+          "hinh_anh_san_phams": []
+        },
+        {
+          "id": 10,
+          "bien_the_san_pham_id": 2,
+          "gia_tri_thuoc_tinh_id": 4,
+          "created_at": "2024-12-18T19:09:29.000000Z",
+          "updated_at": "2024-12-18T19:09:29.000000Z",
+          "hinh_anh_san_phams": []
+        }
+      ]
+    }
+  ],
+  "grouped_attributes": {
+    "Màu sắc": {
+      "ten_gia_tri": ["Titan Sa Mạc", "Titan Trắng"],
+      "gia_tri_thuoc_tinh_id": [1, 2]
+    },
+    "Dung lượng": {
+      "ten_gia_tri": ["512GB", "1TB"],
+      "gia_tri_thuoc_tinh_id": [3, 4]
+    }
+  },
+  "sale_theo_phan_tram": "10.00",
+  "sale": {
+    "id": 1,
+    "san_pham_id": 1,
+    "sale_theo_phan_tram": "10.00",
+    "ngay_bat_dau_sale": "2024-12-07 12:40:00",
+    "ngay_ket_thuc_sale": "2024-12-31 15:05:00",
+    "created_at": null,
+    "updated_at": null
+  },
+  "trang_thai": "Sale",
+  "hinh_anh_bien_the_san_pham": [
+    {
+      "bien_the_id": 1,
+      "hinh_anh": [
+        {
+          "bien_the_id": 1,
+          "gia_tri_thuoc_tinh_id": 1,
+          "ten_gia_tri": "Titan Sa Mạc",
+          "hinh_anh_id": 2,
+          "duong_dan_hinh_anh": "hinh_anh_san_phams\\DesertTitan.png"
+        },
+        {
+          "bien_the_id": 1,
+          "gia_tri_thuoc_tinh_id": 2,
+          "ten_gia_tri": "Titan Trắng",
+          "hinh_anh_id": 1,
+          "duong_dan_hinh_anh": "hinh_anh_san_phams\\white.png"
+        }
+      ]
+    },
+    {
+      "bien_the_id": 2,
+      "hinh_anh": []
+    }
+  ]
+}

@@ -16,8 +16,8 @@ const LoginPage = () => {
 
     // Kiểm tra nếu người dùng đã đăng nhập
     useEffect(() => {
-        const userId = sessionStorage.getItem("userId");
-        if (userId === null) {
+        const adminId = sessionStorage.getItem("adminId");
+        if (adminId === null) {
             // Nếu userId không tồn tại (chưa đăng nhập), không làm gì
             console.log("User is not logged in.");
         } else {
@@ -41,9 +41,9 @@ const LoginPage = () => {
 
             if (quantrivien.role === 0 || quantrivien.role === 1) {
                 sessionStorage.setItem("customRole", quantrivien.role);
-                sessionStorage.setItem("userId", quantrivien.id);
-                sessionStorage.setItem("userName", quantrivien.ten_dang_nhap);
-                sessionStorage.setItem("userAvatar", quantrivien.anh_nguoi_dung || "default-avatar.png");
+                sessionStorage.setItem("adminId", quantrivien.id);
+                sessionStorage.setItem("adminName", quantrivien.ten_dang_nhap);
+                sessionStorage.setItem("adminAvatar", quantrivien.anh_nguoi_dung || "default-avatar.png");
 
                 console.log(sessionStorage);
 
