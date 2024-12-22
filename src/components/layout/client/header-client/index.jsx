@@ -30,25 +30,42 @@ const HeaderClient = () => {
       setLoggedIn(true);
       console.log("Thông tin người dùng từ sessionStorage:", user);
     }
-  }, []); // Chỉ chạy khi component mount
+  }, []);
 
   // Lấy danh mục từ API
   useEffect(() => {
-    axios
-      .get("http://127.0.0.1:8000/api/danh-muc/getAll")
-      .then((response) => {
-    axios.get('http://127.0.0.1:8000/api/danh-muc/getAll')
-      .then(response => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:8000/api/danh-muc/getAll");
         setCategories(response.data); // Cập nhật danh mục
-      })
-      .catch((error) => {
+        console.log("Danh mục:", response.data);
+      } catch (error) {
         console.error("Error fetching categories:", error); // Xử lý lỗi nếu có
-      });
-  }, []); // Hàm này chạy khi component mount
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  console.log(categories); // Log thông tin danh mục
+  // Lấy tổng số sản phẩm từ giỏ hàng
+  useEffect(() => {
+    const fetchTotalProducts = async () => {
+      if (!userInfo) return; // Nếu chưa có thông tin người dùng thì không gọi API
 
-  // Xử lý đăng xuất
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/gio-hang/${userInfo.id}`
+        );
+        setTotalProducts(response.data.total_products); // Cập nhật tổng sản phẩm
+        console.log("Tổng sản phẩm:", response.data.total_products);
+      } catch (error) {
+        console.error("Error fetching total products:", error);
+      }
+    };
+
+    fetchTotalProducts(); // Gọi API khi có thông tin người dùng
+  }, [userInfo]);
+
+  // Hàm xử lý đăng xuất
   const handleLogout = () => {
     Swal.fire({
       title: "Bạn có chắc chắn muốn đăng xuất?",
@@ -61,49 +78,20 @@ const HeaderClient = () => {
       cancelButtonText: "Hủy bỏ",
     }).then((result) => {
       if (result.isConfirmed) {
-        // Xóa thông tin người dùng khỏi sessionStorage và localStorage
         sessionStorage.removeItem("userInfo");
-        localStorage.removeItem("userToken");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("userInfo");
+        localStorage.clear();
 
-        // Cập nhật trạng thái đăng xuất
         setLoggedIn(false);
         setUserInfo(null);
 
-        // Hiển thị thông báo thành công
         toast.success("Đăng xuất thành công!");
 
-        // Điều hướng lại trang chủ sau 100ms để đảm bảo trạng thái đã được cập nhật
         setTimeout(() => {
-          navigate("/"); // Thay đổi đường dẫn nếu cần
+          navigate("/"); // Điều hướng lại trang chủ
         }, 100);
       }
     });
   };
-
-  // Lấy tổng số sản phẩm từ giỏ hàng
-  useEffect(() => {
-    const fetchTotalProducts = async () => {
-      const storedUserInfo = sessionStorage.getItem("userInfo"); // Kiểm tra userInfo có trong sessionStorage
-      if (!storedUserInfo) {
-        return; // Nếu chưa có thông tin người dùng thì không gọi API
-      }
-
-      const { id } = JSON.parse(storedUserInfo); // Lấy id khách hàng từ storedUserInfo
-      try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/gio-hang/${id}`
-        );
-        setTotalProducts(response.data.total_products); // Cập nhật tổng sản phẩm
-        console.log(response.data.total_products); // Log số sản phẩm trong giỏ hàng
-      } catch (error) {
-        console.error("Error fetching total products:", error);
-      }
-    };
-
-    fetchTotalProducts(); // Gọi API khi có thông tin người dùng
-  }, [userInfo]); // Gọi lại khi `userInfo` thay đổi
 
   return (
     <>
@@ -1009,6 +997,7 @@ const HeaderClient = () => {
       </nav>
     </>
   );
+
 };
 
 export default HeaderClient;
