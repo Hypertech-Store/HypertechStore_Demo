@@ -37,6 +37,8 @@ const HeaderClient = () => {
     axios
       .get("http://127.0.0.1:8000/api/danh-muc/getAll")
       .then((response) => {
+    axios.get('http://127.0.0.1:8000/api/danh-muc/getAll')
+      .then(response => {
         setCategories(response.data); // Cập nhật danh mục
       })
       .catch((error) => {

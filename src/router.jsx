@@ -14,6 +14,7 @@ import ListSubcategory from "./pages/admin/subcategory/listSubcategory";
 import ListCustomer from "./pages/admin/customer/listCustomer";
 import DetailCustomer from "./pages/admin/customer/detailCustomer";
 import ListAdmin from "./pages/admin/Administrators/listAdmin";
+import AdminLogin from "./pages/admin/login";
 
 import Orders from "./pages/admin/order";
 import Chat from "./pages/admin/chat";
@@ -35,6 +36,7 @@ import Register from "./pages/client/register";
 import ForPassword from "./pages/client/forgotPassword";
 import Verification from "./pages/client/2FAVerification";
 // import ResetPassword from "./pages/client/ressetPassword";
+import PrivateRoute from "../src/components/layout/PrivateRoute.jsx"; // Import the PrivateRoute component
 
 const Router = () => {
   return (
@@ -43,21 +45,23 @@ const Router = () => {
         {/* Admin Routes */}
 
         {/* Wrap /admin with PrivateRoute */}
-
-        <Route path="/admin" element={<LayoutAdmin />}>
-          <Route index element={<Dashboard />} />
-          <Route path="them-san-pham" element={<AddProducts />} />
-          <Route path="danh-sach-san-pham" element={<ListProducts />} />
-          <Route path="them-danh-muc" element={<AddCategory />} />
-          <Route path="danh-sach-danh-muc" element={<ListCategory />} />
-          <Route path="them-danh-muc-con" element={<AddSubcategory />} />
-          <Route path="danh-sach-danh-muc-con" element={<ListSubcategory />} />
-          <Route path="danh-sach-khach-hang" element={<ListCustomer />} />
-          <Route path="chi-tiet-khach-hang" element={<DetailCustomer />} />
-          <Route path="danh-sach-quan-tri" element={<ListAdmin />} />
-          <Route path="don-hang" element={<Orders />} />
-          <Route path="khuyen-mai" element={<Deals />} />
-          <Route path="tin-nhan" element={<Chat />} />
+        <Route path="/login" element={<AdminLogin />} />
+        <Route element={<PrivateRoute />}>
+          <Route path="/admin" element={<LayoutAdmin />}>
+            <Route index element={<Dashboard />} />
+            <Route path="them-san-pham" element={<AddProducts />} />
+            <Route path="danh-sach-san-pham" element={<ListProducts />} />
+            <Route path="them-danh-muc" element={<AddCategory />} />
+            <Route path="danh-sach-danh-muc" element={<ListCategory />} />
+            <Route path="them-danh-muc-con" element={<AddSubcategory />} />
+            <Route path="danh-sach-danh-muc-con" element={<ListSubcategory />} />
+            <Route path="danh-sach-khach-hang" element={<ListCustomer />} />
+            <Route path="chi-tiet-khach-hang" element={<DetailCustomer />} />
+            <Route path="danh-sach-quan-tri" element={<ListAdmin />} />
+            <Route path="don-hang" element={<Orders />} />
+            <Route path="khuyen-mai" element={<Deals />} />
+            <Route path="tin-nhan" element={<Chat />} />
+          </Route>
         </Route>
 
         {/* </Route> */}

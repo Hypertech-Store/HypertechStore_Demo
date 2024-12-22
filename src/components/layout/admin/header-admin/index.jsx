@@ -2,7 +2,46 @@ import logo from "../../../../assets/img/icons/logo1.png";
 import products from "../../../../assets/img/products/60x60/3.png";
 import avatar from "../../../../assets/img/team/72x72/57.webp";
 import team from "../../../../assets/img/team/40x40/30.webp";
+
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 const HeaderAdmin = () => {
+  const navigate = useNavigate();
+  const adminId = sessionStorage.getItem("adminId");
+  const adminName = sessionStorage.getItem("adminName");
+  const adminAvatar = sessionStorage.getItem("adminAvatar");
+  const link = "http://127.0.0.1:8000/storage/";
+
+  // console.log(adminId);
+  // console.log(adminName);
+  // console.log(adminAvatar);
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn đăng xuất?",
+      text: "Bạn sẽ không thể hoàn tác hành động này!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Đồng ý, đăng xuất!",
+      cancelButtonText: "Hủy bỏ"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        sessionStorage.removeItem('adminId');
+        sessionStorage.removeItem('adminName');
+        sessionStorage.removeItem('adminAvatar');
+        sessionStorage.removeItem('customRole');
+        toast.success("Đăng xuất thành công!");
+        setTimeout(() => {
+          navigate('/login');
+        }, 100); // Delay 100ms để đảm bảo trạng thái đã được cập nhật
+      }
+    });
+  };
+
   return (
     <>
       <nav
@@ -597,7 +636,7 @@ const HeaderAdmin = () => {
                             <div className="avatar avatar-m status-online me-3">
                               <img
                                 className="rounded-circle"
-                                src={avatar}
+                                src={adminAvatar}
                                 alt
                               />
                             </div>
@@ -708,7 +747,7 @@ const HeaderAdmin = () => {
                 aria-expanded="false"
               >
                 <div className="avatar avatar-l">
-                  <img className="rounded-circle" src={avatar} alt />
+                  <img className="rounded-circle" src={`${link}${adminAvatar}`} alt />
                 </div>
               </a>
               <div
@@ -719,10 +758,10 @@ const HeaderAdmin = () => {
                   <div className="card-body p-0">
                     <div className="text-center pt-4 pb-3">
                       <div className="avatar avatar-xl">
-                        <img className="rounded-circle" src={avatar} alt />
+                        <img className="rounded-circle" src={`${link}${adminAvatar}`} alt="User Avatar" />
                       </div>
                       <h6 className="mt-2 text-body-emphasis">
-                        Jerry Seinfield
+                        {adminName}
                       </h6>
                     </div>
                     <div className="mb-3 mx-3">
@@ -812,10 +851,9 @@ const HeaderAdmin = () => {
                       <a
                         className="btn btn-phoenix-secondary d-flex flex-center w-100"
                         href="#!"
+                        onClick={handleLogout}
                       >
-                        <span className="me-2" data-feather="log-out">
-                          {" "}
-                        </span>
+                        <span className="me-2" data-feather="log-out"> </span>
                         Sign out
                       </a>
                     </div>

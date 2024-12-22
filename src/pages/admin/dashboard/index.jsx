@@ -1,4 +1,19 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 const Dashboard = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const adminId = sessionStorage.getItem("adminId");
+    if (adminId === null) {
+        // Nếu userId không tồn tại (chưa đăng nhập), không làm gì
+        console.log("User is not logged in.");
+        navigate("/login");
+    } else {
+        // Nếu userId tồn tại (đã đăng nhập), điều hướng đến trang admin
+        navigate("/admin");
+    }
+}, [navigate]);
+
   return (
     <>
       <div className="content">
