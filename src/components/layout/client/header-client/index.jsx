@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Cookies from "js-cookie"; // Import thư viện js-cookie
 
 import logo from "../../../../assets/img/icons/logo1.png";
 import team from "../../../../assets/img/team/40x40/30.webp";
@@ -36,7 +37,9 @@ const HeaderClient = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/danh-muc/getAll");
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/danh-muc/getAll"
+        );
         setCategories(response.data); // Cập nhật danh mục
         console.log("Danh mục:", response.data);
       } catch (error) {
@@ -66,6 +69,7 @@ const HeaderClient = () => {
   }, [userInfo]);
 
   // Hàm xử lý đăng xuất
+
   const handleLogout = () => {
     Swal.fire({
       title: "Bạn có chắc chắn muốn đăng xuất?",
@@ -78,16 +82,25 @@ const HeaderClient = () => {
       cancelButtonText: "Hủy bỏ",
     }).then((result) => {
       if (result.isConfirmed) {
-        sessionStorage.removeItem("userInfo");
+        // Xóa mọi dữ liệu trong sessionStorage và localStorage
+        sessionStorage.clear();
         localStorage.clear();
 
+        // Xóa cookie token và các cookie khác (nếu có)
+        Object.keys(Cookies.get()).forEach((cookieName) => {
+          Cookies.remove(cookieName); // Xóa cookie theo tên
+        });
+
+        // Xóa trạng thái người dùng trong ứng dụng
         setLoggedIn(false);
         setUserInfo(null);
 
+        // Thông báo đăng xuất thành công
         toast.success("Đăng xuất thành công!");
 
+        // Điều hướng về trang chủ
         setTimeout(() => {
-          navigate("/"); // Điều hướng lại trang chủ
+          navigate("/");
         }, 100);
       }
     });
@@ -997,7 +1010,6 @@ const HeaderClient = () => {
       </nav>
     </>
   );
-
 };
 
 export default HeaderClient;
