@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 const Cart = () => {
   document.title = "Hypertech Store - Giỏ hàng";
   const baseUrl = "http://127.0.0.1:8000/storage/";
   const khachHangIdFromStorage = sessionStorage.getItem("userId");
   console.log("Khách Hàng ID từ sessionStorage: ", khachHangIdFromStorage);
   const navigate = useNavigate(); // Sử dụng useNavigate để điều hướng
+  // eslint-disable-next-line no-unused-vars
+  const [isLoading, setIsLoading] = useState(true); // Thêm state quản lý việc đang tải giỏ hàng
   const [cart, setCart] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [totalAmount, setTotalAmount] = useState(0);
@@ -13,6 +16,7 @@ const Cart = () => {
   useEffect(() => {
     if (!khachHangIdFromStorage) {
       console.error("Khách hàng ID không có trong sessionStorage.");
+      setIsLoading(false); // Dừng loading khi không có customer ID
       return;
     }
 
@@ -105,9 +109,35 @@ const Cart = () => {
       .catch((error) => console.error("Error updating cart:", error));
   };
 
-  // Hiển thị thông báo khi giỏ hàng đang load
-  if (!cart) {
-    return <div>Loading...</div>;
+  // Khi giỏ hàng trống hoặc không có dữ liệu
+  if (
+    !khachHangIdFromStorage ||
+    !cart ||
+    cart.chi_tiet_gio_hangs.length === 0
+  ) {
+    return (
+      <div className="cart-empty">
+        <i className="iconcart-empty"></i>
+        <h1>Giỏ hàng trống</h1>
+        <span className="dmx">Không có sản phẩm nào trong giỏ hàng</span>
+        <a href="/cua-hang" className="btn-backhome">
+          Tiếp tục mua sắm
+        </a>
+        <p className="note-help">
+          Khi cần trợ giúp vui lòng gọi
+          <a style={{ color: "#288ad6" }} href="tel:1900232460">
+            {" "}
+            1900 232 460{" "}
+          </a>
+          hoặc
+          <a style={{ color: "#288ad6" }} href="tel:02836221060">
+            {" "}
+            028.3622.1060{" "}
+          </a>
+          (8h00 - 21h30)
+        </p>
+      </div>
+    );
   }
 
   const formatPrice = (price) => {
@@ -344,7 +374,8 @@ const Cart = () => {
                     onClick={handleCheckout}
                     className="btn btn-primary mt-5 float-end"
                   >
-                    Checkout
+                    Checkout{" "}
+                    <span className="fas fa-chevron-right icon-small" />
                   </button>
                 </div>
               </div>
