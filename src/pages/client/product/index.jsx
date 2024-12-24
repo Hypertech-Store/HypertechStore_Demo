@@ -1150,7 +1150,6 @@ const Shop = () => {
             <div className="col-lg-9 col-xxl-10">
               <div className="row gx-3 gy-6 mb-8">
                 {products.map((product) => {
-                  // Find sale information for the product
                   const saleInfo = saleProducts.find(
                     (sale) => sale.san_pham_id === product.id
                   );
@@ -1164,7 +1163,7 @@ const Shop = () => {
                     const saleEnd = new Date(saleInfo.ngay_ket_thuc_sale);
 
                     if (saleStart <= currentDate && saleEnd >= currentDate) {
-                      label = `-${parseFloat(
+                      label = `${parseFloat(
                         saleInfo.sale_theo_phan_tram
                       ).toFixed(0)}%`;
                       const discountPercentage = parseFloat(
@@ -1179,7 +1178,6 @@ const Shop = () => {
                     }
                   }
 
-                  // If the product is new (created within 7 days)
                   const productCreatedAt = new Date(product.created_at);
                   const sevenDaysAgo = new Date();
                   sevenDaysAgo.setDate(new Date().getDate() - 7);
@@ -1188,7 +1186,7 @@ const Shop = () => {
                   }
 
                   const numberFormat = new Intl.NumberFormat("vi-VN", {
-                    style: "decimal", // Sử dụng kiểu "decimal" thay vì "currency"
+                    style: "decimal",
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
                   });
@@ -1203,6 +1201,38 @@ const Shop = () => {
                           <div className="d-flex flex-column justify-content-between h-100">
                             <div>
                               <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                                {label && (
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      overflow: "hidden",
+                                      width: "80px",
+                                      height: "85px",
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        fontSize: "11px",
+                                        position: "relative",
+                                        top: "22px", // Adjust vertically to balance the new left offset
+                                        left: "-30px", // Applied offset as specified
+                                        width: "120px",
+                                        height: "20px", // Define container height for proper centering
+                                        lineHeight: "20px", // Line height matches the height for vertical centering
+                                        color: "#fff",
+                                        textAlign: "center",
+                                        backgroundColor: "#ff3100",
+                                        textTransform: "uppercase",
+                                        zIndex: 2,
+                                        fontWeight: "700",
+                                        transform: "rotate(-45deg)",
+                                      }}
+                                    >
+                                      {label}
+                                    </div>
+                                  </div>
+                                )}
+
                                 <button
                                   className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${
                                     wishlistStatus[product.id] ? "active" : ""
@@ -1240,11 +1270,6 @@ const Shop = () => {
                                   src={`${baseUrl}${product.duong_dan_anh}`}
                                   alt={product.ten_san_pham}
                                 />
-                                {label && (
-                                  <span className="badge text-bg-success fs-10 product-verified-badge">
-                                    {label}
-                                  </span>
-                                )}
                               </div>
                               <a
                                 className="stretched-link"
@@ -1300,7 +1325,7 @@ const Shop = () => {
                               </div>
                               {saleInfo && remainingTime && (
                                 <p className="text-success fw-bold fs-9 lh-1 mb-0 mt-3">
-                                  Deal time ends in {remainingTime}
+                                  Deals time ends in {remainingTime}
                                 </p>
                               )}
                             </div>
@@ -1311,6 +1336,7 @@ const Shop = () => {
                   );
                 })}
               </div>
+              ;
               <div className="d-flex justify-content-end">
                 <nav aria-label="Page navigation example">
                   <ul className="pagination mb-0">

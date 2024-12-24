@@ -645,10 +645,11 @@ const ProductDetails = () => {
                                 .replace("₫", "VNĐ")}
                             </p>
                             <p className="text-warning fw-bolder fs-6 mb-0">
+                              Sale {""}
                               {parseFloat(
                                 productData?.sale_theo_phan_tram
-                              ).toFixed(0)}{" "}
-                              % off
+                              ).toFixed(0)}
+                              %
                             </p>
                           </>
                         ) : (
