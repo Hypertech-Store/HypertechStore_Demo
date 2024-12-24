@@ -8,27 +8,41 @@ const Cart = () => {
   console.log("Khách Hàng ID từ sessionStorage: ", khachHangIdFromStorage);
   const navigate = useNavigate(); // Sử dụng useNavigate để điều hướng
   // eslint-disable-next-line no-unused-vars
-  const [isLoading, setIsLoading] = useState(true); // Thêm state quản lý việc đang tải giỏ hàng
+  const [isLoading, setIsLoading] = useState(true);
   const [cart, setCart] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [totalAmount, setTotalAmount] = useState(0);
+  const [selectAll, setSelectAll] = useState(false);
+  const [selectedItems, setSelectedItems] = useState({}); // Initialize with an empty object
 
+  // useEffect to fetch cart data
   useEffect(() => {
     if (!khachHangIdFromStorage) {
       console.error("Khách hàng ID không có trong sessionStorage.");
-      setIsLoading(false); // Dừng loading khi không có customer ID
+      setIsLoading(false);
       return;
     }
 
-    // Fetch cart data from API
+    // Fetch cart data from the API
     fetch(`http://127.0.0.1:8000/api/gio-hang/${khachHangIdFromStorage}`)
       .then((response) => response.json())
       .then((data) => {
         setCart(data.gio_hang);
-        calculateTotalAmount(data.gio_hang.chi_tiet_gio_hangs);
-        console.log(data.gio_hang);
+        if (data.gio_hang && data.gio_hang.chi_tiet_gio_hangs) {
+          setSelectedItems(
+            data.gio_hang.chi_tiet_gio_hangs.reduce((acc, item) => {
+              acc[item.id] = false; // Initialize all items as unchecked
+              return acc;
+            }, {})
+          );
+          calculateTotalAmount(data.gio_hang.chi_tiet_gio_hangs);
+        }
+        setIsLoading(false); // Stop loading when data is fetched
       })
-      .catch((error) => console.error("Error fetching cart data:", error));
+      .catch((error) => {
+        console.error("Error fetching cart data:", error);
+        setIsLoading(false); // Stop loading in case of error
+      });
   }, [khachHangIdFromStorage]);
 
   const calculateTotalAmount = (cartItems) => {
@@ -140,6 +154,27 @@ const Cart = () => {
     );
   }
 
+  // Handle the checkbox for select all / deselect all
+  const handleSelectAll = (e) => {
+    const checked = e.target.checked;
+    setSelectAll(checked);
+    setSelectedItems(
+      cart.chi_tiet_gio_hangs.reduce((acc, item) => {
+        acc[item.id] = checked;
+        return acc;
+      }, {})
+    );
+  };
+
+  // Handle individual item selection
+  const handleSelectItem = (e, itemId) => {
+    const checked = e.target.checked;
+    setSelectedItems((prevState) => ({
+      ...prevState,
+      [itemId]: checked,
+    }));
+  };
+
   const formatPrice = (price) => {
     return (
       new Intl.NumberFormat("vi-VN", {
@@ -151,7 +186,48 @@ const Cart = () => {
   };
 
   const handleCheckout = () => {
+    // Lưu lại khachHangIdFromStorage vào sessionStorage (nếu chưa có)
+    sessionStorage.setItem("khachHangId", khachHangIdFromStorage);
+
+    // Kiểm tra và in thông báo nếu lưu thành công
+    const storedKhachHangId = sessionStorage.getItem("khachHangId");
+    if (storedKhachHangId === khachHangIdFromStorage) {
+      console.log(
+        "Lưu khachHangId vào sessionStorage thành công:",
+        storedKhachHangId
+      );
+    } else {
+      console.error("Lỗi khi lưu khachHangId vào sessionStorage");
+    }
+
+    // Lưu các sản phẩm đã chọn vào sessionStorage
+    const selectedProducts = cart.chi_tiet_gio_hangs.filter(
+      (item) => selectedItems[item.id]
+    );
+
+    sessionStorage.setItem(
+      "selectedProducts",
+      JSON.stringify(selectedProducts)
+    );
+
+    // Kiểm tra và in thông báo nếu lưu thành công
+    const storedSelectedProducts = JSON.parse(
+      sessionStorage.getItem("selectedProducts")
+    );
+    if (
+      JSON.stringify(storedSelectedProducts) ===
+      JSON.stringify(selectedProducts)
+    ) {
+      console.log(
+        "Lưu sản phẩm đã chọn vào sessionStorage thành công:",
+        storedSelectedProducts
+      );
+    } else {
+      console.error("Lỗi khi lưu sản phẩm đã chọn vào sessionStorage");
+    }
+
     // Chuyển hướng tới trang thanh toán
+    console.log("Chuyển hướng đến trang thanh toán...");
     navigate("/thanh-toan");
   };
 
@@ -189,7 +265,8 @@ const Cart = () => {
                               className="form-check-input"
                               id="checkbox-bulk-products-select"
                               type="checkbox"
-                              data-bulk-select='{"body":"products-table-body"}'
+                              checked={selectAll} // Link with state
+                              onChange={handleSelectAll}
                             />
                           </div>
                         </th>
@@ -254,6 +331,8 @@ const Cart = () => {
                               <input
                                 className="form-check-input"
                                 type="checkbox"
+                                checked={selectedItems[item.id] || false} // Sync individual item selection with state
+                                onChange={(e) => handleSelectItem(e, item.id)}
                               />
                             </div>
                           </td>
@@ -374,7 +453,7 @@ const Cart = () => {
                     onClick={handleCheckout}
                     className="btn btn-primary mt-5 float-end"
                   >
-                    Checkout{" "}
+                    Đặt hàng{" "}
                     <span className="fas fa-chevron-right icon-small" />
                   </button>
                 </div>

@@ -1449,12 +1449,12 @@ const ProductDetails = () => {
                             23 Oct, 12:09 PM
                           </p>
                           <p className="text-body-highlight mb-1">
-                            Since the spring loaded event, I've been wanting an
-                            iMac, and it's exceeded my expectations. The screen
-                            is clear, the colors are vibrant (I got the blue
-                            one! ), and the performance is more than adequate
-                            for my needs as a college student. That's how good
-                            it is.
+                            Since the spring loaded event, I have been wanting
+                            an iMac, and it is exceeded my expectations. The
+                            screen is clear, the colors are vibrant (I got the
+                            blue one! ), and the performance is more than
+                            adequate for my needs as a college student. That is
+                            how good it is.
                           </p>
                           <div className="hover-actions top-0">
                             <button className="btn btn-sm btn-phoenix-secondary me-2">
@@ -1641,9 +1641,9 @@ const ProductDetails = () => {
                             21 Oct, 12:00 PM
                           </p>
                           <p className="text-body-highlight mb-1">
-                            Over the years, I've preferred Apple products. My
+                            Over the years, I have preferred Apple products. My
                             job has allowed me to use Windows products on
-                            laptops and PCs. I've owned Windows laptops and
+                            laptops and PCs. I hahave owned Windows laptops and
                             desktops for home use in the past and will never use
                             them again.
                           </p>
