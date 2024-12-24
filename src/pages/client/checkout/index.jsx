@@ -1,31 +1,114 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { IoClose } from "react-icons/io5";
 
-import products2 from "../../../assets/img/products/2.png";
-import products1 from "../../../assets/img/products/1.png";
-import products3 from "../../../assets/img/products/3.png";
 import pay from "../../../assets/img/logos/pay.webp";
 import momo from "../../../assets/img/logos/momo.webp";
 import vnpay from "../../../assets/img/logos/vnpay.webp";
+import "../../../assets/css/style.css";
+import "../../../assets/js/main.js";
 import { TbEdit } from "react-icons/tb";
 const Checkout = () => {
   document.title = "Hypertech Store - Thanh toán";
+  const baseUrl = "http://127.0.0.1:8000/storage/";
   const navigate = useNavigate(); // Hook dùng để điều hướng
-  const [isVisible, setIsVisible] = useState(false);
-
-  const [text, setText] = useState(""); // Quản lý trạng thái của textarea
-  const maxLength = 250;
-
-  const handleChange = (e) => {
-    setText(e.target.value); // Cập nhật giá trị khi nhập
-  };
+  const [products, setProducts] = useState([]); // State để lưu danh sách sản phẩm
+  const [shippingOptions, setShippingOptions] = useState([]);
+  const [shippingCost, setShippingCost] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [subtotal, setSubtotal] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [voucherEligible, setVoucherEligible] = useState(false);
+  const [voucherInfo, setVoucherInfo] = useState(null);
 
   const handleEditClick = () => {
     navigate("/thong-tin-tai-khoan"); // Chuyển hướng đến trang thông tin tài khoản
   };
+  const [userInfo, setUserInfo] = useState({
+    fullName: "",
+    address: "",
+    phoneNumber: "",
+    note: "",
+    shippingAddress: "",
+  });
 
-  const toggleForm = () => {
-    setIsVisible(!isVisible);
+  // Giả sử thông tin đã lưu trong sessionStorage (hoặc có thể dùng localStorage)
+  useEffect(() => {
+    // Lấy thông tin user từ sessionStorage
+    const userInfoStored = sessionStorage.getItem("userInfo");
+    if (userInfoStored) {
+      const userInfo = JSON.parse(userInfoStored);
+      setUserInfo(userInfo); // Cập nhật state cho thông tin user
+
+      // Log ra toàn bộ thông tin user
+      console.log("User Info:", userInfo);
+    } else {
+      console.log("No user info found in sessionStorage.");
+    }
+
+    // Lấy danh sách sản phẩm từ sessionStorage
+    const productsStored = sessionStorage.getItem("selectedProducts");
+    if (productsStored) {
+      const products = JSON.parse(productsStored);
+      if (Array.isArray(products) && products.length > 0) {
+        setProducts(products); // Cập nhật state với danh sách sản phẩm
+        console.log("Selected Products retrieved:", products); // Log danh sách sản phẩm
+      } else {
+        console.log("Selected products array is empty or invalid.");
+      }
+    } else {
+      console.log("No selected products found in sessionStorage.");
+    }
+  }, []);
+
+  // Sample products data from sessionStorage (or dynamically fetched data)
+
+  // Discounts and shipping cost
+  const discount = 10; // Fixed discount, can be calculated based on logic
+
+  useEffect(() => {
+    // Calculate subtotal (sum of product prices * quantities)
+    let subtotal = 0;
+    products.forEach((product) => {
+      subtotal += product.gia;
+    });
+
+    // Calculate total (subtotal after discount + shipping cost)
+    const total = subtotal - discount + shippingCost;
+
+    // Update state with the calculated values
+    setSubtotal(subtotal);
+
+    setTotal(total);
+  }, [products]);
+
+  useEffect(() => {
+    // Fetch data from the API
+    fetch("http://127.0.0.1:8000/api/hinh-thuc-van-chuyen")
+      .then((response) => response.json())
+      .then((data) => setShippingOptions(data))
+      .catch((error) => console.error("Error fetching shipping data:", error));
+  }, []);
+
+  const handleShippingChange = (e, option) => {
+    setShippingCost(Number(e.target.value));
+    setSelectedOption(option);
+  };
+
+  const getDeliveryDate = (option) => {
+    let date = new Date();
+    if (option) {
+      if (option.ten_van_chuyen === "Ship hỏa tốc") {
+        // For "Ship hỏa tốc", deliver within the same day
+        return date.toLocaleDateString();
+      } else if (option.ten_van_chuyen === "Ship nhanh") {
+        // For "Ship nhanh", deliver between 2-5 days
+        let randomDays = Math.floor(Math.random() * 4) + 2; // Random between 2 and 5 days
+        date.setDate(date.getDate() + randomDays);
+        return date.toLocaleDateString();
+      }
+    }
+    return "Chưa chọn hình thức vận chuyển"; // Default message when no option is selected
   };
 
   return (
@@ -48,7 +131,7 @@ const Checkout = () => {
           <h2 className="mb-5">Thanh toán</h2>
 
           <div className="row justify-content-between">
-            <div className="col-lg-7 col-xl-7 mt-2">
+            <div className="col-lg-7 col-xl-6 mt-2">
               <form>
                 <div className="card mt-3 mt-lg-0">
                   <div className="card-body">
@@ -80,7 +163,7 @@ const Checkout = () => {
                           <td className="py-2 fw-bold lh-sm">:</td>
                           <td className="py-2 px-3">
                             <h5 className="lh-sm fw-normal text-body-secondary">
-                              Shatinon Mekalan
+                              {userInfo.ho_ten}
                             </h5>
                           </td>
                         </tr>
@@ -94,14 +177,38 @@ const Checkout = () => {
                               >
                                 {" "}
                               </span>
-                              <h5 className="lh-sm me-4">Địa chỉ</h5>
+                              <h5 className="lh-sm me-3">Địa chỉ</h5>
                             </div>
                           </td>
                           <td className="py-2 fw-bold lh-sm">:</td>
                           <td className="py-2 px-3">
-                            <h5 className="lh-lg fw-normal text-body-secondary">
-                              Apt: 6/B, 192 Edsel Road, Van Nuys <br />{" "}
-                              California, USA 96580
+                            <h5
+                              className="lh-lg fw-normal text-body-secondary"
+                              style={{
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {userInfo.dia_chi}
+                            </h5>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 ps-0">
+                            <div className="d-flex">
+                              <span
+                                className="fs-3 me-2"
+                                data-feather="mail"
+                                style={{ height: 16, width: 16 }}
+                              >
+                                {" "}
+                              </span>
+                              <h5 className="lh-sm me-4">Email</h5>
+                            </div>
+                          </td>
+                          <td className="py-2 fw-bold lh-sm">: </td>
+                          <td className="py-2 px-3">
+                            <h5 className="lh-sm fw-normal text-body-secondary">
+                              {userInfo.email}
                             </h5>
                           </td>
                         </tr>
@@ -115,13 +222,20 @@ const Checkout = () => {
                               >
                                 {" "}
                               </span>
-                              <h5 className="lh-sm me-4">Số điện thoại</h5>
+                              <h5
+                                className="lh-sm me-4"
+                                style={{
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                Số điện thoại
+                              </h5>
                             </div>
                           </td>
                           <td className="py-2 fw-bold lh-sm">: </td>
                           <td className="py-2 px-3">
                             <h5 className="lh-sm fw-normal text-body-secondary">
-                              818-414-4092
+                              {userInfo.dien_thoai}
                             </h5>
                           </td>
                         </tr>
@@ -133,124 +247,114 @@ const Checkout = () => {
                 <div className="card mt-lg-3">
                   <div className="card-body">
                     <div className="d-flex align-items-end">
-                      <h3 className="mb-0 me-3">Hình thức nhận hàng</h3>
+                      <h3 className="mb-0 me-3">Địa chỉ nhận hàng</h3>
                     </div>
-                    <div className="row g-4 mt-3">
+                    <div className="row g-3 mt-3">
                       <div className="col-12">
                         <input
                           className="form-control mt-1"
-                          id="inputAddress1"
+                          id="address"
+                          name="address"
                           type="text"
+                          required
                           placeholder="Tỉnh/Thành Phố, Quận/Huyện, Phường Xã"
+                          autoComplete="off"
+                        />
+                        <div
+                          id="suggestions"
+                          className="suggestions col-12"
+                        ></div>
+                      </div>
+
+                      <div className="col-4">
+                        <input
+                          className="form-control mt-1"
+                          id="city"
+                          name="city"
+                          required
+                          type="text"
+                          placeholder="Tỉnh/Thành Phố"
                         />
                       </div>
-                    </div>
-                    <div
-                      className="mb-6 mt-5"
-                      style={{
-                        position: "relative",
-                      }}
-                    >
-                      <textarea
-                        className="form-control"
-                        style={{
-                          resize: "none", // Ngừng khả năng kéo dài textarea
-                        }}
-                        maxLength={maxLength}
-                        placeholder="Ghi chú (Ví dụ: Hãy gọi tôi khi chuẩn bị hàng xong)"
-                        value={text}
-                        onChange={handleChange}
-                        rows="5" // Số dòng tối đa cố định
-                      />
-                      <div
-                        style={{
-                          position: "absolute",
-                          bottom: "8px", // Vị trí từ đáy của input
-                          right: "12px", // Vị trí từ phải của input
-                          fontSize: "0.8rem", // Kích thước nhỏ hơn
-                          color: "#9ca3af", // Màu nhạt
-                          backgroundColor: "white", // Nền trắng để không bị che
-                          padding: "0 4px", // Khoảng padding nội bộ
-                          pointerEvents: "none", // Tránh bị click
-                        }}
-                      >
-                        {text.length}/{maxLength}
+                      <div className="col-4">
+                        <input
+                          className="form-control mt-1"
+                          id="district"
+                          name="district"
+                          required
+                          type="text"
+                          placeholder="Quận/Huyện"
+                        />
+                      </div>
+                      <div className="col-4">
+                        <input
+                          className="form-control mt-1"
+                          id="ward"
+                          name="ward"
+                          required
+                          type="text"
+                          placeholder="Phường/Xã"
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
+
                 <div className="card mt-lg-3">
                   <div className="card-body">
                     <h3 className="mb-6">Hình thức vận chuyển</h3>
-                    <div className="row gy-6">
-                      <div className="col-12 col-md-6">
-                        <div className="d-flex flex-wrap align-items-center mb-3">
-                          <div className="form-check mb-0">
-                            <input
-                              className="form-check-input"
-                              type="radio"
-                              name="shippingRadio"
-                              id="free_shipping"
-                            />
-                            <label
-                              className="form-check-label fs-8 text-body"
-                              htmlFor="free_shipping"
-                            >
-                              Free Shipping
-                            </label>
+                    <div className="row gy-6 mb-6">
+                      {shippingOptions.map((option) => (
+                        <div key={option.id} className="col-12 col-md-6">
+                          <div className="d-flex flex-wrap align-items-center mb-3">
+                            <div className="form-check mb-0">
+                              <input
+                                className="form-check-input"
+                                type="radio"
+                                name="shippingRadio"
+                                id={`shipping_${option.id}`}
+                                value={option.gia_van_chuyen}
+                                onChange={(e) =>
+                                  handleShippingChange(e, option)
+                                }
+                                checked={
+                                  shippingCost === Number(option.gia_van_chuyen)
+                                }
+                              />
+                              <label
+                                className="form-check-label fs-8 text-body"
+                                htmlFor={`shipping_${option.id}`}
+                              >
+                                {option.ten_van_chuyen}
+                              </label>
+                            </div>
+                            <span className="d-inline-block text-body-emphasis fw-bold ms-2">
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "decimal", // Use 'decimal' style to format the number without currency symbol
+                                minimumFractionDigits: 0, // Optional: you can remove decimal places
+                              }).format(option.gia_van_chuyen)}{" "}
+                              VNĐ
+                            </span>
                           </div>
-                          <span className="d-inline-block text-body-emphasis fw-bold ms-2">
-                            $0.00
-                          </span>
-                        </div>
-                        <div className="ps-4">
-                          <h6 className="text-body-tertiary mb-2">
-                            Est. delivery: Jun 21 – Jul 20
-                          </h6>
-                          <h6 className="text-info lh-base mb-0">
-                            Get Free Shipped products in Time!
-                          </h6>
-                        </div>
-                      </div>
-                      <div className="col-12 col-md-6">
-                        <div className="d-flex flex-wrap align-items-center mb-3">
-                          <div className="form-check mb-0">
-                            <input
-                              className="form-check-input"
-                              type="radio"
-                              name="shippingRadio"
-                              id="two_days_shipping"
-                            />
-                            <label
-                              className="form-check-label fs-8 text-body"
-                              htmlFor="two_days_shipping"
-                            >
-                              Two days Shipping
-                            </label>
+                          <div className="ps-4">
+                            <h6 className="text-body-tertiary mb-2">
+                              Dự kiến ​​giao hàng: {getDeliveryDate(option)}
+                            </h6>
+                            <h6 className="text-info lh-base mb-0">
+                              {option.mo_ta}
+                            </h6>
                           </div>
-                          <span className="d-inline-block text-body-emphasis fw-bold ms-2">
-                            $20.00
-                          </span>
                         </div>
-                        <div className="ps-4">
-                          <h6 className="text-body-tertiary mb-2">
-                            Est. delivery: Jun 21 – Jul 20
-                          </h6>
-                          <h6 className="text-info lh-base mb-0">
-                            Everything faster with minimum shipping fee.
-                          </h6>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
               </form>
             </div>
-            <div className="col-lg-5 col-xl-5 mt-2">
+            <div className="col-lg-5 col-xl-6 mt-2">
               <div className="card mt-3 mt-lg-0">
                 <div className="card-body">
                   <div
-                    onClick={toggleForm}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -261,6 +365,11 @@ const Checkout = () => {
                       cursor: "pointer",
                       gap: "8px",
                     }}
+                    data-bs-toggle="modal"
+                    data-bs-target="#addDealModal"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    data-bs-reference="parent"
                   >
                     <div
                       style={{
@@ -321,98 +430,109 @@ const Checkout = () => {
                   </div>
                   <div className="border-dashed border-bottom border-translucent mt-4">
                     <div className="ms-n2">
-                      <div className="row align-items-center mb-2 g-3">
-                        <div className="col-8 col-md-7 col-lg-8">
-                          <div className="d-flex align-items-center">
-                            <img
-                              className="me-2 ms-1"
-                              src={products1}
-                              width={40}
-                              alt
-                            />
-                            <h6 className="fw-semibold text-body-highlight lh-base">
-                              Fitbit Sense Advanced Smartwatch with...{" "}
-                            </h6>
+                      {products.length > 0 &&
+                        products.map((product, index) => (
+                          <div
+                            className="row align-items-center mb-2 g-3"
+                            key={index}
+                          >
+                            <div className="col-8 col-md-7 col-lg-8">
+                              <div className="d-flex align-items-center">
+                                <img
+                                  className="me-2 ms-1"
+                                  src={`${baseUrl}${product.chi_tiet_san_pham.images}`}
+                                  width={40}
+                                  alt={
+                                    product.chi_tiet_san_pham.ten_san_pham ||
+                                    "Sản phẩm"
+                                  }
+                                />
+                                <h6 className="fw-semibold text-body-highlight lh-base">
+                                  {product.chi_tiet_san_pham.ten_san_pham}{" "}
+                                  {/* Tên sản phẩm */}
+                                  {product.thuoc_tinh.length > 0 && (
+                                    <div>
+                                      {product.thuoc_tinh.map(
+                                        (thuocTinh, index) => (
+                                          <span key={index}>
+                                            <strong
+                                              style={{
+                                                color: "#dc2626",
+                                                fontWeight: "600",
+                                              }}
+                                            >
+                                              {thuocTinh.ten_gia_tri}
+                                            </strong>
+                                            {index <
+                                              product.thuoc_tinh.length - 1 &&
+                                              ", "}
+                                            {/* Thêm dấu phẩy nếu không phải phần tử cuối */}
+                                          </span>
+                                        )
+                                      )}
+                                    </div>
+                                  )}
+                                </h6>
+                              </div>
+                            </div>
+                            <div className="col-1 col-md-3 col-lg-2">
+                              <h6
+                                className="fs-10 mb-0"
+                                style={{ marginLeft: "-3pc" }}
+                              >
+                                x{product.so_luong}
+                              </h6>{" "}
+                              {/* Số lượng */}
+                            </div>
+
+                            <div
+                              className="col-2 ps-0"
+                              style={{ marginLeft: "-3pc" }}
+                            >
+                              <h5
+                                className="mb-0 fw-semibold text-end"
+                                style={{
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {parseInt(product.gia).toLocaleString()} VNĐ
+                              </h5>{" "}
+                              {/* Giá */}
+                            </div>
                           </div>
-                        </div>
-                        <div className="col-2 col-md-3 col-lg-2">
-                          <h6 className="fs-10 mb-0">x1</h6>
-                        </div>
-                        <div className="col-2 ps-0">
-                          <h5 className="mb-0 fw-semibold text-end">$398</h5>
-                        </div>
-                      </div>
-                      <div className="row align-items-center mb-2 g-3">
-                        <div className="col-8 col-md-7 col-lg-8">
-                          <div className="d-flex align-items-center">
-                            <img
-                              className="me-2 ms-1"
-                              src={products2}
-                              width={40}
-                              alt
-                            />
-                            <h6 className="fw-semibold text-body-highlight lh-base">
-                              iPhone 13 pro max-Pacific Blue-128GB{" "}
-                            </h6>
-                          </div>
-                        </div>
-                        <div className="col-2 col-md-3 col-lg-2">
-                          <h6 className="fs-10 mb-0">x1</h6>
-                        </div>
-                        <div className="col-2 ps-0">
-                          <h5 className="mb-0 fw-semibold text-end">$398</h5>
-                        </div>
-                      </div>
-                      <div className="row align-items-center mb-5 g-3">
-                        <div className="col-8 col-md-7 col-lg-8">
-                          <div className="d-flex align-items-center">
-                            <img
-                              className="me-2 ms-1"
-                              src={products3}
-                              width={40}
-                              alt
-                            />
-                            <h6 className="fw-semibold text-body-highlight lh-base">
-                              Apple MacBook Pro 13 inch-M1-8/256GB
-                            </h6>
-                          </div>
-                        </div>
-                        <div className="col-2 col-md-3 col-lg-2">
-                          <h6 className="fs-10 mb-0">x1</h6>
-                        </div>
-                        <div className="col-2 ps-0">
-                          <h5 className="mb-0 fw-semibold text-end">$65</h5>
-                        </div>
-                      </div>
+                        ))}
                     </div>
                   </div>
+
                   <div className="border-dashed border-bottom border-translucent mt-4">
+                    {/* Subtotal after discount */}
                     <div className="d-flex justify-content-between mb-2">
+                      <h5 className="text-body fw-semibold">Tổng tiền</h5>
                       <h5 className="text-body fw-semibold">
-                        Items subtotal:{" "}
+                        {subtotal.toLocaleString()} VNĐ
                       </h5>
-                      <h5 className="text-body fw-semibold">$691</h5>
                     </div>
+
+                    {/* Discount */}
                     <div className="d-flex justify-content-between mb-2">
-                      <h5 className="text-body fw-semibold">Discount: </h5>
-                      <h5 className="text-danger fw-semibold">-$59</h5>
+                      <h5 className="text-body fw-semibold">Giảm giá</h5>
+                      <h5 className="text-danger fw-semibold">
+                        -{discount.toLocaleString()} VNĐ
+                      </h5>
                     </div>
-                    <div className="d-flex justify-content-between mb-2">
-                      <h5 className="text-body fw-semibold">Tax: </h5>
-                      <h5 className="text-body fw-semibold">$126.20</h5>
-                    </div>
-                    <div className="d-flex justify-content-between mb-2">
-                      <h5 className="text-body fw-semibold">Subtotal </h5>
-                      <h5 className="text-body fw-semibold">$665</h5>
-                    </div>
+                    {/* Shipping cost */}
                     <div className="d-flex justify-content-between mb-3">
-                      <h5 className="text-body fw-semibold">Shipping Cost </h5>
-                      <h5 className="text-body fw-semibold">$30 </h5>
+                      <h5 className="text-body fw-semibold">Phí vận chuyển</h5>
+                      <h5 className="text-body fw-semibold">
+                        {shippingCost.toLocaleString()} VNĐ
+                      </h5>
                     </div>
                   </div>
+
+                  {/* Total */}
                   <div className="d-flex justify-content-between border-dashed-y pt-3">
-                    <h4 className="mb-0">Total :</h4>
-                    <h4 className="mb-0">$695.20</h4>
+                    <h4 className="mb-0">Cần thanh toán</h4>
+                    <h4 className="mb-0">{total.toLocaleString()} VNĐ</h4>
                   </div>
                 </div>
               </div>
@@ -486,195 +606,142 @@ const Checkout = () => {
 
               <div className="card mt-lg-5">
                 <button className="btn btn-primary" type="submit">
-                  Payment
+                  Thanh toán
                 </button>
               </div>
             </div>
           </div>
         </div>
-        {/* end of .container*/}
-      </section>
 
-      {isVisible && (
-        <div>
-          {/* Backdrop */}
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100%", // Đảm bảo backdrop chiếm toàn bộ màn hình
-              height: "100%",
-              backgroundColor: "hsla(0, 0.00%, 53.70%, 0.81)",
-              backdropFilter: "blur(2px)", // Làm mờ nền
-              zIndex: 999,
-              transition: "all 0.35s cubic-bezier(0.32, 0.72, 0, 1)", // Hiệu ứng chuyển đổi
-            }}
-            onClick={toggleForm}
-          />
+        <div className="bg-popup-promotion"></div>
+        <div
+          className="modal fade"
+          id="addDealModal"
+          data-bs-backdrop="static"
+          data-bs-keyboard="false"
+          tabIndex={-1}
+          aria-labelledby="addDealModal"
+          aria-hidden="true"
+        >
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content bg-body-highlight p-5">
+              <div className="modal-body px-0 promotion-popup">
+                <div className="promotion-top">
+                  <p className="title-use-promotion">Sử dụng mã giảm giá</p>
 
-          {/* Sidebar */}
-          <div
-            style={{
-              position: "fixed",
-              top: 0, // Đảm bảo nó chạm mép trên của màn hình
-              right: isVisible ? "0" : "-100%", // Điều chỉnh cho vị trí bên phải, ẩn khi không cần
-              width: "600px", // Chiều rộng cố định
-              height: "100%", // Chiều cao bằng toàn bộ chiều cao màn hình
-              backgroundColor: "#FFF",
-              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", // Tạo hiệu ứng shadow
-              zIndex: 1000, // Đặt z-index để nó hiển thị trên các phần tử khác
-              transition: "right 0.5s ease", // Tạo hiệu ứng trượt mượt mà
-              padding: "15px",
-            }}
-          >
-            <div
-              className="d-flex"
-              style={{
-                alignItems: "center",
-                justifyContent: "space-between",
-                backgroundColor: "white",
-                boxShadow: "rgba(0, 0, 0, 0.1)", // Shadow effect cho đầu thẻ div
-                position: "sticky", // Giữ phần trên cùng khi di chuyển
-                borderBottom: "2px solid #ddd", // Đường gạch dưới với màu nhẹ và độ dày 2px
-              }}
-            >
-              <div>
-                <h3 style={{ fontSize: "20px" }}>Khuyến mãi và ưu đãi</h3>
-              </div>
-
-              <svg
-                width={24}
-                height={24}
-                viewBox="0 0 28 28"
-                fill="#090d14"
-                xmlns="http://www.w3.org/2000/svg"
-                className="Sheet_icon__RnybF cursor-pointer"
-              >
-                <path d="M6.2097 6.3871L6.29289 6.29289C6.65338 5.93241 7.22061 5.90468 7.6129 6.2097L7.70711 6.29289L14 12.585L20.2929 6.29289C20.6834 5.90237 21.3166 5.90237 21.7071 6.29289C22.0976 6.68342 22.0976 7.31658 21.7071 7.70711L15.415 14L21.7071 20.2929C22.0676 20.6534 22.0953 21.2206 21.7903 21.6129L21.7071 21.7071C21.3466 22.0676 20.7794 22.0953 20.3871 21.7903L20.2929 21.7071L14 15.415L7.70711 21.7071C7.31658 22.0976 6.68342 22.0976 6.29289 21.7071C5.90237 21.3166 5.90237 20.6834 6.29289 20.2929L12.585 14L6.29289 7.70711C5.93241 7.34662 5.90468 6.77939 6.2097 6.3871L6.29289 6.29289L6.2097 6.3871Z" />
-              </svg>
-            </div>
-            <div
-              className="Sheet_body__VKc95 active"
-              style={{
-                maxHeight: "calc(100% - 54px)",
-                overflow: "auto",
-                backgroundColor: "#f3f4f6",
-              }}
-            >
-              <div className="relative h-full">
-                <div className="grid gap-2 bg-bgGrayDefault">
-                  <div>
-                    <div className="grid py-3">
-                      <h5 style={{ fontSize: "15px" }}>Mã giảm giá</h5>
-                      <div
-                        className="gap-3 px-3 mt-3"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          cursor: "pointer",
-                          justifyContent: "flex-start", // Align items to the left
-                        }}
-                        role="button"
-                        aria-label="Enter discount code"
+                  <IoClose
+                    className="iconcart-close-popup"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  />
+                </div>
+                <div className="codeboxinput__dropdown--content">
+                  <div className="codeboxinput__dropdown--content-normal">
+                    <div className="input-group mb-3">
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Nhập mã giảm giá/ Phiếu mua hàng"
+                        maxLength={10}
+                      />
+                      <button
+                        className="btn btn-phoenix-primary"
+                        disabled
+                        style={{ marginLeft: "0px" }}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width={16}
-                          height={16}
-                          viewBox="0 0 16 16"
-                          fill="none"
-                        >
-                          <g clipPath="url(#clip0_630_81456)">
-                            <path
-                              d="M10.0304 1.23725C9.73749 0.944355 9.26262 0.944355 8.96972 1.23725L1.23749 8.96948C0.944599 9.26237 0.944599 9.73725 1.23749 10.0301L2.01208 10.8047C2.01227 10.8048 2.01252 10.8049 2.01283 10.805C2.01548 10.8061 2.02385 10.8089 2.03946 10.8096C2.07351 10.8111 2.12291 10.8014 2.17144 10.7749C2.49223 10.5993 2.86035 10.4998 3.25024 10.4998C4.49288 10.4998 5.50024 11.5071 5.50024 12.7498C5.50024 13.1396 5.40065 13.5078 5.22513 13.8286C5.19857 13.8771 5.18892 13.9265 5.19041 13.9605C5.19109 13.9761 5.19387 13.9845 5.19495 13.9872C5.19508 13.9875 5.19518 13.9877 5.19527 13.9879L5.96973 14.7624C6.26262 15.0553 6.73749 15.0553 7.03039 14.7624L14.7626 7.03014C15.0555 6.73725 15.0555 6.26237 14.7626 5.96948L13.9881 5.19496C13.9879 5.19487 13.9877 5.19476 13.9873 5.19464C13.9847 5.19356 13.9763 5.19078 13.9607 5.19009C13.9267 5.18861 13.8773 5.19825 13.8288 5.22479C13.508 5.40022 13.14 5.49976 12.7502 5.49976C11.5076 5.49976 10.5002 4.4924 10.5002 3.24976C10.5002 2.85998 10.5998 2.49196 10.7752 2.17123C10.8017 2.12271 10.8114 2.07331 10.8099 2.03927C10.8092 2.02368 10.8064 2.01531 10.8054 2.01265C10.8052 2.01234 10.8051 2.0121 10.805 2.0119L10.0304 1.23725ZM8.26262 0.530141C8.94604 -0.153276 10.0541 -0.153276 10.7375 0.530141L11.5127 1.30537C11.9192 1.71184 11.8496 2.29086 11.6525 2.65111C11.5556 2.8284 11.5002 3.03187 11.5002 3.24976C11.5002 3.94011 12.0599 4.49976 12.7502 4.49976C12.9681 4.49976 13.1716 4.44443 13.3489 4.34746C13.7091 4.15041 14.2882 4.08081 14.6946 4.48728L15.4697 5.26237C16.1531 5.94579 16.1531 7.05383 15.4697 7.73725L7.73749 15.4695C7.05407 16.1529 5.94604 16.1529 5.26262 15.4695L4.48759 14.6945C4.08107 14.2879 4.15074 13.7088 4.34786 13.3486C4.44489 13.1712 4.50024 12.9677 4.50024 12.7498C4.50024 12.0594 3.9406 11.4998 3.25024 11.4998C3.0323 11.4998 2.82877 11.5551 2.65145 11.6521C2.29118 11.8493 1.71207 11.9189 1.30554 11.5124L0.530386 10.7372C-0.153031 10.0538 -0.153033 8.94579 0.530385 8.26237L8.26262 0.530141Z"
-                              fill="#212121"
-                            />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0_630_81456">
-                              <rect width={16} height={16} fill="white" />
-                            </clipPath>
-                          </defs>
-                        </svg>
-                        <p
-                          style={{
-                            margin: 0,
-                            fontWeight: "600",
-                          }}
-                        >
-                          Nhập mã giảm giá của bạn tại đây nhé
-                        </p>
-
-                        <div style={{ marginLeft: "12pc" }}>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width={20}
-                            height={21}
-                            viewBox="0 0 20 21"
-                            fill="none"
-                          >
-                            <path
-                              d="M7.64582 4.81309C7.84073 4.61748 8.15731 4.61692 8.35292 4.81183L13.8374 10.2768C14.0531 10.4918 14.0531 10.8411 13.8374 11.056L8.35292 16.521C8.15731 16.7159 7.84073 16.7153 7.64582 16.5197C7.4509 16.3241 7.45147 16.0075 7.64708 15.8126L12.8117 10.6664L7.64708 5.5202C7.45147 5.32528 7.4509 5.0087 7.64582 4.81309Z"
-                              fill="#212121"
-                            />
-                          </svg>
-                        </div>
-                      </div>
+                        Áp dụng
+                      </button>
                     </div>
-
-                    <div className="grid py-3">
-                      <h5 style={{ fontSize: "15px" }}>Khuyến mãi</h5>
-                      <div
-                        id="promotion-card-{'code':'KM-1124-2161','ofProductId':''}"
-                        className="cursor-pointer relative z-10 flex"
-                        role="button"
-                        aria-label="Promotional details"
-                      >
-                        <div className="flex h-fit w-full gap-2 rounded-l-2 bg-bgWhiteDefault p-2">
-                          <div className="flex h-11 min-w-11 items-center justify-center rounded-[48px] bg-red-red-2">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width={32}
-                              height={32}
-                              viewBox="0 0 32 32"
-                              fill="none"
-                              aria-hidden="true"
-                            >
-                              {/* SVG Path */}
-                            </svg>
-                          </div>
-                          {/* More promotion details can go here */}
-                        </div>
-                      </div>
-                    </div>
+                    <span className="error_codebox_input">
+                      Mã giảm giá không hợp lệ, vui lòng kiểm tra lại hoặc liên
+                      hệ nơi phát hành để được hỗ trợ
+                    </span>
                   </div>
+                </div>
+                <div className="popup-promotion-code-box--empty">
+                  <i className="popup-promotion-code-box__empty-voucher" />
+                  <h1 className="title-empty-promotion">Mã giảm giá trống</h1>
+                  <p className="caution-empty-promotion">
+                    {" "}
+                    Vui lòng nhập mã giảm có thể sử dụng vào thanh bên trên{" "}
+                  </p>
+                </div>
 
-                  <div className="flex flex-col justify-end bg-bgWhiteDefault">
-                    <div className="flex h-11 justify-between border-b border-neutral-gray-2 px-4 py-3">
-                      <span className="flex items-center text-textOnWhitePrimary b2-medium">
-                        Đã chọn 4 khuyến mãi và ưu đãi
+                <div className="cursor-pointer relative z-10 flex">
+                  <div className="flex h-fit w-full gap-2 rounded-l-2 bg-bgWhiteDefault p-2">
+                    <div className="flex h-11 min-w-11 items-center justify-center rounded-[48px] bg-red-red-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width={32}
+                        height={32}
+                        viewBox="0 0 32 32"
+                        fill="none"
+                      >
+                        <path
+                          d="M26.7233 5.71704L30.1623 19.6235C30.2881 20.1317 29.9874 20.6484 29.4902 20.7771L9.27562 26.0109C8.63108 26.1775 7.94958 25.968 7.5026 25.4644L2.82365 20.1972C2.41971 19.7426 2.2641 19.113 2.40813 18.5162L4.07575 11.6065C4.23523 10.9458 4.73739 10.4291 5.38137 10.2626L25.5959 5.02928C26.0926 4.90054 26.5975 5.20828 26.7233 5.71704Z"
+                          fill="#EF4444"
+                        />
+                        <path
+                          d="M28.8525 11.6417V26.1156C28.8525 26.6046 28.4651 27.0004 27.9878 27.0004H7.0735C6.4091 27.0004 5.79823 26.6255 5.48534 26.0253L2.2119 19.7457C1.92937 19.2036 1.92937 18.5537 2.2119 18.0122L5.48534 11.732C5.79823 11.1318 6.40855 10.7568 7.0735 10.7568H27.9878C28.4656 10.7568 28.8525 11.1532 28.8525 11.6417Z"
+                          fill="white"
+                        />
+                        <path
+                          d="M7.83626 18.8781C7.83626 19.5766 7.28278 20.143 6.59962 20.143C5.91646 20.143 5.36353 19.5766 5.36353 18.8781C5.36353 18.1796 5.91701 17.6133 6.59962 17.6133C7.28223 17.6133 7.83626 18.1796 7.83626 18.8781Z"
+                          fill="#FEE2E2"
+                        />
+                        <path
+                          d="M16.4658 13.9346C15.3241 13.9346 14.3954 14.8843 14.3954 16.0526C14.3954 17.2209 15.3236 18.1712 16.4658 18.1712C17.6081 18.1712 18.5363 17.2215 18.5363 16.0526C18.5363 14.8838 17.6076 13.9346 16.4658 13.9346ZM16.4658 16.759C16.0845 16.759 15.7755 16.4434 15.7755 16.0526C15.7755 15.6619 16.084 15.3462 16.4658 15.3462C16.8477 15.3462 17.1562 15.6624 17.1562 16.0526C17.1562 16.4428 16.8472 16.759 16.4658 16.759Z"
+                          fill="#EF4444"
+                        />
+                        <path
+                          d="M22.5611 15.033L17.0401 23.5069C16.832 23.8265 16.4055 23.9213 16.0832 23.7022C15.7659 23.486 15.6804 23.0478 15.8917 22.7237L21.4128 14.2498C21.6219 13.9251 22.0501 13.8365 22.3696 14.0533C22.6869 14.2701 22.7725 14.7083 22.5611 15.033Z"
+                          fill="#EF4444"
+                        />
+                        <path
+                          d="M21.9868 19.585C20.8451 19.585 19.9164 20.5347 19.9164 21.703C19.9164 22.8713 20.8446 23.8216 21.9868 23.8216C23.1291 23.8216 24.0573 22.8718 24.0573 21.7036C24.0573 20.5353 23.1286 19.585 21.9868 19.585ZM21.9868 22.4094C21.6055 22.4094 21.2965 22.0937 21.2965 21.703C21.2965 21.3123 21.605 20.9966 21.9868 20.9966C22.3687 20.9966 22.6766 21.3128 22.6772 21.703C22.6772 22.0932 22.3681 22.4094 21.9868 22.4094Z"
+                          fill="#EF4444"
+                        />
+                      </svg>
+                    </div>
+                    <div className="grid w-full">
+                      <span className="f1-semibold text-textOnWhitePrimary">
+                        Giảm ngay 800,000đ áp dụng đến 26/12
+                      </span>
+                      <span className="truncate f2-regular text-textOnWhiteSecondary">
+                        Áp dụng cho iPhone 16 Pro Max 256GB Titan Đen MYWV3VN/A
                       </span>
                     </div>
-                    <div className="flex h-[70px] gap-2 px-4 py-3">
-                      <div className="h-[46px] w-1/2">
-                        <span className="text-textOnWhiteBrand h6-semibold">
-                          45.990.000&nbsp;₫
-                        </span>
-                        <div className="flex h-[18px] gap-0.5 f1-medium">
-                          <span className="text-textOnWhitePrimary">
-                            Tiết kiệm
-                          </span>
-                          <span className="text-textOnWhiteBrand">
-                            2.000.000&nbsp;₫
-                          </span>
-                        </div>
-                      </div>
-                      <button className="Button_root__LQsbl Button_btnSmall__aXxTy Button_redPrimary__Rvn3w Button_btnSquare___qM_O w-[145px] flex-1 b1-medium">
-                        {""}
-                        <span>Xác nhận</span>
-                        {""}
-                      </button>
+                  </div>
+                  <div className="relative flex w-[47px] items-center justify-center rounded-r-2 border-l border-dashed border-bgGrayDefault bg-bgWhiteDefault">
+                    <div className="absolute left-[-6px] top-[-6px] h-2.5 w-2.5 rounded-full bg-bgGrayDefault" />
+                    <div className="absolute bottom-[-6px] left-[-6px] h-2.5 w-2.5 rounded-full bg-bgGrayDefault" />
+                    <button className="flex h-[24px] w-[24px] items-center justify-center rounded-full cursor-pointer bg-red-red-2">
+                      <svg
+                        width={24}
+                        height={24}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle
+                          cx={12}
+                          cy={12}
+                          r={11}
+                          fill="var(--red-red-7)"
+                        />
+                        <path
+                          d="M11.3701 15.3163L17.7202 8.85485C18.0922 8.47634 18.0922 7.86263 17.7202 7.4841C17.3483 7.10557 16.7452 7.10556 16.3732 7.48407L10.6966 13.2602L8.82526 11.356C8.45328 10.9774 7.85018 10.9774 7.4782 11.356C7.10622 11.7345 7.10622 12.3482 7.47821 12.7267L10.0231 15.3163C10.395 15.6948 10.9981 15.6948 11.3701 15.3163Z"
+                          fill="white"
+                        />
+                      </svg>
+                    </button>
+                    <div className="absolute right-[-3px] top-2 grid">
+                      <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
+                      <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
+                      <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
+                      <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
+                      <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
+                      <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
                     </div>
                   </div>
                 </div>
@@ -682,7 +749,7 @@ const Checkout = () => {
             </div>
           </div>
         </div>
-      )}
+      </section>
     </>
   );
 };

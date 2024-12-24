@@ -11491,6 +11491,9 @@ textarea.form-control.is-invalid {
 .mb-15 {
   margin-bottom: 7.5rem !important;
 }
+.mb-16 {
+  margin-bottom: 8rem !important;
+}
 .mb-auto {
   margin-bottom: auto !important;
 }

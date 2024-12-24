@@ -17,7 +17,7 @@ const LoginPage = () => {
       // Nếu đã đăng nhập, chuyển hướng về trang chính
       navigate("/");
     }
-  }, [navigate]); 
+  }, [navigate]);
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -42,12 +42,12 @@ const LoginPage = () => {
         if (response.status === 401 || response.status === 403) {
           toast.error(
             errorData.message ||
-            "Email hoặc mật khẩu không đúng. Vui lòng thử lại."
+              "Email hoặc mật khẩu không đúng. Vui lòng thử lại."
           );
         } else {
           toast.error(
             errorData.message ||
-            `Lỗi: ${response.status} - ${response.statusText}`
+              `Lỗi: ${response.status} - ${response.statusText}`
           );
         }
         return; // Kết thúc ở đây nếu phản hồi không thành công
@@ -58,9 +58,12 @@ const LoginPage = () => {
       // Đăng nhập thành công
       const userData = {
         id: data.user.id,
+        hinh_anh: data.user.hinh_anh,
+        ho_ten: data.user.ho_ten,
         ten_nguoi_dung: data.user.ten_nguoi_dung,
         email: data.user.email,
-        hinh_anh: data.user.hinh_anh,
+        dien_thoai: data.user.dien_thoai,
+        dia_chi: data.user.dia_chi,
       };
       sessionStorage.setItem("userInfo", JSON.stringify(userData));
       sessionStorage.setItem("userToken", data.token || "token");

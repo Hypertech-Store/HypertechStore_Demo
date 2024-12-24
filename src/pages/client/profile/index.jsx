@@ -7,7 +7,6 @@ import defaultAvatar from "../../../assets/img/team/image-default.png";
 
 const link = "http://127.0.0.1:8000/storage/";
 function Profile() {
-  
   document.title = "Hypertech Store - Sản phẩm yêu thích";
 
   // const handleViewToggle = () => {
@@ -100,7 +99,7 @@ function Profile() {
 
       const response = await fetch(url, {
         method: "POST",
-        body: submitData
+        body: submitData,
       });
 
       // Kiểm tra mã trạng thái và log phản hồi chi tiết
@@ -170,10 +169,10 @@ function Profile() {
   useEffect(() => {
     return () => {
       if (previewImage) {
-        URL.revokeObjectURL(previewImage)
+        URL.revokeObjectURL(previewImage);
       }
-    }
-  }, [previewImage])
+    };
+  }, [previewImage]);
 
   useEffect(() => {
     console.log("Updated formData:", formData);
@@ -237,7 +236,7 @@ function Profile() {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
       const previewUrl = URL.createObjectURL(file);
       setPreviewImage(previewUrl);
@@ -246,8 +245,7 @@ function Profile() {
         image: file,
       }));
     }
-
-  }
+  };
 
   return (
     <section className="pt-5 pb-9">
@@ -293,20 +291,26 @@ function Profile() {
                 <div className="border-bottom border-dashed pb-4">
                   <div className="row align-items-center g-3 g-sm-5 text-center text-sm-start">
                     <div className="col-12 col-sm-auto">
-                      <input className="d-none" id="avatarFile" type="file" onChange={handleFileChange} />
+                      <input
+                        className="d-none"
+                        id="avatarFile"
+                        type="file"
+                        onChange={handleFileChange}
+                      />
                       <label
                         className="cursor-pointer avatar avatar-5xl"
                         htmlFor="avatarFile"
                       >
-                        {
-                          (previewImage || avatar) && (
-                            <img
-                              className="rounded-circle"
-                              src={previewImage || "http://127.0.0.1:8000/storage/" + avatar }
-                              alt="Avatar"
-                            />
-                          )
-                        }
+                        {(previewImage || avatar) && (
+                          <img
+                            className="rounded-circle"
+                            src={
+                              previewImage ||
+                              "http://127.0.0.1:8000/storage/" + avatar
+                            }
+                            alt="Avatar"
+                          />
+                        )}
                         {/* <img
                           className="rounded-circle"
                           src={
@@ -2007,8 +2011,9 @@ function Profile() {
                     </div>
                     <div className="col-auto d-flex">
                       <button
-                        className={`page-link ${currentPage === 1 ? "disabled" : ""
-                          }`}
+                        className={`page-link ${
+                          currentPage === 1 ? "disabled" : ""
+                        }`}
                         data-list-pagination="prev"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -2034,8 +2039,9 @@ function Profile() {
                         ))}
                       </ul>
                       <button
-                        className={`page-link ${currentPage === totalPages ? "disabled" : ""
-                          }`}
+                        className={`page-link ${
+                          currentPage === totalPages ? "disabled" : ""
+                        }`}
                         data-list-pagination="next"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
