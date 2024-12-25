@@ -144,7 +144,7 @@ const AddProducts = () => {
           },
         }
       );
-  
+
       const data = await response.json();
       if (response.ok) {
         setAttributes(data); // Lưu dữ liệu vào state
@@ -165,10 +165,10 @@ const AddProducts = () => {
       prev.map((option, i) =>
         i === index
           ? {
-              ...option,
-              attributeId,
-              selectedValues: [],
-            }
+            ...option,
+            attributeId,
+            selectedValues: [],
+          }
           : option
       )
     );
@@ -179,11 +179,11 @@ const AddProducts = () => {
       prev.map((option, index) =>
         index === optionIndex
           ? {
-              ...option,
-              selectedValues: option.selectedValues.includes(valueId)
-                ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
-                : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
-            }
+            ...option,
+            selectedValues: option.selectedValues.includes(valueId)
+              ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
+              : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
+          }
           : option
       )
     );
@@ -263,39 +263,43 @@ const AddProducts = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Chuyển đổi options thành thuoc_tinh
-    const thuocTinh = options.map((option) => ({
-      id: parseInt(option.attributeId),
-      gia_tri: option.selectedValues.map((value) => parseInt(value)),
-    }));
-  
+
     const form = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (key === "image" && formData[key]) {
-        form.append(key, formData[key]);
-      } else if (key !== "image") {
-        form.append(key, formData[key]);
-      }
+
+    // Thêm các trường cơ bản
+    form.append("danh_muc_id", formData.danh_muc_id);
+    form.append("danh_muc_con_id", formData.danh_muc_con_id);
+    form.append("ten_san_pham", formData.ten_san_pham);
+    form.append("mo_ta", formData.mo_ta);
+    form.append("gia", formData.gia);
+    form.append("so_luong_ton_kho", formData.so_luong_ton_kho);
+    if (formData.image) {
+      form.append("image", formData.image);
+    }
+
+    // Thêm thuoc_tinh
+    options.forEach((option, index) => {
+      form.append(`thuoc_tinh[${index}][id]`, option.attributeId); // ID thuộc tính
+      option.selectedValues.forEach((valueId, valueIndex) => {
+        form.append(`thuoc_tinh[${index}][gia_tri][${valueIndex}]`, valueId); // Giá trị thuộc tính
+      });
     });
-  
-    // Thêm thuoc_tinh vào formData
-    form.append("thuoc_tinh", JSON.stringify(thuocTinh));
-  
+
+    // Thêm giá biến thể
+    form.append("gia_bien_the[]", "0");
+
+    // Gửi dữ liệu qua API
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/san-pham/create",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-          },
-          body: form, // FormData chứa dữ liệu sản phẩm
-        }
-      );
-  
+      const response = await fetch("http://127.0.0.1:8000/api/san-pham/create", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+        },
+        body: form, // FormData chứa dữ liệu
+      });
+
       const result = await response.json();
-  
+
       if (response.ok) {
         alert("Sản phẩm đã được tạo thành công!");
         console.log(result);
@@ -307,9 +311,7 @@ const AddProducts = () => {
       console.error("Lỗi kết nối:", error);
       alert("Đã xảy ra lỗi, vui lòng thử lại.");
     }
-  };  
-
-  
+  };
 
   return (
     <>
@@ -957,87 +959,87 @@ const AddProducts = () => {
                   </div>
                 </div>
                 <div className="col-12 col-xl-12">
-      <div className="card">
-        <div className="card-body">
-          <h4 className="card-title mb-4">Variants</h4>
-          <div className="row g-3">
-            {options.map((option, index) => {
-              const selectedAttribute = attributes.find(
-                (attr) => attr.id === parseInt(option.attributeId)
-              );
+                  <div className="card">
+                    <div className="card-body">
+                      <h4 className="card-title mb-4">Variants</h4>
+                      <div className="row g-3">
+                        {options.map((option, index) => {
+                          const selectedAttribute = attributes.find(
+                            (attr) => attr.id === parseInt(option.attributeId)
+                          );
 
-              return (
-                <div className="col-12 col-sm-6 col-xl-12" key={index}>
-                  <div className="border-bottom border-translucent border-dashed border-sm-0 border-bottom-xl pb-4">
-                    <div className="d-flex flex-wrap mb-2">
-                      <h5 className="text-body-highlight me-2">
-                        Option {index + 1}
-                      </h5>
-                      <a
-                        className="fw-bold fs-9"
-                        href="#!"
-                        onClick={() =>
-                          setOptions((prev) =>
-                            prev.filter((_, i) => i !== index)
-                          )
-                        }
-                      >
-                        Remove
-                      </a>
-                    </div>
-                    <select
-                      className="form-select mb-3"
-                      value={option.attributeId}
-                      onChange={(e) =>
-                        handleAttributeChange(index, e.target.value)
-                      }
-                    >
-                      <option value="">Chọn thuộc tính</option>
-                      {attributes.map((attr) => (
-                        <option key={attr.id} value={attr.id}>
-                          {attr.ten_thuoc_tinh}
-                        </option>
-                      ))}
-                    </select>
-                    {selectedAttribute && (
-                      <div className="product-variant-checkbox-menu">
-                        <h6>Chọn giá trị:</h6>
-                        {selectedAttribute.gia_tri_thuoc_tinh.map((value) => (
-                          <div key={value.id} className="form-check mb-2">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              id={`value-${index}-${value.id}`}
-                              checked={option.selectedValues.includes(value.id)}
-                              onChange={() =>
-                                handleValueChange(index, value.id)
-                              }
-                            />
-                            <label
-                              className="form-check-label"
-                              htmlFor={`value-${index}-${value.id}`}
-                            >
-                              {value.ten_gia_tri}
-                            </label>
-                          </div>
-                        ))}
+                          return (
+                            <div className="col-12 col-sm-6 col-xl-12" key={index}>
+                              <div className="border-bottom border-translucent border-dashed border-sm-0 border-bottom-xl pb-4">
+                                <div className="d-flex flex-wrap mb-2">
+                                  <h5 className="text-body-highlight me-2">
+                                    Option {index + 1}
+                                  </h5>
+                                  <a
+                                    className="fw-bold fs-9"
+                                    href="#!"
+                                    onClick={() =>
+                                      setOptions((prev) =>
+                                        prev.filter((_, i) => i !== index)
+                                      )
+                                    }
+                                  >
+                                    Remove
+                                  </a>
+                                </div>
+                                <select
+                                  className="form-select mb-3"
+                                  value={option.attributeId}
+                                  onChange={(e) =>
+                                    handleAttributeChange(index, e.target.value)
+                                  }
+                                >
+                                  <option value="">Chọn thuộc tính</option>
+                                  {attributes.map((attr) => (
+                                    <option key={attr.id} value={attr.id}>
+                                      {attr.ten_thuoc_tinh}
+                                    </option>
+                                  ))}
+                                </select>
+                                {selectedAttribute && (
+                                  <div className="product-variant-checkbox-menu">
+                                    <h6>Chọn giá trị:</h6>
+                                    {selectedAttribute.gia_tri_thuoc_tinh.map((value) => (
+                                      <div key={value.id} className="form-check mb-2">
+                                        <input
+                                          className="form-check-input"
+                                          type="checkbox"
+                                          id={`value-${index}-${value.id}`}
+                                          checked={option.selectedValues.includes(value.id)}
+                                          onChange={() =>
+                                            handleValueChange(index, value.id)
+                                          }
+                                        />
+                                        <label
+                                          className="form-check-label"
+                                          htmlFor={`value-${index}-${value.id}`}
+                                        >
+                                          {value.ten_gia_tri}
+                                        </label>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    )}
+                      <button
+                        className="btn btn-phoenix-primary w-100"
+                        type="button"
+                        onClick={addOption}
+                      >
+                        Add another option
+                      </button>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-          <button
-            className="btn btn-phoenix-primary w-100"
-            type="button"
-            onClick={addOption}
-          >
-            Add another option
-          </button>
-        </div>
-      </div>
-    </div>
               </div>
             </div>
           </div>
