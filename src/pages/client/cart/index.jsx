@@ -451,10 +451,20 @@ const Cart = () => {
 
                   <button
                     onClick={handleCheckout}
-                    className="btn btn-primary mt-5 float-end"
+                    className={
+                      Object.values(selectedItems).some((value) => value)
+                        ? "btn btn-primary mt-5 float-end"
+                        : "btn btn-phoenix-primary mt-5 float-end"
+                    }
+                    disabled={
+                      !Object.values(selectedItems).some((value) => value)
+                    }
                   >
                     Đặt hàng{" "}
-                    <span className="fas fa-chevron-right icon-small" />
+                    <span
+                      className="fas fa-chevron-right icon-small"
+                      style={{ verticalAlign: "-0.2em" }}
+                    />
                   </button>
                 </div>
               </div>
