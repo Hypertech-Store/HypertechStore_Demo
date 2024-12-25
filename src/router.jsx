@@ -54,7 +54,10 @@ const Router = () => {
             <Route path="them-danh-muc" element={<AddCategory />} />
             <Route path="danh-sach-danh-muc" element={<ListCategory />} />
             <Route path="them-danh-muc-con" element={<AddSubcategory />} />
-            <Route path="danh-sach-danh-muc-con" element={<ListSubcategory />} />
+            <Route
+              path="danh-sach-danh-muc-con"
+              element={<ListSubcategory />}
+            />
             <Route path="danh-sach-khach-hang" element={<ListCustomer />} />
             <Route path="chi-tiet-khach-hang" element={<DetailCustomer />} />
             <Route path="danh-sach-quan-tri" element={<ListAdmin />} />

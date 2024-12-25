@@ -120,6 +120,15 @@
   --tw-text-opacity: 1;
   color: rgb(217 45 32 / var(--tw-text-opacity));
 }
+
+.codeboxinput__dropdown--content .success_codebox_input {
+  margin-top: 5px;
+  display: block;
+  font-size: 12px;
+  --tw-text-opacity: 1;
+  color: rgb(34 139 34 / var(--tw-text-opacity)); /* Màu xanh lá cây */
+}
+
 .modal-body:after {
   --tw-content: none;
   content: var(--tw-content);
@@ -193,6 +202,10 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  gap: 0.625rem; /* Khoảng cách giữa icon và nội dung */
+  overflow: hidden; /* Cắt nội dung nếu vượt quá không gian */
+  white-space: nowrap; /* Không xuống dòng */
+  text-overflow: ellipsis; /* Thêm dấu "..." khi nội dung bị cắt */
 }
 
 .suggestion-item:last-child {
@@ -201,19 +214,17 @@
 
 .suggestion-item:before {
   content: "";
+  flex-shrink: 0; /* Ngăn icon thay đổi kích thước */
   display: inline-block;
   background-image: url("../img/logos/map.png");
-  background-size: contain; /* Đảm bảo ảnh được thu gọn nhưng giữ tỷ lệ */
+  background-size: contain; /* Giữ tỷ lệ ảnh */
   background-repeat: no-repeat;
-  width: 1em; /* Chiều rộng của icon */
-  height: 1em; /* Chiều cao của icon */
-  margin-right: 0.625rem;
+  background-position: center; /* Căn giữa icon */
+  width: 1em; /* Chiều rộng icon */
+  height: 1em; /* Chiều cao icon */
 }
-
 .suggestion-item:hover {
-  background: #ccc;
-
-  color: #ffffff; /* Màu chữ trắng khi hover */
+  background: #f7f8f8;
 }
 .suggestion-item .icon {
   margin-right: 0.625rem; /* Khoảng cách giữa icon và text */
@@ -498,3 +509,14 @@ button {
 .w-2\.5 {
   width: 0.625rem !important;
 }
+
+.w-\[24px\] {
+  width: 24px !important;
+}
+.h-\[24px\] {
+  height: 24px !important;
+}
+
+
+
+

@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 
+import pay from "../../../assets/img/logos/pay.webp";
+import momo from "../../../assets/img/logos/momo.webp";
+import vnpay from "../../../assets/img/logos/vnpay.webp";
 import "../../../assets/css/style.css";
 import "../../../assets/js/main.js";
 import { TbEdit } from "react-icons/tb";
@@ -12,27 +15,20 @@ const Checkout = () => {
   const [products, setProducts] = useState([]); // State để lưu danh sách sản phẩm
   const [shippingOptions, setShippingOptions] = useState([]);
   const [shippingCost, setShippingCost] = useState(0);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [voucherData, setVoucherData] = useState(null); // Dữ liệu voucher từ API
-  const [errorMessage, setErrorMessage] = useState(""); // Trạng thái lưu thông báo lỗi
-  const [successMessage, setSuccessMessage] = useState(""); // Trạng thái lưu thông báo thành công
   // eslint-disable-next-line no-unused-vars
   const [selectedOption, setSelectedOption] = useState(null);
   // State để kiểm tra tình trạng hiện tại của button (đang hiển thị SVG ban đầu hay SVG thay thế)
-  // eslint-disable-next-line no-unused-vars
   const [isClicked, setIsClicked] = useState(false);
+  const [isVoucherApplied, setIsVoucherApplied] = useState(false); // Track voucher applied state
   const [subtotal, setSubtotal] = useState(0);
   const [total, setTotal] = useState(0);
-  const [discountCode, setDiscountCode] = useState("");
+
   // eslint-disable-next-line no-unused-vars
   const [giaTriGiamGia, setGiaTriGiamGia] = useState(0);
   const [ngayKetThuc, setNgayKetThuc] = useState("");
-  const [selectedPayment, setSelectedPayment] = useState("");
   const [moTa, setMoTa] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [discount, setDiscount] = useState(0);
   // const [totalAfterDiscount, setTotalAfterDiscount] = useState(0);
-  // eslint-disable-next-line no-unused-vars
   const [vouchers, setVouchers] = useState([]);
   const [showVoucherForm, setShowVoucherForm] = useState(false);
 
@@ -58,7 +54,6 @@ const Checkout = () => {
       // Log ra toàn bộ thông tin user
       console.log("User Info:", userInfo);
     } else {
-      setUserInfo(null);
       console.log("No user info found in sessionStorage.");
     }
 
@@ -75,19 +70,12 @@ const Checkout = () => {
     } else {
       console.log("No selected products found in sessionStorage.");
     }
-
-    // Kiểm tra nếu mã giảm giá đã được áp dụng trước đó (từ sessionStorage)
-    const voucherApplied = sessionStorage.getItem("voucherApplied");
-    if (!voucherApplied) {
-      setDiscountAmount(0); // Nếu không có mã giảm giá, set giảm giá về 0
-    } else {
-      const storedDiscountAmount = sessionStorage.getItem("discountAmount");
-      if (storedDiscountAmount) {
-        setDiscountAmount(parseFloat(storedDiscountAmount));
-        setSuccessMessage("Áp dụng mã giảm giá thành công!");
-      }
-    }
   }, []);
+
+  // Sample products data from sessionStorage (or dynamically fetched data)
+
+  // Discounts and shipping cost
+  const discount = 10; // Fixed discount, can be calculated based on logic
 
   useEffect(() => {
     // Fetch data from the API
@@ -98,8 +86,8 @@ const Checkout = () => {
   }, []);
 
   const handleShippingChange = (e, option) => {
-    console.log("Selected shipping option:", option);
     setShippingCost(Number(e.target.value));
+    setSelectedOption(option);
   };
 
   const getDeliveryDate = (option) => {
@@ -117,16 +105,9 @@ const Checkout = () => {
     return "Chưa chọn hình thức vận chuyển"; // Trả về nếu chưa chọn hình thức vận chuyển
   };
 
-  // Fetch voucher data từ API
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
-        if (subtotal <= 0) {
-          console.log("Subtotal must be greater than 0 to fetch voucher.");
-          setShowVoucherForm(false);
-          return;
-        }
-
         const response = await fetch(
           "http://127.0.0.1:8000/api/phieu-giam-gia/phieu-giam-gia-phu-hop",
           {
@@ -134,7 +115,7 @@ const Checkout = () => {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ gia_tri_don_hang: subtotal }),
+            body: JSON.stringify({ gia_tri_don_hang: subtotal }), // Gửi subtotal
           }
         );
 
@@ -147,22 +128,17 @@ const Checkout = () => {
 
         const voucher = data.data[0]; // Lấy voucher đầu tiên trong mảng
 
-        // Kiểm tra nếu số lượt sử dụng = 0 thì không hiển thị voucher
-        if (voucher.so_luot_su_dung === 0) {
-          setShowVoucherForm(false); // Ẩn voucher form
-          return;
-        }
-
-        setVoucherData(voucher); // Lưu voucher vào trạng thái
-
+        // Chuyển đổi gia_tri_don_hang_toi_thieu sang number
         const minimumOrderValue = parseFloat(
           voucher.gia_tri_don_hang_toi_thieu
         );
+
+        // Kiểm tra ngày bắt đầu và ngày kết thúc
         const today = new Date();
         const startDate = new Date(voucher.ngay_bat_dau);
         const endDate = new Date(voucher.ngay_ket_thuc);
 
-        // Kiểm tra ngày bắt đầu và ngày kết thúc
+        // Kiểm tra điều kiện:
         if (
           subtotal > minimumOrderValue &&
           today >= startDate &&
@@ -170,44 +146,50 @@ const Checkout = () => {
         ) {
           // Tính toán tiền giảm
           const discountAmount = (subtotal * voucher.gia_tri_giam_gia) / 100;
+
+          // Cập nhật trạng thái hiển thị
+          setShowVoucherForm(true); // Hiển thị voucher form
           setGiaTriGiamGia(voucher.gia_tri_giam_gia); // Tỷ lệ giảm giá
           setNgayKetThuc(voucher.ngay_ket_thuc); // Ngày hết hạn
           setMoTa(voucher.mo_ta); // Mô tả giảm giá
           setDiscountAmount(discountAmount); // Tiền giảm
-          setShowVoucherForm(true); // Hiển thị voucher form
+          setVouchers(voucher.ma_giam_gia); // Store the voucher code
+          console.log("Voucher available: Show form!");
         } else {
           setShowVoucherForm(false); // Ẩn voucher form
+          console.log("Voucher not available: Hide form!");
         }
       } catch (error) {
         console.error("Error fetching vouchers:", error);
       }
     };
 
-    // Chỉ gọi fetchVouchers nếu có subtotal và voucher đã được áp dụng trước đó
+    // Gọi fetchVouchers khi subtotal thay đổi
     if (subtotal > 0) {
       fetchVouchers();
     }
-  }, [subtotal]);
+  }, [subtotal]); // Chạy lại mỗi khi subtotal thay đổi
 
-  // Hàm thay đổi giá trị trong input
-  const handleInputChange = (event) => {
-    setDiscountCode(event.target.value);
-  };
-
-  const handleSvgClick = () => {
-    if (isClicked) {
-      // Nếu đã nhấn, xóa mã giảm giá và đặt trạng thái về chưa nhấn
-      setDiscountCode("");
-      setIsClicked(false);
+  const handleClick = () => {
+    if (!isClicked) {
+      // Populate the input field and disable it
+      setVouchers(vouchers); // Set the voucher code in the input
+      setIsClicked(true); // Disable the SVG button click (show "voucher applied" state)
+      setIsVoucherApplied(true); // Mark voucher as applied
     } else {
-      // Nếu chưa nhấn, hiển thị mã giảm giá và đặt trạng thái là đã nhấn
-      if (voucherData) {
-        setDiscountCode(voucherData.ma_giam_gia);
-      }
-      setIsClicked(true);
+      // Reset the input and enable it
+      setVouchers(""); // Clear the voucher code
+      setIsClicked(false); // Re-enable the SVG button click
+      setIsVoucherApplied(false); // Mark voucher as not applied
     }
   };
 
+  const handleInputChange = (event) => {
+    setVouchers(event.target.value);
+    if (event.target.value === "") {
+      setIsVoucherApplied(false); // Disable button if the input is empty
+    }
+  };
   // Tính toán subtotal và total
   useEffect(() => {
     let subtotal = 0;
@@ -216,228 +198,11 @@ const Checkout = () => {
     });
 
     // Tính tổng (subtotal sau khi áp dụng giảm giá và phí vận chuyển)
-    const total = subtotal - discountAmount + shippingCost;
+    const total = subtotal - discount + shippingCost;
 
     setSubtotal(subtotal);
     setTotal(total);
-  }, [products, shippingCost, discountAmount]); // Chạy lại khi products, shippingCost hoặc discountAmount thay đổi
-
-  useEffect(() => {
-    // Fetching data from the API
-    fetch("http://127.0.0.1:8000/api/phuong-thuc-thanh-toan")
-      .then((response) => response.json())
-      .then((data) => setPaymentMethods(data))
-      .catch((error) =>
-        console.error("Error fetching payment methods:", error)
-      );
-  }, []);
-
-  const handleApplyVoucher = async () => {
-    try {
-      if (!userInfo || !discountCode) {
-        throw new Error("Vui lòng nhập mã giảm giá và xác định khách hàng.");
-      }
-
-      const customerId = userInfo.id; // Lấy customerId từ userInfo
-
-      if (!customerId) {
-        throw new Error(
-          "Không tìm thấy thông tin khách hàng trong phiên làm việc."
-        );
-      }
-
-      // Gửi yêu cầu API để kiểm tra mã giảm giá
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/phieu-giam-gia/check-phieu-giam-gia",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            khach_hang_id: customerId, // Sử dụng customerId từ session
-            ma_giam_gia: discountCode,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Lỗi phản hồi từ API:", errorText);
-        throw new Error("Mã giảm giá không hợp lệ.");
-      }
-
-      const data = await response.json();
-      console.log("Dữ liệu nhận được từ API:", data);
-
-      if (data.success) {
-        setErrorMessage(""); // Xóa thông báo lỗi
-        setSuccessMessage("Áp dụng mã giảm giá thành công!");
-
-        // Tính toán số tiền giảm giá
-        const discount =
-          (subtotal * parseFloat(data.data.gia_tri_giam_gia)) / 100;
-        setDiscount(discount); // Áp dụng giảm giá và lưu vào state
-
-        // Lưu trạng thái mã giảm giá vào sessionStorage
-        // Lưu trạng thái vào sessionStorage
-        sessionStorage.setItem("voucherApplied", "true");
-        sessionStorage.setItem("discount", discount.toString());
-
-        // Kiểm tra đã lưu chưa
-        console.log(
-          "voucherApplied:",
-          sessionStorage.getItem("voucherApplied")
-        );
-        console.log("discount:", sessionStorage.getItem("discount"));
-      } else {
-        throw new Error("Mã giảm giá không hợp lệ.");
-      }
-    } catch (error) {
-      console.error("Lỗi:", error.message);
-      setSuccessMessage(""); // Xóa thông báo thành công
-      setErrorMessage(error.message); // Hiển thị lỗi
-    }
-  };
-
-  const goToCart = () => {
-    navigate("/cua-hang"); // Điều hướng đến trang giỏ hàng
-    window.location.reload(); // Forces the page to refresh
-  };
-  const handlePaymentMethodChange = (event) => {
-    setSelectedPayment(event.target.value);
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const address = document.getElementById("address").value;
-
-    if (!userInfo || !userInfo.id) {
-      console.error("Không có thông tin khách hàng.");
-      return;
-    }
-
-    const khachHangId = userInfo.id;
-
-    const selectedShippingOption = shippingOptions.find(
-      (option) => Number(option.gia_van_chuyen) === Number(shippingCost)
-    );
-
-    if (!selectedShippingOption) {
-      console.error("Không tìm thấy phương thức vận chuyển phù hợp.");
-      return;
-    }
-
-    console.log("shippingCost (Number):", Number(shippingCost));
-    console.log(
-      "shippingOptions (gia_van_chuyen as Number):",
-      shippingOptions.map((opt) => Number(opt.gia_van_chuyen))
-    );
-    console.log("Selected shipping option:", selectedShippingOption);
-
-    const selectedPaymentMethod = paymentMethods.find(
-      (method) => method.ten_phuong_thuc === selectedPayment
-    );
-
-    if (!selectedPaymentMethod) {
-      console.error("Không tìm thấy phương thức thanh toán phù hợp.");
-      return;
-    }
-
-    const orderData = {
-      khach_hang_id: khachHangId,
-      phuong_thuc_thanh_toan_id: selectedPaymentMethod.id,
-      hinh_thuc_van_chuyen_id: selectedShippingOption.id,
-      tong_tien: total,
-      ma_giam_gia: discountCode || null,
-      dia_chi_giao_hang: address,
-      products: products.map((product) => ({
-        san_pham_id: product.san_pham_id,
-        bien_the_san_pham_id: product.bien_the_san_pham_id,
-        attributes: product.thuoc_tinh.map((item) => ({
-          gia_tri_thuoc_tinh_id: item.gia_tri_thuoc_tinh_id,
-          ten_gia_tri: item.ten_gia_tri,
-        })),
-        so_luong: product.so_luong,
-        gia: product.gia,
-      })),
-    };
-
-    // Log dữ liệu orderData trước khi gửi yêu cầu
-    console.log("Order Data:", orderData);
-
-    const spinnerModalElement = document.getElementById("paymentSpinnerModal");
-    if (!spinnerModalElement) {
-      console.error("Không tìm thấy modal spinner trong DOM.");
-      return; // Dừng nếu modal không tồn tại
-    }
-
-    // eslint-disable-next-line no-undef
-    const spinnerModal = new bootstrap.Modal(
-      document.getElementById("paymentSpinnerModal")
-    );
-    spinnerModal.show();
-
-    try {
-      // Gửi yêu cầu thanh toán
-      const response = await fetch("http://127.0.0.1:8000/api/donhang/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Gửi đơn hàng thất bại");
-      }
-
-      const data = await response.json();
-      console.log("Đơn hàng đã được gửi:", data);
-
-      // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
-      if (khachHangId) {
-        const deleteCartResponse = await fetch(
-          `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${khachHangId}`,
-          {
-            method: "DELETE",
-          }
-        );
-
-        if (!deleteCartResponse.ok) {
-          throw new Error("Xóa giỏ hàng thất bại");
-        }
-
-        console.log("Giỏ hàng đã được xóa cho khách hàng:", khachHangId);
-      }
-
-      // Đóng spinner modal sau khi thanh toán thành công và mở modal thành công
-      setTimeout(() => {
-        spinnerModal.hide(); // Ẩn spinner modal
-        const successModalElement = document.getElementById(
-          "paymentSuccessModal"
-        );
-        if (successModalElement) {
-          // eslint-disable-next-line no-undef
-          const successModal = new bootstrap.Modal(
-            document.getElementById("paymentSuccessModal")
-          );
-          successModal.show();
-        } else {
-          console.error("Không tìm thấy modal thành công trong DOM.");
-        }
-      }, 3000); // Đợi 3 giây để hiển thị spinner trước khi hiển thị thành công
-    } catch (error) {
-      console.error("Lỗi gửi đơn hàng:", error);
-
-      // Đóng modal spinner và hiển thị lỗi (nếu có lỗi)
-      setTimeout(() => {
-        spinnerModal.hide(); // Ẩn spinner modal
-        alert("Đã có lỗi xảy ra khi gửi đơn hàng, vui lòng thử lại sau.");
-      }, 3000); // Đợi 3 giây trước khi ẩn spinner
-    }
-  };
+  }, [products, shippingCost, discount]); // Chạy lại khi products, shippingCost hoặc discount thay đổi
 
   return (
     <>
@@ -752,13 +517,8 @@ const Checkout = () => {
 
                   <div className="d-flex align-items-center justify-content-between mt-3">
                     <h3 className="mb-0">Thông tin đơn hàng</h3>
-                    <button
-                      className="btn btn-link pe-0"
-                      type="button"
-                      onClick={goToCart} // Gọi goToCart khi nhấn vào nút
-                    >
-                      Tiếp tục mua sắm
-                      <span className="fas fa-chevron-right icon-small" />
+                    <button className="btn btn-link pe-0" type="button">
+                      Edit cart
                     </button>
                   </div>
                   <div className="border-dashed border-bottom border-translucent mt-4">
@@ -850,19 +610,14 @@ const Checkout = () => {
                     <div className="d-flex justify-content-between mb-2">
                       <h5 className="text-body fw-semibold">Giảm giá</h5>
                       <h5 className="text-danger fw-semibold">
-                        {discount > 0
-                          ? `-${discount.toLocaleString()} VNĐ` // Hiển thị giảm giá
-                          : "0"}
+                        -{discount.toLocaleString()} VNĐ
                       </h5>
                     </div>
-
                     {/* Shipping cost */}
                     <div className="d-flex justify-content-between mb-3">
                       <h5 className="text-body fw-semibold">Phí vận chuyển</h5>
                       <h5 className="text-body fw-semibold">
-                        {shippingCost > 0
-                          ? `${shippingCost.toLocaleString()} VNĐ`
-                          : "0"}
+                        {shippingCost.toLocaleString()} VNĐ
                       </h5>
                     </div>
                   </div>
@@ -880,116 +635,71 @@ const Checkout = () => {
                     <h3 className="mb-5">Phương thức thanh toán</h3>
                   </div>
                   <div className="payment-methods">
-                    {paymentMethods.map((method) => (
-                      <div
-                        className="method-item d-flex align-items-center mb-3"
-                        key={method.id}
+                    <div className="method-item d-flex align-items-center mb-3">
+                      <input
+                        type="radio"
+                        id="cod"
+                        name="paymentMethod"
+                        value="cod"
+                        className="form-check-input me-3"
+                      />
+                      <label
+                        htmlFor="cod"
+                        className="d-flex align-items-center"
                       >
-                        <input
-                          type="radio"
-                          id={method.ten_phuong_thuc}
-                          name="paymentMethod"
-                          value={method.ten_phuong_thuc}
-                          className="form-check-input me-3"
-                          onChange={handlePaymentMethodChange} // Xử lý sự kiện thay đổi lựa chọn
-                          checked={selectedPayment === method.ten_phuong_thuc} // Kiểm tra xem phương thức thanh toán này đã được chọn chưa
+                        <img className="me-3" src={pay} alt="cod" width="30" />
+                        <span>Thanh toán tiền mặt khi nhận hàng</span>
+                      </label>
+                    </div>
+                    <div className="method-item d-flex align-items-center mb-3">
+                      <input
+                        type="radio"
+                        id="momo"
+                        name="paymentMethod"
+                        value="momo"
+                        className="form-check-input me-3"
+                      />
+                      <label
+                        htmlFor="momo"
+                        className="d-flex align-items-center"
+                      >
+                        <img
+                          className="me-3"
+                          src={momo}
+                          alt="Momo"
+                          width="30"
                         />
-                        <label
-                          htmlFor={method.ten_phuong_thuc}
-                          className="d-flex align-items-center"
-                        >
-                          <img
-                            className="me-3"
-                            src={`${baseUrl}${method.anh_phuong_thuc}`}
-                            alt={method.ten_phuong_thuc}
-                            width="30"
-                          />
-                          <span>{method.ten_phuong_thuc}</span>
-                        </label>
-                      </div>
-                    ))}
+                        <span>Thanh toán qua ví MoMo</span>
+                      </label>
+                    </div>
+                    <div className="method-item d-flex align-items-center mb-3">
+                      <input
+                        type="radio"
+                        id="vnpay"
+                        name="paymentMethod"
+                        value="vnpay"
+                        className="form-check-input me-3"
+                      />
+                      <label
+                        htmlFor="vnpay"
+                        className="d-flex align-items-center"
+                      >
+                        <img
+                          className="me-3"
+                          src={vnpay}
+                          alt="VNPay"
+                          width="30"
+                        />
+                        <span>Thanh toán qua ví VNPay</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="card mt-lg-4">
-                <button
-                  className="btn btn-primary"
-                  type="button" // Đặt type là "button" thay vì "submit"
-                  onClick={handleSubmit} // Gắn sự kiện click với hàm handleSubmit
-                >
+                <button className="btn btn-primary" type="submit">
                   Thanh toán
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Spinner Modal */}
-
-        <div
-          className="modal fade"
-          id="paymentSpinnerModal"
-          tabIndex={-1}
-          aria-labelledby="paymentSpinnerModalLabel"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content bg-transparent border-0 text-center">
-              <div className="d-flex justify-content-center">
-                <div className="spinner-border text-light" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              </div>
-
-              <div className="mt-3 text-white fw-bold">
-                Đang xử lý thanh toán ...
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="modal fade"
-          id="paymentSuccessModal"
-          tabIndex={-1}
-          aria-labelledby="paymentSuccessModalLabel"
-          aria-hidden="true"
-          style={{ width: "100%", height: "100%" }}
-        >
-          <div
-            className="modal-dialog modal-fullscreen d-flex justify-content-center align-items-center m-0"
-            role="document"
-          >
-            <div className="modal-content bg-white m-0 p-5 d-flex justify-content-center align-items-center">
-              <div className="text-center">
-                <div className="mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="text-success"
-                    width={75}
-                    height={75}
-                    fill="currentColor"
-                    viewBox="0 0 16 16"
-                  >
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-                  </svg>
-                </div>
-                <h1>Mua hàng thành công!</h1>
-                <p
-                  style={{
-                    wordBreak: "break-word",
-                    whiteSpace: "normal",
-                    maxWidth: "70%",
-                    margin: "0 auto",
-                  }}
-                  className="mt-2"
-                >
-                  Đơn hàng của bạn đã được xử lý thành công. Email xác nhận có
-                  thông tin chi tiết về đơn hàng đã được gửi đến hộp thư đến của
-                  bạn. Cảm ơn bạn đã mua sắm với chúng tôi!
-                </p>
-                <button className="btn btn-primary mt-4" onClick={goToCart}>
-                  Tiếp tục mua sắm
                 </button>
               </div>
             </div>
@@ -1021,31 +731,34 @@ const Checkout = () => {
                 <div className="codeboxinput__dropdown--content">
                   <div className="codeboxinput__dropdown--content-normal">
                     <div className="input-group mb-3">
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Nhập mã giảm giá/ Phiếu mua hàng"
-                        maxLength={10}
-                        value={discountCode} // Giá trị ô input là discountCode
-                        onChange={handleInputChange}
-                      />
-                      <button
-                        className="btn btn-phoenix-primary"
-                        disabled={!discountCode}
-                        style={{ marginLeft: "0px" }}
-                        onClick={handleApplyVoucher} // Gọi sự kiện khi nhấn nút
-                      >
-                        Áp dụng
-                      </button>
+  <input
+    className="form-control"
+    type="text"
+    placeholder="Nhập mã giảm giá/ Phiếu mua hàng"
+    maxLength={10}
+    value={vouchers}
+    onChange={handleInputChange}
+    onClick={() => {
+      if (!isVoucherApplied) {
+        // Clear voucher when clicked (only if it's not applied)
+        setVouchers("");
+        setIsVoucherApplied(false);
+      }
+    }}
+    disabled={isVoucherApplied} // Disable input if voucher is applied
+  />
+  <button
+    className="btn btn-phoenix-primary"
+    disabled={isVoucherApplied || vouchers.length === 0} // Disable if voucher is applied or input is empty
+    style={{ marginLeft: "0px" }}
+  >
+    Áp dụng
+  </button>
+
                     </div>
-                    <span
-                      className={`codeboxinput__dropdown--content1 ${
-                        errorMessage
-                          ? "error_codebox_input"
-                          : "success_codebox_input"
-                      }`}
-                    >
-                      {errorMessage || successMessage}
+                    <span className="error_codebox_input">
+                      Mã giảm giá không hợp lệ, vui lòng kiểm tra lại hoặc liên
+                      hệ nơi phát hành để được hỗ trợ
                     </span>
                   </div>
                 </div>
@@ -1109,16 +822,18 @@ const Checkout = () => {
                     <div className="relative flex w-[47px] items-center justify-center rounded-r-2 border-l border-dashed border-bgGrayDefault bg-bgWhiteDefault">
                       <div className="absolute left-[-6px] top-[-6px] h-2.5 w-2.5 rounded-full bg-bgGrayDefault" />
                       <div className="absolute bottom-[-6px] left-[-6px] h-2.5 w-2.5 rounded-full bg-bgGrayDefault" />
-                      <button className="flex h-[24px] w-[24px] items-center justify-center rounded-full cursor-pointer bg-red-red-2">
+                      <button
+                        className="flex h-[24px] w-[24px] items-center justify-center rounded-full cursor-pointer bg-red-red-2"
+                        onClick={handleClick}
+                      >
                         {!isClicked ? (
-                          // Hiển thị SVG ban đầu khi chưa nhấn
+                          // SVG when not clicked
                           <svg
                             width={14}
                             height={14}
                             viewBox="0 0 14 14"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
-                            onClick={handleSvgClick} // Gọi hàm khi nhấn vào SVG
                           >
                             <path
                               d="M7.67742 0.677419C7.67742 0.303291 7.37413 0 7 0C6.62587 0 6.32258 0.303291 6.32258 0.677419V6.32258H0.677419C0.303291 6.32258 0 6.62587 0 7C0 7.37413 0.303291 7.67742 0.677419 7.67742H6.32258V13.3226C6.32258 13.6967 6.62587 14 7 14C7.37413 14 7.67742 13.6967 7.67742 13.3226V7.67742H13.3226C13.6967 7.67742 14 7.37413 14 7C14 6.62587 13.6967 6.32258 13.3226 6.32258H7.67742V0.677419Z"
@@ -1131,15 +846,13 @@ const Checkout = () => {
                             />
                           </svg>
                         ) : (
-                          // Hiển thị SVG đã nhấn cùng ô input
-
+                          // SVG when clicked
                           <svg
                             width={24}
                             height={24}
                             viewBox="0 0 24 24"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
-                            onClick={handleSvgClick} // Trở về trạng thái SVG ban đầu khi nhấn
                           >
                             <circle
                               cx={12}

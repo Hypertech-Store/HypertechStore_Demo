@@ -93,8 +93,8 @@ const LoginPage = () => {
             </div>
           </a>
           <div className="text-center mb-7">
-            <h3 className="text-body-highlight">Sign In</h3>
-            <p className="text-body-tertiary">Get access to your account</p>
+            <h3 className="text-body-highlight">Đăng nhập</h3>
+            <p className="text-body-tertiary">Truy cập vào tài khoản của bạn</p>
           </div>
 
           <button className="btn btn-phoenix-secondary w-100 mb-3">
@@ -114,18 +114,18 @@ const LoginPage = () => {
                 d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
               />
             </svg>
-            Sign in with google
+            Đăng nhập bằng google
           </button>
 
           <div className="position-relative">
             <hr className="bg-body-secondary mt-5 mb-4" />
-            <div className="divider-content-center">or use email</div>
+            <div className="divider-content-center">hoặc sử dụng email</div>
           </div>
 
           <form onSubmit={handleLogin}>
             <div className="mb-3 text-start">
               <label className="form-label" htmlFor="email">
-                Email address
+                Email
               </label>
               <div className="form-icon-container">
                 <input
@@ -157,7 +157,7 @@ const LoginPage = () => {
 
             <div className="mb-3 text-start">
               <label className="form-label" htmlFor="password">
-                Password
+                Mật khẩu
               </label>
               <div
                 className="form-icon-container"
@@ -203,13 +203,13 @@ const LoginPage = () => {
                     className="form-check-label mb-0"
                     htmlFor="basic-checkbox"
                   >
-                    Remember me
+                    Ghi nhớ tôi
                   </label>
                 </div>
               </div>
               <div className="col-auto">
                 <a className="fs-9 fw-semibold" href="quen-mat-khau">
-                  Forgot Password?
+                  Quên mật khẩu?
                 </a>
               </div>
             </div>
@@ -224,7 +224,7 @@ const LoginPage = () => {
                 justifyContent: "center",
               }}
             >
-              {loading ? "Signing in" : "Sign In"}
+              {loading ? "Đăng nhập" : "Đăng nhập"}
 
               {loading ? (
                 <HashLoader
@@ -241,7 +241,7 @@ const LoginPage = () => {
 
           <div className="text-center">
             <a className="fs-9 fw-bold" href="dang-ky">
-              Create an account
+              Bạn chưa có tài khoản?
             </a>
           </div>
         </div>
