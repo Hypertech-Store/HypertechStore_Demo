@@ -991,11 +991,11 @@ const HeaderClient = () => {
                 Wishlist
               </NavLink>
             </li> */}
-            <li className="nav-item" data-nav-item="data-nav-item">
+            {/* <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/thong-tin-van-chuyen">
                 Shipping Info
               </NavLink>
-            </li>
+            </li> */}
 
             <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/don-hang">
