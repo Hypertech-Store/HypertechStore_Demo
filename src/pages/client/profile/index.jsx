@@ -21,19 +21,7 @@ function Profile() {
   });
 
   const storedUserInfo = sessionStorage.getItem("userInfo");
-  const [formData, setFormData] = useState({
-    ten_nguoi_dung: "",
-    ho_ten: "",
-    image: "",
-    email: "",
-    dien_thoai: "",
-    dia_chi: "",
-    ngay_sinh: "", // Lưu ngày sinh đầy đủ
-    ngay: "",
-    thang: "",
-    nam: "",
-    mat_khau: "",
-  });
+  const [formData, setFormData] = useState({});
   const [avatar, setAvatar] = useState(null);
   const user = JSON.parse(storedUserInfo);
   const userId = user.id;
@@ -67,7 +55,6 @@ function Profile() {
         setFormData({
           ho_ten: data.user.ho_ten || "",
           ten_nguoi_dung: data.user.ten_nguoi_dung || "",
-          image: data.user.hinh_anh || "",
           email: data.user.email || "",
           dien_thoai: data.user.dien_thoai || "",
           dia_chi: data.user.dia_chi || "",
@@ -106,6 +93,19 @@ function Profile() {
       if (response.ok) {
         const data = await response.json(); // Phân tích JSON khi thành công
         console.log("Cập nhật thành công:", data);
+
+        const updatedUser = {
+          id: data?.data?.id , // Kiểm tra cả hai trường hợp
+          hinh_anh: data?.data?.hinh_anh,
+          ho_ten: data?.data?.ho_ten,
+          ten_nguoi_dung: data?.data?.ten_nguoi_dung,
+          email: data?.data?.email,
+          dien_thoai: data?.data?.dien_thoai,
+          dia_chi: data?.data?.dia_chi,
+        };
+      
+        sessionStorage.setItem("userInfo", JSON.stringify(updatedUser));
+
         alert(data.message || "Cập nhật thông tin thành công!");
         // window.location.reload();
       } else {
@@ -173,10 +173,6 @@ function Profile() {
       }
     };
   }, [previewImage]);
-
-  useEffect(() => {
-    console.log("Updated formData:", formData);
-  }, [formData]);
 
   // Pagination logic
   const totalPages = Math.ceil(products.length / productsPerPage);
@@ -2011,9 +2007,8 @@ function Profile() {
                     </div>
                     <div className="col-auto d-flex">
                       <button
-                        className={`page-link ${
-                          currentPage === 1 ? "disabled" : ""
-                        }`}
+                        className={`page-link ${currentPage === 1 ? "disabled" : ""
+                          }`}
                         data-list-pagination="prev"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -2039,9 +2034,8 @@ function Profile() {
                         ))}
                       </ul>
                       <button
-                        className={`page-link ${
-                          currentPage === totalPages ? "disabled" : ""
-                        }`}
+                        className={`page-link ${currentPage === totalPages ? "disabled" : ""
+                          }`}
                         data-list-pagination="next"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
