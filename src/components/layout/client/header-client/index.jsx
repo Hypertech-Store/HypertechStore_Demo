@@ -619,7 +619,7 @@ const HeaderClient = () => {
                                 <div className="avatar avatar-xl ">
                                   <img
                                     className="rounded-circle"
-                                    src={userInfo?.hinh_anh || defaultAvatar} // Sử dụng ảnh mặc định nếu không có hình ảnh
+                                    src={"http://127.0.0.1:8000/storage/" + userInfo?.hinh_anh || defaultAvatar} // Sử dụng ảnh mặc định nếu không có hình ảnh
                                     alt="User Avatar"
                                   />
                                 </div>
