@@ -165,6 +165,49 @@ const Shop = () => {
     }
   };
 
+  const [wishlistData, setWishlistData] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Hàm gọi API
+    const fetchWishlist = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/danh-sach-yeu-thich/7");
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+        setWishlistData(data); 
+        const status = {};
+        data.forEach(item => {
+          status[item.san_pham_id] = true; 
+        });
+        console.log(status);
+        
+
+        setWishlistStatus(status);
+
+      } catch (err) {
+        setError(err.message); // Lưu lỗi vào state nếu có
+      } finally {
+        setLoading(false); // Đánh dấu là đã xong
+      }
+    };
+
+    fetchWishlist();
+  }, []); // Dùng [] để gọi API chỉ 1 lần khi component mount
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+
   return (
     <>
       <section className="pt-5 pb-9">
@@ -1234,9 +1277,8 @@ const Shop = () => {
                                 )}
 
                                 <button
-                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${
-                                    wishlistStatus[product.id] ? "active" : ""
-                                  }`}
+                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${wishlistStatus[product.id] ? "active" : ""
+                                    }`}
                                   data-bs-toggle="tooltip"
                                   data-bs-placement="top"
                                   title={
@@ -1250,17 +1292,15 @@ const Shop = () => {
                                   disabled={loading}
                                 >
                                   <span
-                                    className={`fas fa-heart d-block-hover ${
-                                      wishlistStatus[product.id] ? "d-none" : ""
-                                    }`}
+                                    className={`fas fa-heart d-block-hover ${wishlistStatus[product.id] ? "d-none" : ""
+                                      }`}
                                     data-fa-transform="down-1"
                                   />
                                   <span
-                                    className={`far fa-heart d-none-hover ${
-                                      !wishlistStatus[product.id]
-                                        ? "d-block"
-                                        : ""
-                                    }`}
+                                    className={`far fa-heart d-none-hover ${!wishlistStatus[product.id]
+                                      ? "d-block"
+                                      : ""
+                                      }`}
                                     data-fa-transform="down-1"
                                   />
                                 </button>
@@ -1342,9 +1382,8 @@ const Shop = () => {
                   <ul className="pagination mb-0">
                     {/* Previous Button */}
                     <li
-                      className={`page-item ${
-                        currentPage === 1 ? "disabled" : ""
-                      }`}
+                      className={`page-item ${currentPage === 1 ? "disabled" : ""
+                        }`}
                     >
                       <a
                         className="page-link"
@@ -1362,9 +1401,8 @@ const Shop = () => {
                     {/* Page Numbers */}
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
-                        className={`page-item ${
-                          currentPage === index + 1 ? "active" : ""
-                        }`}
+                        className={`page-item ${currentPage === index + 1 ? "active" : ""
+                          }`}
                         key={index}
                       >
                         <a
@@ -1382,9 +1420,8 @@ const Shop = () => {
 
                     {/* Next Button */}
                     <li
-                      className={`page-item ${
-                        currentPage === totalPages ? "disabled" : ""
-                      }`}
+                      className={`page-item ${currentPage === totalPages ? "disabled" : ""
+                        }`}
                     >
                       <a
                         className="page-link"
