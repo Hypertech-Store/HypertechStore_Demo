@@ -396,9 +396,9 @@ const SlidebarAdmin = () => {
                 <li className="nav-item">
                   {/* parent pages*/}
                   <div className="nav-item-wrapper">
-                    <a
+                    <Link
                       className="nav-link label-1"
-                      href="don-hang"
+                      to="don-hang"
                       role="button"
                       data-bs-toggle
                       aria-expanded="false"
@@ -409,7 +409,7 @@ const SlidebarAdmin = () => {
                         </span>
                         <span className="nav-link-text">Orders</span>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                 </li>
 
