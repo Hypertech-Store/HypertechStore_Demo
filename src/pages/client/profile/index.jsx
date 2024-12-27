@@ -11,7 +11,8 @@ function Profile() {
 
   const [orders, setOrders] = useState([]);
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
-  const [totalOrderPages, setTotalOrderPages] = useState(1); // Store total pages from the API
+  const [totalOrderPages, setTotalOrderPages] = useState(1); 
+  const [totalOrder, setTotalOrder] = useState(1);
   const ordersPerPage = 5; // Number of orders per page
 
   const storedUserInfo = localStorage.getItem("userInfo");
@@ -26,7 +27,9 @@ function Profile() {
       .then((response) => response.json())
       .then((data) => {
         setOrders(data.don_hangs.data); // Assign order data to state
-        setTotalOrderPages(data.total_pages); // Set total pages from API
+        setTotalOrderPages(data.total_pages); 
+        setTotalOrder(data.don_hangs.total);
+        
       })
       .catch((error) => console.error('Error fetching data: ', error));
   }, [currentOrderPage]); // Re-fetch data when the current page changes
@@ -475,7 +478,7 @@ function Profile() {
                 >
                   <span className="fas fa-shopping-cart me-2" />
                   Orders{" "}
-                  <span className="text-body-tertiary fw-normal"> (35)</span>
+                  <span className="text-body-tertiary fw-normal"> ({totalOrder})</span>
                 </a>
               </li>
               <li className="nav-item me-3">
