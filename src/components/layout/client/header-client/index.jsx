@@ -22,14 +22,14 @@ const HeaderClient = () => {
 
   const navigate = useNavigate();
 
-  // Kiểm tra thông tin người dùng trong sessionStorage khi component mount
+  // Kiểm tra thông tin người dùng trong localStorage khi component mount
   useEffect(() => {
-    const storedUserInfo = sessionStorage.getItem("userInfo");
+    const storedUserInfo = localStorage.getItem("userInfo");
     if (storedUserInfo) {
       const user = JSON.parse(storedUserInfo);
       setUserInfo(user);
       setLoggedIn(true);
-      console.log("Thông tin người dùng từ sessionStorage:", user);
+      console.log("Thông tin người dùng từ localStorage:", user);
     }
   }, []);
 

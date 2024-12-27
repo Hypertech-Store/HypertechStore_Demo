@@ -15,16 +15,16 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   // Kiểm tra nếu người dùng đã đăng nhập
-  useEffect(() => {
-    const adminId = sessionStorage.getItem("adminId");
-    if (adminId === null) {
-      // Nếu userId không tồn tại (chưa đăng nhập), không làm gì
-      console.log("User is not logged in.");
-    } else {
-      // Nếu userId tồn tại (đã đăng nhập), điều hướng đến trang admin
-      navigate("/admin");
-    }
-  }, [navigate]);
+  // useEffect(() => {
+  //   const adminId = localStorage.getItem("adminId");
+  //   if (adminId === null) {
+  //     // Nếu userId không tồn tại (chưa đăng nhập), không làm gì
+  //     console.log("User is not logged in.");
+  //   } else {
+  //     // Nếu userId tồn tại (đã đăng nhập), điều hướng đến trang admin
+  //     navigate("/admin");
+  //   }
+  // }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -42,15 +42,15 @@ const LoginPage = () => {
       const { quantrivien, message } = response.data;
 
       if (quantrivien.role === 0 || quantrivien.role === 1) {
-        sessionStorage.setItem("customRole", quantrivien.role);
-        sessionStorage.setItem("adminId", quantrivien.id);
-        sessionStorage.setItem("adminName", quantrivien.ten_dang_nhap);
-        sessionStorage.setItem(
+        localStorage.setItem("customRole", quantrivien.role);
+        localStorage.setItem("adminId", quantrivien.id);
+        localStorage.setItem("adminName", quantrivien.ten_dang_nhap);
+        localStorage.setItem(
           "adminAvatar",
           quantrivien.anh_nguoi_dung || "default-avatar.png"
         );
 
-        console.log(sessionStorage);
+        console.log(localStorage.getItem('adminId'));
 
         toast.success(message, {
           position: "top-right",

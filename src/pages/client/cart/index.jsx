@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 const Cart = () => {
   document.title = "Hypertech Store - Giỏ hàng";
   const baseUrl = "http://127.0.0.1:8000/storage/";
-  const khachHangIdFromStorage = sessionStorage.getItem("userId");
-  console.log("Khách Hàng ID từ sessionStorage: ", khachHangIdFromStorage);
+  const khachHangIdFromStorage = localStorage.getItem("userId");
+  console.log("Khách Hàng ID từ localStorage: ", khachHangIdFromStorage);
   const navigate = useNavigate(); // Sử dụng useNavigate để điều hướng
   // eslint-disable-next-line no-unused-vars
   const [isLoading, setIsLoading] = useState(true);
@@ -18,7 +18,7 @@ const Cart = () => {
   // useEffect to fetch cart data
   useEffect(() => {
     if (!khachHangIdFromStorage) {
-      console.error("Khách hàng ID không có trong sessionStorage.");
+      console.error("Khách hàng ID không có trong localStorage.");
       setIsLoading(false);
       return;
     }
@@ -186,44 +186,44 @@ const Cart = () => {
   };
 
   const handleCheckout = () => {
-    // Lưu lại khachHangIdFromStorage vào sessionStorage (nếu chưa có)
-    sessionStorage.setItem("khachHangId", khachHangIdFromStorage);
+    // Lưu lại khachHangIdFromStorage vào localStorage (nếu chưa có)
+    localStorage.setItem("khachHangId", khachHangIdFromStorage);
 
     // Kiểm tra và in thông báo nếu lưu thành công
-    const storedKhachHangId = sessionStorage.getItem("khachHangId");
+    const storedKhachHangId = localStorage.getItem("khachHangId");
     if (storedKhachHangId === khachHangIdFromStorage) {
       console.log(
-        "Lưu khachHangId vào sessionStorage thành công:",
+        "Lưu khachHangId vào localStorage thành công:",
         storedKhachHangId
       );
     } else {
-      console.error("Lỗi khi lưu khachHangId vào sessionStorage");
+      console.error("Lỗi khi lưu khachHangId vào localStorage");
     }
 
-    // Lưu các sản phẩm đã chọn vào sessionStorage
+    // Lưu các sản phẩm đã chọn vào localStorage
     const selectedProducts = cart.chi_tiet_gio_hangs.filter(
       (item) => selectedItems[item.id]
     );
 
-    sessionStorage.setItem(
+    localStorage.setItem(
       "selectedProducts",
       JSON.stringify(selectedProducts)
     );
 
     // Kiểm tra và in thông báo nếu lưu thành công
     const storedSelectedProducts = JSON.parse(
-      sessionStorage.getItem("selectedProducts")
+      localStorage.getItem("selectedProducts")
     );
     if (
       JSON.stringify(storedSelectedProducts) ===
       JSON.stringify(selectedProducts)
     ) {
       console.log(
-        "Lưu sản phẩm đã chọn vào sessionStorage thành công:",
+        "Lưu sản phẩm đã chọn vào localStorage thành công:",
         storedSelectedProducts
       );
     } else {
-      console.error("Lỗi khi lưu sản phẩm đã chọn vào sessionStorage");
+      console.error("Lỗi khi lưu sản phẩm đã chọn vào localStorage");
     }
 
     // Chuyển hướng tới trang thanh toán

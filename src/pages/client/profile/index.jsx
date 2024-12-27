@@ -20,7 +20,7 @@ function Profile() {
     maximumFractionDigits: 0,
   });
 
-  const storedUserInfo = sessionStorage.getItem("userInfo");
+  const storedUserInfo = localStorage.getItem("userInfo");
   const [formData, setFormData] = useState({});
   const [avatar, setAvatar] = useState(null);
   const user = JSON.parse(storedUserInfo);
@@ -104,7 +104,7 @@ function Profile() {
           dia_chi: data?.data?.dia_chi,
         };
       
-        sessionStorage.setItem("userInfo", JSON.stringify(updatedUser));
+        localStorage.setItem("userInfo", JSON.stringify(updatedUser));
 
         alert(data.message || "Cập nhật thông tin thành công!");
         // window.location.reload();

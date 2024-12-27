@@ -47,10 +47,10 @@ const Checkout = () => {
     shippingAddress: "",
   });
 
-  // Giả sử thông tin đã lưu trong sessionStorage (hoặc có thể dùng localStorage)
+  // Giả sử thông tin đã lưu trong localStorage (hoặc có thể dùng localStorage)
   useEffect(() => {
-    // Lấy thông tin user từ sessionStorage
-    const userInfoStored = sessionStorage.getItem("userInfo");
+    // Lấy thông tin user từ localStorage
+    const userInfoStored = localStorage.getItem("userInfo");
     if (userInfoStored) {
       const userInfo = JSON.parse(userInfoStored);
       setUserInfo(userInfo); // Cập nhật state cho thông tin user
@@ -59,11 +59,11 @@ const Checkout = () => {
       console.log("User Info:", userInfo);
     } else {
       setUserInfo(null);
-      console.log("No user info found in sessionStorage.");
+      console.log("No user info found in localStorage.");
     }
 
-    // Lấy danh sách sản phẩm từ sessionStorage
-    const productsStored = sessionStorage.getItem("selectedProducts");
+    // Lấy danh sách sản phẩm từ localStorage
+    const productsStored = localStorage.getItem("selectedProducts");
     if (productsStored) {
       const products = JSON.parse(productsStored);
       if (Array.isArray(products) && products.length > 0) {
@@ -73,15 +73,15 @@ const Checkout = () => {
         console.log("Selected products array is empty or invalid.");
       }
     } else {
-      console.log("No selected products found in sessionStorage.");
+      console.log("No selected products found in localStorage.");
     }
 
-    // Kiểm tra nếu mã giảm giá đã được áp dụng trước đó (từ sessionStorage)
-    const voucherApplied = sessionStorage.getItem("voucherApplied");
+    // Kiểm tra nếu mã giảm giá đã được áp dụng trước đó (từ localStorage)
+    const voucherApplied = localStorage.getItem("voucherApplied");
     if (!voucherApplied) {
       setDiscountAmount(0); // Nếu không có mã giảm giá, set giảm giá về 0
     } else {
-      const storedDiscountAmount = sessionStorage.getItem("discountAmount");
+      const storedDiscountAmount = localStorage.getItem("discountAmount");
       if (storedDiscountAmount) {
         setDiscountAmount(parseFloat(storedDiscountAmount));
         setSuccessMessage("Áp dụng mã giảm giá thành công!");
@@ -279,17 +279,17 @@ const Checkout = () => {
           (subtotal * parseFloat(data.data.gia_tri_giam_gia)) / 100;
         setDiscount(discount); // Áp dụng giảm giá và lưu vào state
 
-        // Lưu trạng thái mã giảm giá vào sessionStorage
-        // Lưu trạng thái vào sessionStorage
-        sessionStorage.setItem("voucherApplied", "true");
-        sessionStorage.setItem("discount", discount.toString());
+        // Lưu trạng thái mã giảm giá vào localStorage
+        // Lưu trạng thái vào localStorage
+        localStorage.setItem("voucherApplied", "true");
+        localStorage.setItem("discount", discount.toString());
 
         // Kiểm tra đã lưu chưa
         console.log(
           "voucherApplied:",
-          sessionStorage.getItem("voucherApplied")
+          localStorage.getItem("voucherApplied")
         );
-        console.log("discount:", sessionStorage.getItem("discount"));
+        console.log("discount:", localStorage.getItem("discount"));
       } else {
         throw new Error("Mã giảm giá không hợp lệ.");
       }

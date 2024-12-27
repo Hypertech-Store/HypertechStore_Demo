@@ -7,14 +7,9 @@ const Shop = () => {
   const baseUrl = "http://127.0.0.1:8000/storage/";
   // const [userId] = useState(() => localStorage.getItem('userId'));
   const [products, setProducts] = useState([]);
-  // const [wishlist, setWishlist] = useState(new Set());
-
-  // eslint-disable-next-line no-unused-vars
   const [newProducts, setNewProducts] = useState([]);
   const [saleProducts, setSaleProducts] = useState([]);
-  // eslint-disable-next-line no-unused-vars
   const [currentTime, setCurrentTime] = useState(new Date());
-
   const [currentPage, setCurrentPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const [productsPerPage] = useState(9); // Set max 9 products per page
@@ -105,23 +100,38 @@ const Shop = () => {
   };
 
   const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState(null); // Khởi tạo state userId mặc định là null
-  const [wishlistStatus, setWishlistStatus] = useState({}); // Khởi tạo wishlistStatus là object rỗng
+  const [userId, setUserId] = useState(null);
+  const [wishlistStatus, setWishlistStatus] = useState({});
 
-  // Lấy userId từ sessionStorage khi component mount
+  // Lấy userId từ localStorage khi component mount
   useEffect(() => {
-    const storedUserInfo = sessionStorage.getItem("userInfo");
+    const handleStorageChange = () => {
+      const storedUserInfo = localStorage.getItem("userInfo");
+      if (storedUserInfo) {
+        const user = JSON.parse(storedUserInfo);
+        setUserId(user.id);
+      }
+    };
+
+    const storedUserInfo = localStorage.getItem("userInfo");
     if (storedUserInfo) {
       const user = JSON.parse(storedUserInfo);
-      setUserId(user.id); // Lưu userId nếu có thông tin người dùng
+      setUserId(user.id);
     }
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
-  // Hàm để khởi tạo wishlist từ sessionStorage nếu có
+
+  // Hàm để khởi tạo wishlist từ localStorage nếu có
   useEffect(() => {
-    const savedWishlist = sessionStorage.getItem("wishlist");
+    const savedWishlist = localStorage.getItem("wishlist");
     if (savedWishlist) {
-      setWishlistStatus(JSON.parse(savedWishlist)); // Lấy wishlist từ sessionStorage và lưu vào state
+      setWishlistStatus(JSON.parse(savedWishlist)); // Lấy wishlist từ localStorage và lưu vào state
     }
   }, []);
 
@@ -153,10 +163,10 @@ const Shop = () => {
         response.data.message ===
         "Sản phẩm đã được thêm vào danh sách yêu thích."
       ) {
-        // Cập nhật trạng thái wishlist của sản phẩm và lưu vào sessionStorage
+        // Cập nhật trạng thái wishlist của sản phẩm và lưu vào localStorage
         const updatedWishlist = { ...wishlistStatus, [sanPhamId]: true };
         setWishlistStatus(updatedWishlist);
-        sessionStorage.setItem("wishlist", JSON.stringify(updatedWishlist)); // Lưu wishlist mới vào sessionStorage
+        localStorage.setItem("wishlist", JSON.stringify(updatedWishlist)); // Lưu wishlist mới vào localStorage
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Có lỗi xảy ra.");
@@ -172,20 +182,24 @@ const Shop = () => {
     // Hàm gọi API
     const fetchWishlist = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/danh-sach-yeu-thich/7");
+        if (!userId) return; // Chỉ gọi API khi `userId` có giá trị hợp lệ
+        setLoading(true); // Đánh dấu là đang tải dữ liệu
+        const response = await fetch(`http://127.0.0.1:8000/api/danh-sach-yeu-thich/${userId}`);
 
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
+        console.log(response);
+
 
         const data = await response.json();
-        setWishlistData(data); 
+        setWishlistData(data);
         const status = {};
         data.forEach(item => {
-          status[item.san_pham_id] = true; 
+          status[item.san_pham_id] = true;
         });
         console.log(status);
-        
+
 
         setWishlistStatus(status);
 
@@ -197,7 +211,7 @@ const Shop = () => {
     };
 
     fetchWishlist();
-  }, []); // Dùng [] để gọi API chỉ 1 lần khi component mount
+  }, [userId]); // Dùng [] để gọi API chỉ 1 lần khi component mount
 
   if (loading) {
     return <div>Loading...</div>;

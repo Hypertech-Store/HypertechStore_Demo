@@ -9,9 +9,9 @@ import { useNavigate } from "react-router-dom";
 
 const HeaderAdmin = () => {
   const navigate = useNavigate();
-  const adminId = sessionStorage.getItem("adminId");
-  const adminName = sessionStorage.getItem("adminName");
-  const adminAvatar = sessionStorage.getItem("adminAvatar");
+  const adminId = localStorage.getItem("adminId");
+  const adminName = localStorage.getItem("adminName");
+  const adminAvatar = localStorage.getItem("adminAvatar");
   const link = "http://127.0.0.1:8000/storage/";
 
   // console.log(adminId);
@@ -30,10 +30,10 @@ const HeaderAdmin = () => {
       cancelButtonText: "Hủy bỏ"
     }).then((result) => {
       if (result.isConfirmed) {
-        sessionStorage.removeItem('adminId');
-        sessionStorage.removeItem('adminName');
-        sessionStorage.removeItem('adminAvatar');
-        sessionStorage.removeItem('customRole');
+        localStorage.removeItem('adminId');
+        localStorage.removeItem('adminName');
+        localStorage.removeItem('adminAvatar');
+        localStorage.removeItem('customRole');
         toast.success("Đăng xuất thành công!");
         setTimeout(() => {
           navigate('/login');
