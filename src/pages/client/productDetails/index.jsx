@@ -287,8 +287,8 @@ const ProductDetails = () => {
   }, [productData]);
 
   const handleAddToCart = async () => {
-    // Lấy thông tin người dùng từ sessionStorage
-    const userData = JSON.parse(sessionStorage.getItem("userInfo")); // Sửa lại key lấy là "userInfo" thay vì "user"
+    // Lấy thông tin người dùng từ localStorage
+    const userData = JSON.parse(localStorage.getItem("userInfo")); // Sửa lại key lấy là "userInfo" thay vì "user"
 
     // Kiểm tra xem người dùng có đăng nhập chưa
     if (!userData || !userData.id) {
@@ -318,7 +318,7 @@ const ProductDetails = () => {
 
         // Chuẩn bị dữ liệu gửi lên API
         const productDataToSend = {
-          khach_hang_id: userData.id, // Lấy ID người dùng từ sessionStorage
+          khach_hang_id: userData.id, // Lấy ID người dùng từ localStorage
           san_pham_id: selectedVariant.san_pham_id,
           so_luong: 1, // Giả sử người dùng mua 1 sản phẩm
           bien_the_san_pham_id: selectedVariant.id,

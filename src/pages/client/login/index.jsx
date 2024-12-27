@@ -11,8 +11,9 @@ const LoginPage = () => {
   const [mat_khau, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate(); // Khởi tạo useNavigate để điều hướng
+  
   useEffect(() => {
-    const userInfo = sessionStorage.getItem("userInfo");
+    const userInfo = localStorage.getItem("userInfo");
     if (userInfo) {
       // Nếu đã đăng nhập, chuyển hướng về trang chính
       navigate("/");
@@ -65,9 +66,13 @@ const LoginPage = () => {
         dien_thoai: data.user.dien_thoai,
         dia_chi: data.user.dia_chi,
       };
-      sessionStorage.setItem("userInfo", JSON.stringify(userData));
-      sessionStorage.setItem("userToken", data.token || "token");
-      sessionStorage.setItem("userId", data.user.id);
+      // sessionStorage.setItem("userInfo", JSON.stringify(userData));
+      // sessionStorage.setItem("userToken", data.token || "token");
+      // sessionStorage.setItem("userId", data.user.id);
+
+      localStorage.setItem("userInfo", JSON.stringify(userData));
+      localStorage.setItem("userToken", data.token || "token");
+      localStorage.setItem("userId", data.user.id);
 
       toast.success("Đăng nhập thành công!");
       setTimeout(() => {

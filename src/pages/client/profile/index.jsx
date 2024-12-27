@@ -9,10 +9,40 @@ const link = "http://127.0.0.1:8000/storage/";
 function Profile() {
   document.title = "Hypertech Store - Sản phẩm yêu thích";
 
-  // const handleViewToggle = () => {
-  //   setViewAll(!viewAll);
-  //   setCurrentPage(1); // Quay lại trang đầu khi chuyển đổi View All / View Less
-  // };
+  const [orders, setOrders] = useState([]);
+  const [currentOrderPage, setCurrentOrderPage] = useState(1);
+  const [totalOrderPages, setTotalOrderPages] = useState(1); // Store total pages from the API
+  const ordersPerPage = 5; // Number of orders per page
+
+  // Fetch orders based on the current page
+  useEffect(() => {
+    fetch(`http://127.0.0.1:8000/api/donhang/orders/7?page=${currentOrderPage}&number_row=${ordersPerPage}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setOrders(data.don_hangs.data); // Assign order data to state
+        setTotalOrderPages(data.total_pages); // Set total pages from API
+      })
+      .catch((error) => console.error('Error fetching data: ', error));
+  }, [currentOrderPage]); // Re-fetch data when the current page changes
+
+  // Handle previous page
+  const handlePrevPage = () => {
+    if (currentOrderPage > 1) {
+      setCurrentOrderPage(currentOrderPage - 1);
+    }
+  };
+
+  // Handle next page
+  const handleNextPage = () => {
+    if (currentOrderPage < totalOrderPages) {
+      setCurrentOrderPage(currentOrderPage + 1);
+    }
+  };
+
+  // Handle page change (clicking a page number)
+  const handleOrderPageChange = (pageNumber) => {
+    setCurrentOrderPage(pageNumber);
+  };
 
   const numberFormat = new Intl.NumberFormat("vi-VN", {
     style: "decimal", // Sử dụng kiểu "decimal" thay vì "currency"
@@ -20,7 +50,7 @@ function Profile() {
     maximumFractionDigits: 0,
   });
 
-  const storedUserInfo = sessionStorage.getItem("userInfo");
+  const storedUserInfo = localStorage.getItem("userInfo");
   const [formData, setFormData] = useState({});
   const [avatar, setAvatar] = useState(null);
   const user = JSON.parse(storedUserInfo);
@@ -95,7 +125,7 @@ function Profile() {
         console.log("Cập nhật thành công:", data);
 
         const updatedUser = {
-          id: data?.data?.id , // Kiểm tra cả hai trường hợp
+          id: data?.data?.id, // Kiểm tra cả hai trường hợp
           hinh_anh: data?.data?.hinh_anh,
           ho_ten: data?.data?.ho_ten,
           ten_nguoi_dung: data?.data?.ten_nguoi_dung,
@@ -103,8 +133,8 @@ function Profile() {
           dien_thoai: data?.data?.dien_thoai,
           dia_chi: data?.data?.dia_chi,
         };
-      
-        sessionStorage.setItem("userInfo", JSON.stringify(updatedUser));
+
+        localStorage.setItem("userInfo", JSON.stringify(updatedUser));
 
         alert(data.message || "Cập nhật thông tin thành công!");
         // window.location.reload();
@@ -666,7 +696,7 @@ function Profile() {
               <div
                 className="border-top border-bottom border-translucent"
                 id="profileOrdersTable"
-                data-list='{"valueNames":["order","status","delivery","date","total"],"page":6,"pagination":true}'
+                data-list=""
               >
                 <div className="table-responsive scrollbar">
                   <table className="table fs-9 mb-0">
@@ -678,7 +708,7 @@ function Profile() {
                           data-sort="order"
                           style={{ width: "15%", minWidth: 140 }}
                         >
-                          ORDER
+                          Mã đơn hàng
                         </th>
                         <th
                           className="sort align-middle pe-3"
@@ -686,7 +716,7 @@ function Profile() {
                           data-sort="status"
                           style={{ width: "15%", minWidth: 180 }}
                         >
-                          STATUS
+                          Trạng thái
                         </th>
                         <th
                           className="sort align-middle text-start"
@@ -694,7 +724,7 @@ function Profile() {
                           data-sort="delivery"
                           style={{ width: "20%", minWidth: 160 }}
                         >
-                          DELIVERY METHOD
+                          Phương thức thanh toán
                         </th>
                         <th
                           className="sort align-middle pe-0 text-end"
@@ -702,7 +732,7 @@ function Profile() {
                           data-sort="date"
                           style={{ width: "15%", minWidth: 160 }}
                         >
-                          DATE
+                          Ngày đặt hàng
                         </th>
                         <th
                           className="sort align-middle text-end"
@@ -710,7 +740,15 @@ function Profile() {
                           data-sort="total"
                           style={{ width: "15%", minWidth: 160 }}
                         >
-                          TOTAL
+                          Tổng tiền
+                        </th>
+                        <th
+                          className="sort align-middle text-end"
+                          scope="col"
+                          data-sort="total"
+                          style={{ width: "15%" }}
+                        >
+                          Chi tiết đơn hàng
                         </th>
                         <th
                           className="align-middle pe-0 text-end"
@@ -722,554 +760,135 @@ function Profile() {
                       </tr>
                     </thead>
                     <tbody className="list" id="profile-order-table-body">
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="order align-middle white-space-nowrap py-2 ps-0">
-                          <a className="fw-semibold text-primary" href="#!">
-                            #2453
-                          </a>
-                        </td>
-                        <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            <span className="badge-label">Shipped</span>
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="delivery align-middle white-space-nowrap text-body py-2">
-                          Cash on delivery
-                        </td>
-                        <td className="total align-middle text-body-tertiary text-end py-2">
-                          Dec 12, 12:56 PM
-                        </td>
-                        <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
-                          $87
-                        </td>
-                        <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="order align-middle white-space-nowrap py-2 ps-0">
-                          <a className="fw-semibold text-primary" href="#!">
-                            #2452
-                          </a>
-                        </td>
-                        <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-info">
-                            <span className="badge-label">Ready to pickup</span>
-                            <span
-                              className="ms-1"
-                              data-feather="info"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="delivery align-middle white-space-nowrap text-body py-2">
-                          Free shipping
-                        </td>
-                        <td className="total align-middle text-body-tertiary text-end py-2">
-                          Dec 9, 2:28PM
-                        </td>
-                        <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
-                          $7264
-                        </td>
-                        <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="order align-middle white-space-nowrap py-2 ps-0">
-                          <a className="fw-semibold text-primary" href="#!">
-                            #2451
-                          </a>
-                        </td>
-                        <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
-                            <span className="badge-label">
-                              Partially fulfilled
+                      {orders.map((order) => (
+                        <tr key={order.id} className="hover-actions-trigger btn-reveal-trigger position-static">
+                          <td className="order align-middle white-space-nowrap py-2 ps-0">
+                            <a className="fw-semibold text-primary" href="#!">
+                              #{order.ma_don_hang}
+                            </a>
+                          </td>
+                          <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
+                            <span className="badge badge-phoenix fs-10 badge-phoenix-success">
+                              <span className="badge-label">{order.trang_thai_don_hang}</span>
+                              <span className="ms-1" data-feather="check" style={{ height: "12.8px", width: "12.8px" }} />
                             </span>
-                            <span
-                              className="ms-1"
-                              data-feather="clock"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="delivery align-middle white-space-nowrap text-body py-2">
-                          Local pickup
-                        </td>
-                        <td className="total align-middle text-body-tertiary text-end py-2">
-                          Dec 4, 12:56 PM
-                        </td>
-                        <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
-                          $375
-                        </td>
-                        <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                          <div className="btn-reveal-trigger position-static">
+                          </td>
+                          <td className="delivery align-middle white-space-nowrap text-body py-2">
+                            {order.phuong_thuc_thanh_toan.ten_phuong_thuc}
+                          </td>
+                          <td className="total align-middle text-body-tertiary text-end py-2">
+                            {new Date(order.created_at).toLocaleString()}
+                          </td>
+                          <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
+                            {order.tong_tien}
+                          </td>
+                          <td className="details align-middle text-end white-space-nowrap py-2">
                             <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
+                              className="btn btn-sm btn-info"
+                              data-bs-toggle="collapse"
+                              data-bs-target={`#orderDetails${order.id}`}
                               aria-expanded="false"
-                              data-bs-reference="parent"
+                              aria-controls={`orderDetails${order.id}`}
                             >
-                              <span className="fas fa-ellipsis-h fs-10" />
+                              Xem chi tiết
                             </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="order align-middle white-space-nowrap py-2 ps-0">
-                          <a className="fw-semibold text-primary" href="#!">
-                            #2450
-                          </a>
-                        </td>
-                        <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-secondary">
-                            <span className="badge-label">Canceled</span>
-                            <span
-                              className="ms-1"
-                              data-feather="x"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="delivery align-middle white-space-nowrap text-body py-2">
-                          Standard shipping
-                        </td>
-                        <td className="total align-middle text-body-tertiary text-end py-2">
-                          Dec 1, 4:07 AM
-                        </td>
-                        <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
-                          $657
-                        </td>
-                        <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
+                            <div
+                              className="collapse"
+                              id={`orderDetails${order.id}`}
                             >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
+                              <div className="mt-2">
+                                {order.chi_tiet_don_hangs.map((detail) => (
+                                  <div key={detail.id}>
+                                    <p><strong>{detail.san_pham.ten_san_pham}</strong></p>
+                                    <ul>
+                                      {detail.thuoc_tinh.map((attribute, index) => (
+                                        <li key={index}>{attribute.ten_gia_tri}</li>
+                                      ))}
+                                    </ul>
+                                    <p>Số lượng: {detail.so_luong}</p>
+                                    <p>Giá: {detail.gia}</p>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="order align-middle white-space-nowrap py-2 ps-0">
-                          <a className="fw-semibold text-primary" href="#!">
-                            #2449
-                          </a>
-                        </td>
-                        <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            <span className="badge-label">fulfilled</span>
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="delivery align-middle white-space-nowrap text-body py-2">
-                          Express
-                        </td>
-                        <td className="total align-middle text-body-tertiary text-end py-2">
-                          Nov 28, 7:28 PM
-                        </td>
-                        <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
-                          $9562
-                        </td>
-                        <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
+                          </td>
+                          <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
+                            <div className="btn-reveal-trigger position-static">
+                              <button
+                                className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                data-boundary="window"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                data-bs-reference="parent"
                               >
-                                Remove
-                              </a>
+                                <span className="fas fa-ellipsis-h fs-10" />
+                              </button>
+                              <div className="dropdown-menu dropdown-menu-end py-2">
+                                <a className="dropdown-item" href="#!">
+                                  View
+                                </a>
+                                <a className="dropdown-item" href="#!">
+                                  Export
+                                </a>
+                                <div className="dropdown-divider" />
+                                <a className="dropdown-item text-danger" href="#!">
+                                  Remove
+                                </a>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="order align-middle white-space-nowrap py-2 ps-0">
-                          <a className="fw-semibold text-primary" href="#!">
-                            #2448
-                          </a>
-                        </td>
-                        <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-danger">
-                            <span className="badge-label">Unfulfilled</span>
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="delivery align-middle white-space-nowrap text-body py-2">
-                          Local delivery
-                        </td>
-                        <td className="total align-middle text-body-tertiary text-end py-2">
-                          Nov 24, 10:16 AM
-                        </td>
-                        <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
-                          $256
-                        </td>
-                        <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="order align-middle white-space-nowrap py-2 ps-0">
-                          <a
-                            className="fw-semibold text-body-tertiary text-opacity-85 pointers-events-none text-decoration-none"
-                            href="#!"
-                          >
-                            #2447
-                          </a>
-                        </td>
-                        <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-secondary">
-                            <span className="badge-label">Cancelled</span>
-                            <span
-                              className="ms-1"
-                              data-feather="x"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="delivery align-middle white-space-nowrap text-body py-2">
-                          Standard shipping
-                        </td>
-                        <td className="total align-middle text-body-tertiary text-end py-2">
-                          Nov 10, 12:00 PM
-                        </td>
-                        <td className="date align-middle fw-semibold text-end py-2 text-body-tertiary text-opacity-85">
-                          $898
-                        </td>
-                        <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="order align-middle white-space-nowrap py-2 ps-0">
-                          <a className="fw-semibold text-primary" href="#!">
-                            #2446
-                          </a>
-                        </td>
-                        <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            <span className="badge-label">shipped</span>
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="delivery align-middle white-space-nowrap text-body py-2">
-                          Express
-                        </td>
-                        <td className="total align-middle text-body-tertiary text-end py-2">
-                          Nov 12, 12:20 PM
-                        </td>
-                        <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
-                          $4116
-                        </td>
-                        <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="order align-middle white-space-nowrap py-2 ps-0">
-                          <a
-                            className="fw-semibold text-body-tertiary text-opacity-85 pointers-events-none text-decoration-none"
-                            href="#!"
-                          >
-                            #2445
-                          </a>
-                        </td>
-                        <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            <span className="badge-label">fulfilled</span>
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="delivery align-middle white-space-nowrap text-body py-2">
-                          Free shipping
-                        </td>
-                        <td className="total align-middle text-body-tertiary text-end py-2">
-                          Oct 19, 1:20 PM
-                        </td>
-                        <td className="date align-middle fw-semibold text-end py-2 text-body-tertiary text-opacity-85">
-                          $4116
-                        </td>
-                        <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
                 <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
-                  <div className="col-auto d-flex">
-                    <p
-                      className="mb-0 d-none d-sm-block me-3 fw-semibold text-body"
-                      data-list-info="data-list-info"
-                    />
-                    <a className="fw-semibold" href="#!" data-list-view="*">
-                      View all
-                      <span
-                        className="fas fa-angle-right ms-1"
-                        data-fa-transform="down-1"
-                      />
-                    </a>
-                    <a
-                      className="fw-semibold d-none"
-                      href="#!"
-                      data-list-view="less"
-                    >
-                      View Less
-                      <span
-                        className="fas fa-angle-right ms-1"
-                        data-fa-transform="down-1"
-                      />
-                    </a>
+                  <div className="col-auto">
+                    <p className="mb-0">
+                      Showing{" "}
+                      {orders.length === 0
+                        ? 0
+                        : (currentOrderPage - 1) * ordersPerPage + 1}{" "}
+                      to{" "}
+                      {Math.min(
+                        currentOrderPage * ordersPerPage,
+                        orders.length
+                      )}{" "}
+                      of {orders.length} items
+                    </p>
                   </div>
                   <div className="col-auto d-flex">
-                    <button className="page-link" data-list-pagination="prev">
+                    <button
+                      className={`page-link ${currentOrderPage === 1 ? "disabled" : ""}`}
+                      data-list-pagination="prev"
+                      onClick={() => handleOrderPageChange(currentOrderPage - 1)}
+                      disabled={currentOrderPage === 1}
+                    >
                       <span className="fas fa-chevron-left" />
                     </button>
-                    <ul className="mb-0 pagination" />
+                    <ul className="mb-0 pagination">
+                      {[...Array(totalOrderPages)].map((_, index) => (
+                        <li
+                          key={index}
+                          className={currentOrderPage === index + 1 ? "active" : ""}
+                        >
+                          <button
+                            className="page"
+                            type="button"
+                            onClick={() => handleOrderPageChange(index + 1)}
+                          >
+                            {index + 1}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                     <button
-                      className="page-link pe-0"
+                      className={`page-link ${currentOrderPage === totalOrderPages ? "disabled" : ""}`}
                       data-list-pagination="next"
+                      onClick={() => handleOrderPageChange(currentOrderPage + 1)}
+                      disabled={currentOrderPage === totalOrderPages}
                     >
                       <span className="fas fa-chevron-right" />
                     </button>
@@ -1277,6 +896,7 @@ function Profile() {
                 </div>
               </div>
             </div>
+
             <div
               className="tab-pane fade"
               id="tab-reviews"

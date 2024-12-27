@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 const Dashboard = () => {
   const navigate = useNavigate();
   useEffect(() => {
-    const adminId = sessionStorage.getItem("adminId");
+    const adminId = localStorage.getItem("adminId");
     if (adminId === null) {
         // Nếu userId không tồn tại (chưa đăng nhập), không làm gì
         console.log("User is not logged in.");
