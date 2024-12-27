@@ -14,9 +14,15 @@ function Profile() {
   const [totalOrderPages, setTotalOrderPages] = useState(1); // Store total pages from the API
   const ordersPerPage = 5; // Number of orders per page
 
+  const storedUserInfo = localStorage.getItem("userInfo");
+  const [formData, setFormData] = useState({});
+  const [avatar, setAvatar] = useState(null);
+  const user = JSON.parse(storedUserInfo);
+  const userId = user.id;
+
   // Fetch orders based on the current page
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/donhang/orders/7?page=${currentOrderPage}&number_row=${ordersPerPage}`)
+    fetch(`http://127.0.0.1:8000/api/donhang/orders/${userId}?page=${currentOrderPage}&number_row=${ordersPerPage}`)
       .then((response) => response.json())
       .then((data) => {
         setOrders(data.don_hangs.data); // Assign order data to state
@@ -50,11 +56,7 @@ function Profile() {
     maximumFractionDigits: 0,
   });
 
-  const storedUserInfo = localStorage.getItem("userInfo");
-  const [formData, setFormData] = useState({});
-  const [avatar, setAvatar] = useState(null);
-  const user = JSON.parse(storedUserInfo);
-  const userId = user.id;
+ 
 
   // Fetch user data when component mounts
   useEffect(() => {
