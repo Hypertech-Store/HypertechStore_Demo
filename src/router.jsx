@@ -11,6 +11,10 @@ import AddCategory from "./pages/admin/category/addCategory";
 import ListCategory from "./pages/admin/category/listCategory";
 import AddSubcategory from "./pages/admin/subcategory/addSubcategory";
 import ListSubcategory from "./pages/admin/subcategory/listSubcategory";
+import AddAttributeName from "./pages/admin/variable/attributeName/addAttributeName";
+import ListAttributeName from "./pages/admin/variable/attributeName/listOfAttributeNames";
+import AddValue from "./pages/admin/variable/attributeValue/addValue";
+import ListValue from "./pages/admin/variable/attributeValue/listValue";
 import ListCustomer from "./pages/admin/customer/listCustomer";
 import DetailCustomer from "./pages/admin/customer/detailCustomer";
 import ListAdmin from "./pages/admin/Administrators/listAdmin";
@@ -58,6 +62,13 @@ const Router = () => {
               path="danh-sach-danh-muc-con"
               element={<ListSubcategory />}
             />
+            <Route path="them-ten-thuoc-tinh" element={<AddAttributeName />} />
+            <Route
+              path="danh-sach-ten-thuoc-tinh"
+              element={<ListAttributeName />}
+            />
+            <Route path="them-gia-tri" element={<AddValue />} />
+            <Route path="danh-sach-gia-tri" element={<ListValue />} />
             <Route path="danh-sach-khach-hang" element={<ListCustomer />} />
             <Route path="chi-tiet-khach-hang" element={<DetailCustomer />} />
             <Route path="danh-sach-quan-tri" element={<ListAdmin />} />

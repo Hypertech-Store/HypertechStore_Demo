@@ -65,10 +65,10 @@ const SlidebarAdmin = () => {
                       <li className="nav-item">
                         <a
                           className="nav-link dropdown-indicator"
-                          href="#nv-admin"
+                          href="#nv-products"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
-                          aria-controls="nv-admin"
+                          aria-controls="nv-products"
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -82,7 +82,7 @@ const SlidebarAdmin = () => {
                           <ul
                             className="nav collapse parent show"
                             data-bs-parent="#e-commerce"
-                            id="nv-admin"
+                            id="nv-products"
                           >
                             <li className="nav-item">
                               <Link className="nav-link" to="them-san-pham">
@@ -113,10 +113,10 @@ const SlidebarAdmin = () => {
                       <li className="nav-item">
                         <a
                           className="nav-link dropdown-indicator"
-                          href="#category"
+                          href="#nv-category"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
-                          aria-controls="category"
+                          aria-controls="nv-category"
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -130,7 +130,7 @@ const SlidebarAdmin = () => {
                           <ul
                             className="nav collapse parent show"
                             data-bs-parent="#e-commerce"
-                            id="category"
+                            id="nv-category"
                           >
                             <li className="nav-item">
                               <Link className="nav-link" to="them-danh-muc">
@@ -161,10 +161,10 @@ const SlidebarAdmin = () => {
                       <li className="nav-item">
                         <a
                           className="nav-link dropdown-indicator"
-                          href="#subcategory"
+                          href="#nv-subcategory"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
-                          aria-controls="category"
+                          aria-controls="nv-subcategory"
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -178,7 +178,7 @@ const SlidebarAdmin = () => {
                           <ul
                             className="nav collapse parent show"
                             data-bs-parent="#e-commerce"
-                            id="subcategory"
+                            id="nv-subcategory"
                           >
                             <li className="nav-item">
                               <Link className="nav-link" to="them-danh-muc-con">
@@ -209,47 +209,188 @@ const SlidebarAdmin = () => {
                       <li className="nav-item">
                         <a
                           className="nav-link dropdown-indicator"
-                          href="#variable"
+                          href="#nv-variable"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
-                          aria-controls="category"
+                          aria-controls="nv-variable"
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
-                            <span className="nav-link-text">Variables</span>
+                            <span className="nav-link-text">
+                              Product variations
+                            </span>
                           </div>
                         </a>
                         {/* more inner pages*/}
-                        <div className="parent-wrapper">
+                        <div className="parent-wrapper label-1">
                           <ul
-                            className="nav collapse parent show"
-                            data-bs-parent="#e-commerce"
-                            id="variable"
+                            className="nav collapse parent"
+                            data-bs-parent="#navbarVerticalCollapse"
+                            id="nv-variable"
                           >
-                            <li className="nav-item">
-                              <Link className="nav-link" to="them-danh-muc-con">
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Add variable
-                                  </span>
-                                </div>
-                              </Link>
-                              {/* more inner pages*/}
+                            <li className="collapsed-nav-item-title d-none">
+                              Product variations
                             </li>
                             <li className="nav-item">
                               <a
-                                className="nav-link"
-                                href="danh-sach-danh-muc-con"
+                                className="nav-link dropdown-indicator"
+                                href="#nv-attributeName"
+                                data-bs-toggle="collapse"
+                                aria-expanded="false"
+                                aria-controls="nv-attributeName"
                               >
                                 <div className="d-flex align-items-center">
+                                  <div className="dropdown-indicator-icon-wrapper">
+                                    <span className="fas fa-caret-right dropdown-indicator-icon" />
+                                  </div>
                                   <span className="nav-link-text">
-                                    List variable
+                                    Attribute name
                                   </span>
                                 </div>
                               </a>
                               {/* more inner pages*/}
+                              <div className="parent-wrapper">
+                                <ul
+                                  className="nav collapse parent"
+                                  data-bs-parent="#authentication"
+                                  id="nv-attributeName"
+                                >
+                                  <li className="nav-item">
+                                    <Link
+                                      className="nav-link"
+                                      to="them-ten-thuoc-tinh"
+                                    >
+                                      <div className="d-flex align-items-center">
+                                        <span className="nav-link-text">
+                                          Add property name
+                                        </span>
+                                      </div>
+                                    </Link>
+                                    {/* more inner pages*/}
+                                  </li>
+                                  <li className="nav-item">
+                                    <Link
+                                      className="nav-link"
+                                      to="danh-sach-ten-thuoc-tinh"
+                                    >
+                                      <div className="d-flex align-items-center">
+                                        <span className="nav-link-text">
+                                          List of attribute names
+                                        </span>
+                                      </div>
+                                    </Link>
+                                    {/* more inner pages*/}
+                                  </li>
+                                </ul>
+                              </div>
+                            </li>
+                            <li className="nav-item">
+                              <a
+                                className="nav-link dropdown-indicator"
+                                href="#nv-attributeValue"
+                                data-bs-toggle="collapse"
+                                aria-expanded="false"
+                                aria-controls="nv-attributeValue"
+                              >
+                                <div className="d-flex align-items-center">
+                                  <div className="dropdown-indicator-icon-wrapper">
+                                    <span className="fas fa-caret-right dropdown-indicator-icon" />
+                                  </div>
+                                  <span className="nav-link-text">
+                                    Attribute value
+                                  </span>
+                                </div>
+                              </a>
+                              {/* more inner pages*/}
+                              <div className="parent-wrapper">
+                                <ul
+                                  className="nav collapse parent"
+                                  data-bs-parent="#authentication"
+                                  id="nv-attributeValue"
+                                >
+                                  <li className="nav-item">
+                                    <Link 
+                                      className="nav-link"
+                                      to="them-gia-tri"
+                                    >
+                                      <div className="d-flex align-items-center">
+                                        <span className="nav-link-text">
+                                          Add value
+                                        </span>
+                                      </div>
+                                    </Link>
+                                    {/* more inner pages*/}
+                                  </li>
+                                  <li className="nav-item">
+                                    <Link
+                                      className="nav-link"
+                                      to="danh-sach-gia-tri"
+                                    >
+                                      <div className="d-flex align-items-center">
+                                        <span className="nav-link-text">
+                                          List of values
+                                        </span>
+                                      </div>
+                                    </Link>
+                                    {/* more inner pages*/}
+                                  </li>
+                                </ul>
+                              </div>
+                            </li>
+                            <li className="nav-item">
+                              <a
+                                className="nav-link dropdown-indicator"
+                                href="#nv-variantPhoto"
+                                data-bs-toggle="collapse"
+                                aria-expanded="false"
+                                aria-controls="nv-variantPhoto"
+                              >
+                                <div className="d-flex align-items-center">
+                                  <div className="dropdown-indicator-icon-wrapper">
+                                    <span className="fas fa-caret-right dropdown-indicator-icon" />
+                                  </div>
+                                  <span className="nav-link-text">
+                                    Variant photo
+                                  </span>
+                                </div>
+                              </a>
+                              {/* more inner pages*/}
+                              <div className="parent-wrapper">
+                                <ul
+                                  className="nav collapse parent"
+                                  data-bs-parent="#authentication"
+                                  id="nv-variantPhoto"
+                                >
+                                  <li className="nav-item">
+                                    <a
+                                      className="nav-link"
+                                      href="pages/authentication/card/sign-in.html"
+                                    >
+                                      <div className="d-flex align-items-center">
+                                        <span className="nav-link-text">
+                                          Add variant photos
+                                        </span>
+                                      </div>
+                                    </a>
+                                    {/* more inner pages*/}
+                                  </li>
+                                  <li className="nav-item">
+                                    <a
+                                      className="nav-link"
+                                      href="pages/authentication/card/sign-up.html"
+                                    >
+                                      <div className="d-flex align-items-center">
+                                        <span className="nav-link-text">
+                                          List of variant photos
+                                        </span>
+                                      </div>
+                                    </a>
+                                    {/* more inner pages*/}
+                                  </li>
+                                </ul>
+                              </div>
                             </li>
                           </ul>
                         </div>

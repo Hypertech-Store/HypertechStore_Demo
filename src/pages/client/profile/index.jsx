@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-
+import { formatDistanceToNow, parseISO } from "date-fns"; // Import from date-fns
 import haha from "../../../assets/img/e-commerce/image-removebg-preview.png";
 import defaultAvatar from "../../../assets/img/team/image-default.png";
 
@@ -13,6 +13,9 @@ function Profile() {
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
   const [totalOrderPages, setTotalOrderPages] = useState(1); // Store total pages from the API
   const ordersPerPage = 5; // Number of orders per page
+  const [totalSpent, setTotalSpent] = useState(0); // Tổng tiền đã chi tiêu
+  const [lastOrderDate, setLastOrderDate] = useState(""); // Thời gian đơn hàng cuối
+  const [totalOrders, setTotalOrders] = useState(0); // Tổng số đơn hàng
 
   const storedUserInfo = localStorage.getItem("userInfo");
   const [formData, setFormData] = useState({});
@@ -20,16 +23,59 @@ function Profile() {
   const user = JSON.parse(storedUserInfo);
   const userId = user.id;
 
-  // Fetch orders based on the current page
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/donhang/orders/${userId}?page=${currentOrderPage}&number_row=${ordersPerPage}`)
+    fetch(
+      `http://127.0.0.1:8000/api/donhang/orders/${userId}?page=${currentOrderPage}&number_row=${ordersPerPage}`
+    )
       .then((response) => response.json())
       .then((data) => {
-        setOrders(data.don_hangs.data); // Assign order data to state
-        setTotalOrderPages(data.total_pages); // Set total pages from API
+        const orders = data.don_hangs.data;
+        setOrders(orders); // Gán dữ liệu đơn hàng vào state
+        setTotalOrderPages(data.total_pages); // Đặt tổng số trang từ API
+        setTotalOrders(data.total_records || 0); // Tổng số đơn
+
+        // Tính toán tổng tiền đã chi tiêu và kiểm tra giá trị của order.tong_tien
+        const totalSpentValue = orders.reduce((sum, order) => {
+          const orderTotal = parseFloat(order.tong_tien); // Chuyển đổi thành số (dùng parseFloat)
+          return !isNaN(orderTotal) ? sum + orderTotal : sum; // Kiểm tra xem giá trị có hợp lệ hay không
+        }, 0);
+
+        // Định dạng tổng tiền theo VNĐ nếu totalSpentValue là số hợp lệ
+        const formattedTotalSpent =
+          new Intl.NumberFormat("vi-VN").format(totalSpentValue) + " VNĐ";
+
+        setTotalSpent(formattedTotalSpent); // Gán kết quả vào state
+        console.log(formattedTotalSpent);
+
+        // Lấy thông tin của đơn hàng cuối cùng và hiển thị thời gian đặt hàng
+        const lastOrder = orders.length > 0 ? orders[orders.length - 1] : null;
+
+        // Tính toán thời gian cách đây bao lâu
+        const timeDifference = lastOrder
+          ? new Date() - new Date(lastOrder.created_at)
+          : 0;
+
+        let timeAgo = "No orders yet";
+
+        if (timeDifference > 0) {
+          const minutes = Math.floor(timeDifference / 60000); // thời gian tính theo phút
+          if (minutes < 60) {
+            timeAgo = `${minutes} phút trước`;
+          } else {
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) {
+              timeAgo = `${hours} giờ trước`;
+            } else {
+              const days = Math.floor(hours / 24);
+              timeAgo = `${days} ngày trước`;
+            }
+          }
+        }
+
+        setLastOrderDate(timeAgo);
       })
-      .catch((error) => console.error('Error fetching data: ', error));
-  }, [currentOrderPage]); // Re-fetch data when the current page changes
+      .catch((error) => console.error("Error fetching data: ", error));
+  }, [currentOrderPage]); // Tái nạp dữ liệu khi trang hiện tại thay đổi
 
   // Handle previous page
   const handlePrevPage = () => {
@@ -55,8 +101,6 @@ function Profile() {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
-
- 
 
   // Fetch user data when component mounts
   useEffect(() => {
@@ -332,14 +376,11 @@ function Profile() {
                         {(previewImage || avatar) && (
                           <img
                             className="rounded-circle"
-                            src={
-                              previewImage ||
-                              "http://127.0.0.1:8000/storage/" + avatar
-                            }
+                            src={previewImage || `${link}${avatar}`}
                             alt="Avatar"
                           />
                         )}
-                        {/* <img
+                        <img
                           className="rounded-circle"
                           src={
                             formData.hinh_anh && formData.hinh_anh.trim() !== ""
@@ -347,7 +388,7 @@ function Profile() {
                               : defaultAvatar
                           }
                           alt="Avatar"
-                        /> */}
+                        />
                       </label>
                     </div>
                     <div className="col-12 col-sm-auto flex-1">
@@ -374,19 +415,19 @@ function Profile() {
                   <div>
                     <h6 className="mb-2 text-body-secondary">Total Spent</h6>
                     <h4 className="fs-7 text-body-highlight mb-0">
-                      ${formData.totalSpent || "0"}
+                      {totalSpent || "0"}
                     </h4>
                   </div>
                   <div className="text-end">
                     <h6 className="mb-2 text-body-secondary">Last Order</h6>
                     <h4 className="fs-7 text-body-highlight mb-0">
-                      {formData.lastOrder || "1 week ago"}
+                      {lastOrderDate || "No orders yet"}
                     </h4>
                   </div>
                   <div className="text-end">
                     <h6 className="mb-2 text-body-secondary">Total Orders</h6>
                     <h4 className="fs-7 text-body-highlight mb-0">
-                      {formData.totalOrders || "0"}
+                      {orders.length || "0"}
                     </h4>
                   </div>
                 </div>
@@ -475,7 +516,9 @@ function Profile() {
                 >
                   <span className="fas fa-shopping-cart me-2" />
                   Orders{" "}
-                  <span className="text-body-tertiary fw-normal"> (35)</span>
+                  <span className="text-body-tertiary fw-normal">
+                    ({orders.length})
+                  </span>
                 </a>
               </li>
               <li className="nav-item me-3">
@@ -763,7 +806,10 @@ function Profile() {
                     </thead>
                     <tbody className="list" id="profile-order-table-body">
                       {orders.map((order) => (
-                        <tr key={order.id} className="hover-actions-trigger btn-reveal-trigger position-static">
+                        <tr
+                          key={order.id}
+                          className="hover-actions-trigger btn-reveal-trigger position-static"
+                        >
                           <td className="order align-middle white-space-nowrap py-2 ps-0">
                             <a className="fw-semibold text-primary" href="#!">
                               #{order.ma_don_hang}
@@ -771,8 +817,14 @@ function Profile() {
                           </td>
                           <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
                             <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                              <span className="badge-label">{order.trang_thai_don_hang}</span>
-                              <span className="ms-1" data-feather="check" style={{ height: "12.8px", width: "12.8px" }} />
+                              <span className="badge-label">
+                                {order.trang_thai_don_hang}
+                              </span>
+                              <span
+                                className="ms-1"
+                                data-feather="check"
+                                style={{ height: "12.8px", width: "12.8px" }}
+                              />
                             </span>
                           </td>
                           <td className="delivery align-middle white-space-nowrap text-body py-2">
@@ -782,8 +834,11 @@ function Profile() {
                             {new Date(order.created_at).toLocaleString()}
                           </td>
                           <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
-                            {order.tong_tien}
+                            {new Intl.NumberFormat("vi-VN").format(
+                              order.tong_tien
+                            ) + " VNĐ"}
                           </td>
+
                           <td className="details align-middle text-end white-space-nowrap py-2">
                             <button
                               className="btn btn-sm btn-info"
@@ -801,11 +856,19 @@ function Profile() {
                               <div className="mt-2">
                                 {order.chi_tiet_don_hangs.map((detail) => (
                                   <div key={detail.id}>
-                                    <p><strong>{detail.san_pham.ten_san_pham}</strong></p>
+                                    <p>
+                                      <strong>
+                                        {detail.san_pham.ten_san_pham}
+                                      </strong>
+                                    </p>
                                     <ul>
-                                      {detail.thuoc_tinh.map((attribute, index) => (
-                                        <li key={index}>{attribute.ten_gia_tri}</li>
-                                      ))}
+                                      {detail.thuoc_tinh.map(
+                                        (attribute, index) => (
+                                          <li key={index}>
+                                            {attribute.ten_gia_tri}
+                                          </li>
+                                        )
+                                      )}
                                     </ul>
                                     <p>Số lượng: {detail.so_luong}</p>
                                     <p>Giá: {detail.gia}</p>
@@ -835,7 +898,10 @@ function Profile() {
                                   Export
                                 </a>
                                 <div className="dropdown-divider" />
-                                <a className="dropdown-item text-danger" href="#!">
+                                <a
+                                  className="dropdown-item text-danger"
+                                  href="#!"
+                                >
                                   Remove
                                 </a>
                               </div>
@@ -863,9 +929,13 @@ function Profile() {
                   </div>
                   <div className="col-auto d-flex">
                     <button
-                      className={`page-link ${currentOrderPage === 1 ? "disabled" : ""}`}
+                      className={`page-link ${
+                        currentOrderPage === 1 ? "disabled" : ""
+                      }`}
                       data-list-pagination="prev"
-                      onClick={() => handleOrderPageChange(currentOrderPage - 1)}
+                      onClick={() =>
+                        handleOrderPageChange(currentOrderPage - 1)
+                      }
                       disabled={currentOrderPage === 1}
                     >
                       <span className="fas fa-chevron-left" />
@@ -874,7 +944,9 @@ function Profile() {
                       {[...Array(totalOrderPages)].map((_, index) => (
                         <li
                           key={index}
-                          className={currentOrderPage === index + 1 ? "active" : ""}
+                          className={
+                            currentOrderPage === index + 1 ? "active" : ""
+                          }
                         >
                           <button
                             className="page"
@@ -887,9 +959,13 @@ function Profile() {
                       ))}
                     </ul>
                     <button
-                      className={`page-link ${currentOrderPage === totalOrderPages ? "disabled" : ""}`}
+                      className={`page-link ${
+                        currentOrderPage === totalOrderPages ? "disabled" : ""
+                      }`}
                       data-list-pagination="next"
-                      onClick={() => handleOrderPageChange(currentOrderPage + 1)}
+                      onClick={() =>
+                        handleOrderPageChange(currentOrderPage + 1)
+                      }
                       disabled={currentOrderPage === totalOrderPages}
                     >
                       <span className="fas fa-chevron-right" />
@@ -1629,8 +1705,9 @@ function Profile() {
                     </div>
                     <div className="col-auto d-flex">
                       <button
-                        className={`page-link ${currentPage === 1 ? "disabled" : ""
-                          }`}
+                        className={`page-link ${
+                          currentPage === 1 ? "disabled" : ""
+                        }`}
                         data-list-pagination="prev"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -1656,8 +1733,9 @@ function Profile() {
                         ))}
                       </ul>
                       <button
-                        className={`page-link ${currentPage === totalPages ? "disabled" : ""
-                          }`}
+                        className={`page-link ${
+                          currentPage === totalPages ? "disabled" : ""
+                        }`}
                         data-list-pagination="next"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
