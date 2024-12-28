@@ -11,7 +11,7 @@ function Profile() {
 
   const [orders, setOrders] = useState([]);
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
-  const [totalOrderPages, setTotalOrderPages] = useState(1); 
+  const [totalOrderPages, setTotalOrderPages] = useState(1);
   const [totalOrder, setTotalOrder] = useState(1);
   const ordersPerPage = 5; // Number of orders per page
   const [totalSpent, setTotalSpent] = useState(0); // Tổng tiền đã chi tiêu
@@ -21,9 +21,12 @@ function Profile() {
   const storedUserInfo = localStorage.getItem("userInfo");
   const [formData, setFormData] = useState({});
   const [avatar, setAvatar] = useState(null);
+  
   const user = JSON.parse(storedUserInfo);
   const userId = user.id;
 
+  console.log(orders);
+  
   useEffect(() => {
     fetch(
       `http://127.0.0.1:8000/api/donhang/orders/${userId}?page=${currentOrderPage}&number_row=${ordersPerPage}`
@@ -76,9 +79,9 @@ function Profile() {
         setLastOrderDate(timeAgo);
 
         setOrders(data.don_hangs.data); // Assign order data to state
-        setTotalOrderPages(data.total_pages); 
+        setTotalOrderPages(data.total_pages);
         setTotalOrder(data.don_hangs.total);
-        
+
 
       })
       .catch((error) => console.error("Error fetching data: ", error));
@@ -380,22 +383,21 @@ function Profile() {
                         className="cursor-pointer avatar avatar-5xl"
                         htmlFor="avatarFile"
                       >
-                        {(previewImage || avatar) && (
-                          <img
-                            className="rounded-circle"
-                            src={previewImage || `${link}${avatar}`}
-                            alt="Avatar"
-                          />
-                        )}
-                        <img
-                          className="rounded-circle"
-                          src={
-                            formData.hinh_anh && formData.hinh_anh.trim() !== ""
-                              ? formData.hinh_anh
-                              : defaultAvatar
-                          }
-                          alt="Avatar"
-                        />
+                        {
+                          (previewImage || (avatar && avatar.trim() !== "")) ? (
+                            <img
+                              className="rounded-circle"
+                              src={previewImage || `${link}${avatar}`}
+                              alt="Avatar"
+                            />
+                          ) : (
+                            <img
+                              className="rounded-circle"
+                              src={defaultAvatar}
+                              alt="Default Avatar"
+                            />
+                          )
+                        }
                       </label>
                     </div>
                     <div className="col-12 col-sm-auto flex-1">
@@ -434,7 +436,7 @@ function Profile() {
                   <div className="text-end">
                     <h6 className="mb-2 text-body-secondary">Total Orders</h6>
                     <h4 className="fs-7 text-body-highlight mb-0">
-                      {orders.length || "0"}
+                      {totalOrder || "0"}
                     </h4>
                   </div>
                 </div>
@@ -523,10 +525,6 @@ function Profile() {
                 >
                   <span className="fas fa-shopping-cart me-2" />
                   Orders{" "}
-
-                  <span className="text-body-tertiary fw-normal">
-                    ({orders.length})
-                  </span>
 
                   <span className="text-body-tertiary fw-normal"> ({totalOrder})</span>
 
@@ -829,7 +827,7 @@ function Profile() {
                           <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
                             <span className="badge badge-phoenix fs-10 badge-phoenix-success">
                               <span className="badge-label">
-                                {order.trang_thai_don_hang}
+                                {order.trang_thai_don_hang.ten_trang_thai}
                               </span>
                               <span
                                 className="ms-1"
@@ -940,9 +938,8 @@ function Profile() {
                   </div>
                   <div className="col-auto d-flex">
                     <button
-                      className={`page-link ${
-                        currentOrderPage === 1 ? "disabled" : ""
-                      }`}
+                      className={`page-link ${currentOrderPage === 1 ? "disabled" : ""
+                        }`}
                       data-list-pagination="prev"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage - 1)
@@ -970,9 +967,8 @@ function Profile() {
                       ))}
                     </ul>
                     <button
-                      className={`page-link ${
-                        currentOrderPage === totalOrderPages ? "disabled" : ""
-                      }`}
+                      className={`page-link ${currentOrderPage === totalOrderPages ? "disabled" : ""
+                        }`}
                       data-list-pagination="next"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage + 1)
@@ -1716,9 +1712,8 @@ function Profile() {
                     </div>
                     <div className="col-auto d-flex">
                       <button
-                        className={`page-link ${
-                          currentPage === 1 ? "disabled" : ""
-                        }`}
+                        className={`page-link ${currentPage === 1 ? "disabled" : ""
+                          }`}
                         data-list-pagination="prev"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -1744,9 +1739,8 @@ function Profile() {
                         ))}
                       </ul>
                       <button
-                        className={`page-link ${
-                          currentPage === totalPages ? "disabled" : ""
-                        }`}
+                        className={`page-link ${currentPage === totalPages ? "disabled" : ""
+                          }`}
                         data-list-pagination="next"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
