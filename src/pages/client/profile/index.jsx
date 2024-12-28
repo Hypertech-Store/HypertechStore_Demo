@@ -11,7 +11,8 @@ function Profile() {
 
   const [orders, setOrders] = useState([]);
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
-  const [totalOrderPages, setTotalOrderPages] = useState(1); // Store total pages from the API
+  const [totalOrderPages, setTotalOrderPages] = useState(1); 
+  const [totalOrder, setTotalOrder] = useState(1);
   const ordersPerPage = 5; // Number of orders per page
   const [totalSpent, setTotalSpent] = useState(0); // Tổng tiền đã chi tiêu
   const [lastOrderDate, setLastOrderDate] = useState(""); // Thời gian đơn hàng cuối
@@ -73,6 +74,12 @@ function Profile() {
         }
 
         setLastOrderDate(timeAgo);
+
+        setOrders(data.don_hangs.data); // Assign order data to state
+        setTotalOrderPages(data.total_pages); 
+        setTotalOrder(data.don_hangs.total);
+        
+
       })
       .catch((error) => console.error("Error fetching data: ", error));
   }, [currentOrderPage]); // Tái nạp dữ liệu khi trang hiện tại thay đổi
@@ -516,9 +523,13 @@ function Profile() {
                 >
                   <span className="fas fa-shopping-cart me-2" />
                   Orders{" "}
+
                   <span className="text-body-tertiary fw-normal">
                     ({orders.length})
                   </span>
+
+                  <span className="text-body-tertiary fw-normal"> ({totalOrder})</span>
+
                 </a>
               </li>
               <li className="nav-item me-3">
