@@ -1,5 +1,53 @@
-import customer from "../../../assets/img/team/32.webp";
+import { useState, useEffect } from "react";
+
 const Order = () => {
+  const [orders, setOrders] = useState([]);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalOrderPages, setTotalOrderPages] = useState(0);
+  const [currentOrderPage, setCurrentOrderPage] = useState(1);
+  const ordersPerPage = 5;
+
+  useEffect(() => {
+    fetch(
+      `http://127.0.0.1:8000/api/don-hang?page=${currentOrderPage}&number_row=${ordersPerPage}`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setOrders(data.data); // Lưu dữ liệu đơn hàng vào state
+        console.log(data.data);
+        setTotalOrders(data.total); // Lưu tổng số đơn hàng từ API
+        setTotalOrderPages(data.total_pages); // Lưu số trang từ API
+      })
+      .catch((error) => console.error("Error fetching data: ", error));
+  }, [currentOrderPage]);
+
+  // Xử lý khi chuyển trang
+  const handleOrderPageChange = (pageNumber) => {
+    setCurrentOrderPage(pageNumber);
+  };
+
+  // Hàm để lấy class theo trạng thái đơn hàng
+  function getBadgeClass(statusId) {
+    switch (statusId) {
+      case 1:
+        return "badge-phoenix-warning"; // Chờ xác nhận
+      case 2:
+        return "badge-phoenix-info"; // Chờ lấy hàng
+      case 3:
+        return "badge-phoenix-primary"; // Chờ giao hàng
+      case 4:
+        return "badge-phoenix-secondary"; // Đang vận chuyển
+      case 5:
+        return "badge-phoenix-success"; // Đã giao hàng
+      // case 6:
+      //   return "badge-phoenix-success"; // Hoàn thành đơn
+      case 6:
+        return "badge-phoenix-danger"; // Đơn giao thất bại
+      default:
+        return "badge-phoenix-light"; // Mặc định
+    }
+  }
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
@@ -188,7 +236,7 @@ const Order = () => {
                       </div>
                     </th>
                     <th
-                      className="sort white-space-nowrap align-middle pe-3 ps-0"
+                      className="white-space-nowrap align-middle pe-3 ps-0"
                       scope="col"
                       data-sort="order"
                       style={{ minWidth: 180 }}
@@ -196,7 +244,7 @@ const Order = () => {
                       Mã đơn hàng
                     </th>
                     <th
-                      className="sort align-middle pe-3"
+                      className="align-middle pe-3"
                       scope="col"
                       data-sort="status"
                       style={{ width: "15%", minWidth: 180 }}
@@ -204,7 +252,7 @@ const Order = () => {
                       Trạng thái
                     </th>
                     <th
-                      className="sort align-middle text-start"
+                      className="align-middle text-start"
                       scope="col"
                       data-sort="delivery"
                       style={{ width: "20%", minWidth: 180 }}
@@ -212,7 +260,7 @@ const Order = () => {
                       Phương thức thanh toán
                     </th>
                     <th
-                      className="sort align-middle pe-0 text-end"
+                      className="align-middle pe-0 text-end"
                       scope="col"
                       data-sort="date"
                       style={{ width: "15%", minWidth: 150 }}
@@ -220,7 +268,7 @@ const Order = () => {
                       Ngày đặt hàng
                     </th>
                     <th
-                      className="sort align-middle text-end"
+                      className="align-middle text-end"
                       scope="col"
                       data-sort="total"
                       style={{ width: "15%", minWidth: 150 }}
@@ -237,40 +285,135 @@ const Order = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="list" id="order-table-body"></tbody>
+                <tbody className="list" id="profile-order-table-body">
+                  {orders.map((order) => (
+                    <tr
+                      key={order.id}
+                      className="hover-actions-trigger btn-reveal-trigger position-static"
+                    >
+                      <td
+                        className="white-space-nowrap align-middle pe-3 ps-0"
+                        style={{ width: "5%" }}
+                      >
+                        <div className="form-check mb-0 fs-8">
+                          <input
+                            className="form-check-input"
+                            id="checkbox-bulk-order-select"
+                            type="checkbox"
+                            data-bulk-select='{"body":"order-table-body"}'
+                          />
+                        </div>
+                      </td>
+                      <td className="order align-middle white-space-nowrap py-2 ps-0">
+                        <a className="fw-semibold text-primary" href="#!">
+                          #{order.ma_don_hang}
+                        </a>
+                      </td>
+                      <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
+                        <span
+                          className={`badge badge-phoenix fs-10 ${getBadgeClass(
+                            order.trang_thai_don_hang_id
+                          )}`}
+                        >
+                          <span className="badge-label">
+                            {order.trang_thai_don_hang}
+                          </span>
+                        </span>
+                      </td>
+
+                      <td className="delivery align-middle white-space-nowrap text-body py-2">
+                        {order.phuong_thuc_thanh_toan.ten_phuong_thuc}
+                      </td>
+                      <td className="total align-middle text-body-tertiary text-end py-2">
+                        {new Date(order.created_at).toLocaleString()}
+                      </td>
+                      <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
+                        {new Intl.NumberFormat("vi-VN").format(
+                          order.tong_tien
+                        ) + " VNĐ"}
+                      </td>
+
+                      <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
+                        <div className="btn-reveal-trigger position-static">
+                          <button
+                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            data-boundary="window"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            data-bs-reference="parent"
+                          >
+                            <span className="fas fa-ellipsis-h fs-10" />
+                          </button>
+                          <div className="dropdown-menu dropdown-menu-end py-2">
+                            <a className="dropdown-item" href="#!">
+                              View
+                            </a>
+                            <a className="dropdown-item" href="#!">
+                              Export
+                            </a>
+                            <div className="dropdown-divider" />
+                            <a className="dropdown-item text-danger" href="#!">
+                              Remove
+                            </a>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
               </table>
             </div>
             <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
-              <div className="col-auto d-flex">
-                <p
-                  className="mb-0 d-none d-sm-block me-3 fw-semibold text-body"
-                  data-list-info="data-list-info"
-                />
-                <a className="fw-semibold" href="#!" data-list-view="*">
-                  View all
-                  <span
-                    className="fas fa-angle-right ms-1"
-                    data-fa-transform="down-1"
-                  />
-                </a>
-                <a
-                  className="fw-semibold d-none"
-                  href="#!"
-                  data-list-view="less"
-                >
-                  View Less
-                  <span
-                    className="fas fa-angle-right ms-1"
-                    data-fa-transform="down-1"
-                  />
-                </a>
+              <div className="col-auto">
+                <p className="mb-0">
+                  {orders.length === 0
+                    ? "No orders available"
+                    : `Showing ${
+                        (currentOrderPage - 1) * ordersPerPage + 1
+                      } to ${Math.min(
+                        currentOrderPage * ordersPerPage,
+                        totalOrders
+                      )} of ${totalOrders} items`}
+                </p>
               </div>
+
               <div className="col-auto d-flex">
-                <button className="page-link" data-list-pagination="prev">
+                <button
+                  className={`page-link ${
+                    currentOrderPage === 1 ? "disabled" : ""
+                  }`}
+                  data-list-pagination="prev"
+                  onClick={() => handleOrderPageChange(currentOrderPage - 1)}
+                  disabled={currentOrderPage === 1}
+                >
                   <span className="fas fa-chevron-left" />
                 </button>
-                <ul className="mb-0 pagination" />
-                <button className="page-link pe-0" data-list-pagination="next">
+                <ul className="mb-0 pagination">
+                  {[...Array(totalOrderPages)].map((_, index) => (
+                    <li
+                      key={index}
+                      className={currentOrderPage === index + 1 ? "active" : ""}
+                    >
+                      <button
+                        className="page"
+                        type="button"
+                        onClick={() => handleOrderPageChange(index + 1)}
+                      >
+                        {index + 1}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  className={`page-link ${
+                    currentOrderPage === totalOrderPages ? "disabled" : ""
+                  }`}
+                  data-list-pagination="next"
+                  onClick={() => handleOrderPageChange(currentOrderPage + 1)}
+                  disabled={currentOrderPage === totalOrderPages}
+                >
                   <span className="fas fa-chevron-right" />
                 </button>
               </div>
