@@ -21,9 +21,12 @@ function Profile() {
   const storedUserInfo = localStorage.getItem("userInfo");
   const [formData, setFormData] = useState({});
   const [avatar, setAvatar] = useState(null);
+  
   const user = JSON.parse(storedUserInfo);
   const userId = user.id;
 
+  console.log(orders);
+  
   useEffect(() => {
     fetch(
       `http://127.0.0.1:8000/api/donhang/orders/${userId}?page=${currentOrderPage}&number_row=${ordersPerPage}`
@@ -824,7 +827,7 @@ function Profile() {
                           <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
                             <span className="badge badge-phoenix fs-10 badge-phoenix-success">
                               <span className="badge-label">
-                                {order.trang_thai_don_hang}
+                                {order.trang_thai_don_hang.ten_trang_thai}
                               </span>
                               <span
                                 className="ms-1"
