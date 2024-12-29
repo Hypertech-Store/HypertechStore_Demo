@@ -27,16 +27,16 @@ const HeaderAdmin = () => {
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
       confirmButtonText: "Đồng ý, đăng xuất!",
-      cancelButtonText: "Hủy bỏ"
+      cancelButtonText: "Hủy bỏ",
     }).then((result) => {
       if (result.isConfirmed) {
-        localStorage.removeItem('adminId');
-        localStorage.removeItem('adminName');
-        localStorage.removeItem('adminAvatar');
-        localStorage.removeItem('customRole');
+        localStorage.removeItem("adminId");
+        localStorage.removeItem("adminName");
+        localStorage.removeItem("adminAvatar");
+        localStorage.removeItem("customRole");
         toast.success("Đăng xuất thành công!");
         setTimeout(() => {
-          navigate('/login');
+          navigate("/login");
         }, 100); // Delay 100ms để đảm bảo trạng thái đã được cập nhật
       }
     });
@@ -424,9 +424,22 @@ const HeaderAdmin = () => {
                 aria-expanded="false"
                 data-bs-auto-close="outside"
               >
-                <span className="d-block" style={{ height: 20, width: 20 }}>
-                  <span data-feather="bell" style={{ height: 20, width: 20 }} />
-                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16px"
+                  height="16px"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="feather feather-bell"
+                  style={{ height: 20, width: 20 }}
+                >
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
               </a>
               <div
                 className="dropdown-menu dropdown-menu-end notification-dropdown-menu py-0 shadow border navbar-dropdown-caret"
@@ -747,7 +760,11 @@ const HeaderAdmin = () => {
                 aria-expanded="false"
               >
                 <div className="avatar avatar-l">
-                  <img className="rounded-circle" src={`${link}${adminAvatar}`} alt />
+                  <img
+                    className="rounded-circle"
+                    src={`${link}${adminAvatar}`}
+                    alt
+                  />
                 </div>
               </a>
               <div
@@ -756,104 +773,134 @@ const HeaderAdmin = () => {
               >
                 <div className="card position-relative border-0">
                   <div className="card-body p-0">
-                    <div className="text-center pt-4 pb-3">
+                    <div className="text-center pt-4">
                       <div className="avatar avatar-xl">
-                        <img className="rounded-circle" src={`${link}${adminAvatar}`} alt="User Avatar" />
+                        <img
+                          className="rounded-circle"
+                          src={`${link}${adminAvatar}`}
+                          alt="User Avatar"
+                        />
                       </div>
                       <h6 className="mt-2 text-body-emphasis">
-                        {adminName}
+                        {adminName || "Chưa cập nhật tên"}
                       </h6>
-                    </div>
-                    <div className="mb-3 mx-3">
-                      <input
-                        className="form-control form-control-sm"
-                        id="statusUpdateInput"
-                        type="text"
-                        placeholder="Update your status"
-                      />
+                      <hr />
                     </div>
                   </div>
                   <div
                     className="overflow-auto scrollbar"
-                    style={{ height: "10rem" }}
+                    style={{ height: "9rem" }}
                   >
                     <ul className="nav d-flex flex-column mb-2 pb-1">
                       <li className="nav-item">
                         <a className="nav-link px-3 d-block" href="#!">
-                          <span
-                            className="me-2 text-body align-bottom"
-                            data-feather="user"
-                          />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16px"
+                            height="16px"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="feather feather-user me-2 text-body align-bottom"
+                          >
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx={12} cy={7} r={4} />
+                          </svg>
+
                           <span>Profile</span>
                         </a>
                       </li>
+
                       <li className="nav-item">
                         <a className="nav-link px-3 d-block" href="#!">
-                          <span
-                            className="me-2 text-body align-bottom"
-                            data-feather="pie-chart"
-                          />
-                          Dashboard
-                        </a>
-                      </li>
-                      <li className="nav-item">
-                        <a className="nav-link px-3 d-block" href="#!">
-                          <span
-                            className="me-2 text-body align-bottom"
-                            data-feather="lock"
-                          />
-                          Posts &amp; Activity
-                        </a>
-                      </li>
-                      <li className="nav-item">
-                        <a className="nav-link px-3 d-block" href="#!">
-                          <span
-                            className="me-2 text-body align-bottom"
-                            data-feather="settings"
-                          />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16px"
+                            height="16px"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="feather feather-settings me-2 text-body align-bottom"
+                          >
+                            <circle cx={12} cy={12} r={3} />
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                          </svg>
                           Settings &amp; Privacy
                         </a>
                       </li>
                       <li className="nav-item">
                         <a className="nav-link px-3 d-block" href="#!">
-                          <span
-                            className="me-2 text-body align-bottom"
-                            data-feather="help-circle"
-                          />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16px"
+                            height="16px"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="feather feather-help-circle me-2 text-body align-bottom"
+                          >
+                            <circle cx={12} cy={12} r={10} />
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                            <line x1={12} y1={17} x2="12.01" y2={17} />
+                          </svg>
                           Help Center
                         </a>
                       </li>
                       <li className="nav-item">
                         <a className="nav-link px-3 d-block" href="#!">
-                          <span
-                            className="me-2 text-body align-bottom"
-                            data-feather="globe"
-                          />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16px"
+                            height="16px"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="feather feather-globe me-2 text-body align-bottom"
+                          >
+                            <circle cx={12} cy={12} r={10} />
+                            <line x1={2} y1={12} x2={22} y2={12} />
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                          </svg>
                           Language
                         </a>
                       </li>
                     </ul>
                   </div>
-                  <div className="card-footer p-0 border-top border-translucent">
-                    <ul className="nav d-flex flex-column my-3">
-                      <li className="nav-item">
-                        <a className="nav-link px-3 d-block" href="#!">
-                          <span
-                            className="me-2 text-body align-bottom"
-                            data-feather="user-plus"
-                          />
-                          Add another account
-                        </a>
-                      </li>
-                    </ul>
-                    <hr />
+                  <div className="card-footer border-top border-translucent pb-3">
                     <div className="px-3">
                       <a
                         className="btn btn-phoenix-secondary d-flex flex-center w-100"
                         href="#!"
                         onClick={handleLogout}
                       >
-                        <span className="me-2" data-feather="log-out"> </span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-log-out me-2"
+                        >
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                          <polyline points="16 17 21 12 16 7" />
+                          <line x1={21} y1={12} x2={9} y2={12} />
+                        </svg>
                         Sign out
                       </a>
                     </div>

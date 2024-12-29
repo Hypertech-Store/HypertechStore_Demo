@@ -11,7 +11,7 @@ const LoginPage = () => {
   const [mat_khau, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate(); // Khởi tạo useNavigate để điều hướng
-  
+
   useEffect(() => {
     const userInfo = localStorage.getItem("userInfo");
     if (userInfo) {
@@ -229,7 +229,7 @@ const LoginPage = () => {
                 justifyContent: "center",
               }}
             >
-              {loading ? "Đăng nhập" : "Đăng nhập"}
+              {loading ? "Đang xử lý" : "Đăng nhập"}
 
               {loading ? (
                 <HashLoader

@@ -20,7 +20,21 @@ const SlidebarAdmin = () => {
                   >
                     <div className="d-flex align-items-center">
                       <span className="nav-link-icon">
-                        <span data-feather="pie-chart" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-pie-chart"
+                        >
+                          <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                          <path d="M22 12A10 10 0 0 0 12 2v10z" />
+                        </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
                         <span className="nav-link-text">Dashboard</span>
@@ -48,7 +62,22 @@ const SlidebarAdmin = () => {
                         <span className="fas fa-caret-right dropdown-indicator-icon" />
                       </div>
                       <span className="nav-link-icon">
-                        <span data-feather="shopping-cart" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-shopping-cart"
+                        >
+                          <circle cx={9} cy={21} r={1} />
+                          <circle cx={20} cy={21} r={1} />
+                          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                        </svg>
                       </span>
                       <span className="nav-link-text">E-commerce</span>
                     </div>
@@ -209,188 +238,155 @@ const SlidebarAdmin = () => {
                       <li className="nav-item">
                         <a
                           className="nav-link dropdown-indicator"
-                          href="#nv-variable"
+                          href="#nv-Variable"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
-                          aria-controls="nv-variable"
+                          aria-controls="nv-Variable"
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
                             <span className="nav-link-text">
-                              Product variations
+                              Product variable
                             </span>
                           </div>
                         </a>
                         {/* more inner pages*/}
-                        <div className="parent-wrapper label-1">
+                        <div className="parent-wrapper">
                           <ul
-                            className="nav collapse parent"
-                            data-bs-parent="#navbarVerticalCollapse"
-                            id="nv-variable"
+                            className="nav collapse parent show"
+                            data-bs-parent="#e-commerce"
+                            id="nv-Variable"
                           >
-                            <li className="collapsed-nav-item-title d-none">
-                              Product variations
-                            </li>
                             <li className="nav-item">
-                              <a
-                                className="nav-link dropdown-indicator"
-                                href="#nv-attributeName"
-                                data-bs-toggle="collapse"
-                                aria-expanded="false"
-                                aria-controls="nv-attributeName"
-                              >
+                              <Link className="nav-link" to="ten-thuoc-tinh">
                                 <div className="d-flex align-items-center">
-                                  <div className="dropdown-indicator-icon-wrapper">
-                                    <span className="fas fa-caret-right dropdown-indicator-icon" />
-                                  </div>
                                   <span className="nav-link-text">
                                     Attribute name
                                   </span>
                                 </div>
-                              </a>
+                              </Link>
                               {/* more inner pages*/}
-                              <div className="parent-wrapper">
-                                <ul
-                                  className="nav collapse parent"
-                                  data-bs-parent="#authentication"
-                                  id="nv-attributeName"
-                                >
-                                  <li className="nav-item">
-                                    <Link
-                                      className="nav-link"
-                                      to="them-ten-thuoc-tinh"
-                                    >
-                                      <div className="d-flex align-items-center">
-                                        <span className="nav-link-text">
-                                          Add property name
-                                        </span>
-                                      </div>
-                                    </Link>
-                                    {/* more inner pages*/}
-                                  </li>
-                                  <li className="nav-item">
-                                    <Link
-                                      className="nav-link"
-                                      to="danh-sach-ten-thuoc-tinh"
-                                    >
-                                      <div className="d-flex align-items-center">
-                                        <span className="nav-link-text">
-                                          List of attribute names
-                                        </span>
-                                      </div>
-                                    </Link>
-                                    {/* more inner pages*/}
-                                  </li>
-                                </ul>
-                              </div>
                             </li>
                             <li className="nav-item">
-                              <a
-                                className="nav-link dropdown-indicator"
-                                href="#nv-attributeValue"
-                                data-bs-toggle="collapse"
-                                aria-expanded="false"
-                                aria-controls="nv-attributeValue"
+                              <Link
+                                className="nav-link"
+                                to="gia-tri-thuoc-tinh"
                               >
                                 <div className="d-flex align-items-center">
-                                  <div className="dropdown-indicator-icon-wrapper">
-                                    <span className="fas fa-caret-right dropdown-indicator-icon" />
-                                  </div>
                                   <span className="nav-link-text">
                                     Attribute value
                                   </span>
                                 </div>
-                              </a>
+                              </Link>
                               {/* more inner pages*/}
-                              <div className="parent-wrapper">
-                                <ul
-                                  className="nav collapse parent"
-                                  data-bs-parent="#authentication"
-                                  id="nv-attributeValue"
-                                >
-                                  <li className="nav-item">
-                                    <Link 
-                                      className="nav-link"
-                                      to="them-gia-tri"
-                                    >
-                                      <div className="d-flex align-items-center">
-                                        <span className="nav-link-text">
-                                          Add value
-                                        </span>
-                                      </div>
-                                    </Link>
-                                    {/* more inner pages*/}
-                                  </li>
-                                  <li className="nav-item">
-                                    <Link
-                                      className="nav-link"
-                                      to="danh-sach-gia-tri"
-                                    >
-                                      <div className="d-flex align-items-center">
-                                        <span className="nav-link-text">
-                                          List of values
-                                        </span>
-                                      </div>
-                                    </Link>
-                                    {/* more inner pages*/}
-                                  </li>
-                                </ul>
-                              </div>
                             </li>
                             <li className="nav-item">
-                              <a
-                                className="nav-link dropdown-indicator"
-                                href="#nv-variantPhoto"
-                                data-bs-toggle="collapse"
-                                aria-expanded="false"
-                                aria-controls="nv-variantPhoto"
-                              >
+                              <Link className="nav-link" to="chi-tiet-bien-the">
                                 <div className="d-flex align-items-center">
-                                  <div className="dropdown-indicator-icon-wrapper">
-                                    <span className="fas fa-caret-right dropdown-indicator-icon" />
-                                  </div>
                                   <span className="nav-link-text">
-                                    Variant photo
+                                    Variation details
                                   </span>
                                 </div>
-                              </a>
+                              </Link>
                               {/* more inner pages*/}
-                              <div className="parent-wrapper">
-                                <ul
-                                  className="nav collapse parent"
-                                  data-bs-parent="#authentication"
-                                  id="nv-variantPhoto"
-                                >
-                                  <li className="nav-item">
-                                    <a
-                                      className="nav-link"
-                                      href="pages/authentication/card/sign-in.html"
-                                    >
-                                      <div className="d-flex align-items-center">
-                                        <span className="nav-link-text">
-                                          Add variant photos
-                                        </span>
-                                      </div>
-                                    </a>
-                                    {/* more inner pages*/}
-                                  </li>
-                                  <li className="nav-item">
-                                    <a
-                                      className="nav-link"
-                                      href="pages/authentication/card/sign-up.html"
-                                    >
-                                      <div className="d-flex align-items-center">
-                                        <span className="nav-link-text">
-                                          List of variant photos
-                                        </span>
-                                      </div>
-                                    </a>
-                                    {/* more inner pages*/}
-                                  </li>
-                                </ul>
-                              </div>
+                            </li>
+                          </ul>
+                        </div>
+                      </li>
+                      <li className="nav-item">
+                        <a
+                          className="nav-link dropdown-indicator"
+                          href="#nv-saleProduct"
+                          data-bs-toggle="collapse"
+                          aria-expanded="true"
+                          aria-controls="nv-saleProduct"
+                        >
+                          <div className="d-flex align-items-center">
+                            <div className="dropdown-indicator-icon-wrapper">
+                              <span className="fas fa-caret-right dropdown-indicator-icon" />
+                            </div>
+                            <span className="nav-link-text">Product Sale</span>
+                          </div>
+                        </a>
+                        {/* more inner pages*/}
+                        <div className="parent-wrapper">
+                          <ul
+                            className="nav collapse parent show"
+                            data-bs-parent="#e-commerce"
+                            id="nv-saleProduct"
+                          >
+                            <li className="nav-item">
+                              <Link
+                                className="nav-link"
+                                to="danh-sach-san-pham-sale"
+                              >
+                                <div className="d-flex align-items-center">
+                                  <span className="nav-link-text">
+                                    List Sale
+                                  </span>
+                                </div>
+                              </Link>
+                              {/* more inner pages*/}
+                            </li>
+                          </ul>
+                        </div>
+                      </li>
+                      <li className="nav-item">
+                        <a
+                          className="nav-link dropdown-indicator"
+                          href="#nv-parameter"
+                          data-bs-toggle="collapse"
+                          aria-expanded="true"
+                          aria-controls="nv-parameter"
+                        >
+                          <div className="d-flex align-items-center">
+                            <div className="dropdown-indicator-icon-wrapper">
+                              <span className="fas fa-caret-right dropdown-indicator-icon" />
+                            </div>
+                            <span className="nav-link-text">
+                              Specifications
+                            </span>
+                          </div>
+                        </a>
+                        {/* more inner pages*/}
+                        <div className="parent-wrapper">
+                          <ul
+                            className="nav collapse parent show"
+                            data-bs-parent="#e-commerce"
+                            id="nv-parameter"
+                          >
+                            <li className="nav-item">
+                              <Link
+                                className="nav-link"
+                                to="danh-sach-thong-so"
+                              >
+                                <div className="d-flex align-items-center">
+                                  <span className="nav-link-text">
+                                    Parameter
+                                  </span>
+                                </div>
+                              </Link>
+                              {/* more inner pages*/}
+                            </li>
+                          </ul>
+                        </div>
+                        <div className="parent-wrapper">
+                          <ul
+                            className="nav collapse parent show"
+                            data-bs-parent="#e-commerce"
+                            id="nv-parameter"
+                          >
+                            <li className="nav-item">
+                              <Link className="nav-link" to="lien-ket-thong-so">
+                                <div className="d-flex align-items-center">
+                                  <span className="nav-link-text">
+                                    Parameter link
+                                  </span>
+                                </div>
+                              </Link>
+                              {/* more inner pages*/}
                             </li>
                           </ul>
                         </div>
@@ -413,7 +409,21 @@ const SlidebarAdmin = () => {
                         <span className="fas fa-caret-right dropdown-indicator-icon" />
                       </div>
                       <span className="nav-link-icon">
-                        <span data-feather="user" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-user"
+                        >
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx={12} cy={7} r={4} />
+                        </svg>
                       </span>
                       <span className="nav-link-text">Accounts</span>
                     </div>
@@ -527,7 +537,24 @@ const SlidebarAdmin = () => {
                     >
                       <div className="d-flex align-items-center">
                         <span className="nav-link-icon">
-                          <span data-feather="gift" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16px"
+                            height="16px"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="feather feather-gift"
+                          >
+                            <polyline points="20 12 20 22 4 22 4 12" />
+                            <rect x={2} y={7} width={20} height={5} />
+                            <line x1={12} y1={22} x2={12} y2={7} />
+                            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+                          </svg>
                         </span>
                         <span className="nav-link-text">Deals</span>
                       </div>
@@ -546,7 +573,23 @@ const SlidebarAdmin = () => {
                     >
                       <div className="d-flex align-items-center">
                         <span className="nav-link-icon">
-                          <span data-feather="package" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16px"
+                            height="16px"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="feather feather-package"
+                          >
+                            <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                            <line x1={12} y1="22.08" x2={12} y2={12} />
+                          </svg>
                         </span>
                         <span className="nav-link-text">Orders</span>
                       </div>
@@ -556,28 +599,117 @@ const SlidebarAdmin = () => {
 
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
-                  <a
+                  <Link
                     className="nav-link label-1"
-                    href="tin-nhan"
+                    to="tin-nhan"
                     role="button"
                     data-bs-toggle
                     aria-expanded="false"
                   >
                     <div className="d-flex align-items-center">
                       <span className="nav-link-icon">
-                        <span data-feather="message-square" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-message-square"
+                        >
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
                         <span className="nav-link-text">Chat</span>
                       </span>
                     </div>
-                  </a>
+                  </Link>
                 </div>
+
+                <div className="nav-item-wrapper">
+                  <Link
+                    className="nav-link label-1"
+                    to="hinh-thuc-van-chuyen"
+                    role="button"
+                    data-bs-toggle
+                    aria-expanded="false"
+                  >
+                    <div className="d-flex align-items-center">
+                      <span className="nav-link-icon">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-truck"
+                        >
+                          <rect x={1} y={3} width={15} height={13} />
+                          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                          <circle cx="5.5" cy="18.5" r="2.5" />
+                          <circle cx="18.5" cy="18.5" r="2.5" />
+                        </svg>
+                      </span>
+                      <span className="nav-link-text-wrapper">
+                        <span className="nav-link-text">Shipping</span>
+                      </span>
+                    </div>
+                  </Link>
+                </div>
+
+                <div className="nav-item-wrapper">
+                  <Link
+                    className="nav-link label-1"
+                    to="phuong-thuc-thanh-toan"
+                    role="button"
+                    data-bs-toggle
+                    aria-expanded="false"
+                  >
+                    <div className="d-flex align-items-center">
+                      <span className="nav-link-icon">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-credit-card"
+                        >
+                          <rect
+                            x={1}
+                            y={4}
+                            width={22}
+                            height={16}
+                            rx={2}
+                            ry={2}
+                          />
+                          <line x1={1} y1={10} x2={23} y2={10} />
+                        </svg>
+                      </span>
+                      <span className="nav-link-text-wrapper">
+                        <span className="nav-link-text">Payment</span>
+                      </span>
+                    </div>
+                  </Link>
+                </div>
+
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
-                  <a
+                  <Link
                     className="nav-link dropdown-indicator label-1"
-                    href="#nv-email"
+                    to="#nv-email"
                     role="button"
                     data-bs-toggle="collapse"
                     aria-expanded="false"
@@ -588,11 +720,25 @@ const SlidebarAdmin = () => {
                         <span className="fas fa-caret-right dropdown-indicator-icon" />
                       </div>
                       <span className="nav-link-icon">
-                        <span data-feather="mail" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-mail"
+                        >
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                          <polyline points="22,6 12,13 2,6" />
+                        </svg>
                       </span>
                       <span className="nav-link-text">Email</span>
                     </div>
-                  </a>
+                  </Link>
                   <div className="parent-wrapper label-1">
                     <ul
                       className="nav collapse parent"
@@ -632,9 +778,9 @@ const SlidebarAdmin = () => {
                 </div>
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
-                  <a
+                  <Link
                     className="nav-link dropdown-indicator label-1"
-                    href="#nv-events"
+                    to="#nv-events"
                     role="button"
                     data-bs-toggle="collapse"
                     aria-expanded="false"
@@ -645,11 +791,24 @@ const SlidebarAdmin = () => {
                         <span className="fas fa-caret-right dropdown-indicator-icon" />
                       </div>
                       <span className="nav-link-icon">
-                        <span data-feather="bookmark" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-bookmark"
+                        >
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                        </svg>
                       </span>
                       <span className="nav-link-text">Events</span>
                     </div>
-                  </a>
+                  </Link>
                   <div className="parent-wrapper label-1">
                     <ul
                       className="nav collapse parent"
@@ -702,7 +861,21 @@ const SlidebarAdmin = () => {
                   >
                     <div className="d-flex align-items-center">
                       <span className="nav-link-icon">
-                        <span data-feather="bell" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-bell"
+                        >
+                          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
                         <span className="nav-link-text">Notifications</span>
@@ -726,7 +899,28 @@ const SlidebarAdmin = () => {
                         <span className="fas fa-caret-right dropdown-indicator-icon" />
                       </div>
                       <span className="nav-link-icon">
-                        <span data-feather="lock" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16px"
+                          height="16px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-lock"
+                        >
+                          <rect
+                            x={3}
+                            y={11}
+                            width={18}
+                            height={11}
+                            rx={2}
+                            ry={2}
+                          />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
                       </span>
                       <span className="nav-link-text">Authentication</span>
                     </div>

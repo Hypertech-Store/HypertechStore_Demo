@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import axios from "axios";
+import HashLoader from "react-spinners/HashLoader";
 import backgroundImage from "../../../assets/img/bg/30.png";
 import logo from "../../../assets/img/icons/logo1.png";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,7 +12,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Kiểm tra nếu người dùng đã đăng nhập
@@ -28,6 +29,7 @@ const LoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await axios.post(
         "http://127.0.0.1:8000/api/quan-tri-viens/login",
@@ -50,7 +52,7 @@ const LoginPage = () => {
           quantrivien.anh_nguoi_dung || "default-avatar.png"
         );
 
-        console.log(localStorage.getItem('adminId'));
+        console.log(localStorage.getItem("adminId"));
 
         toast.success(message, {
           position: "top-right",
@@ -59,20 +61,36 @@ const LoginPage = () => {
         });
 
         setTimeout(() => {
-          navigate("/admin");
-        }, 2500);
+          setLoading(false);
+        }, 5000);
+        navigate("/admin");
       } else {
-        setErrorMessage(
-          "Quyền truy cập bị từ chối. Chỉ quản trị viên và nhân viên mới được phép."
+        toast.error(
+          "Quyền truy cập bị từ chối. Chỉ quản trị viên và nhân viên mới được phép.",
+          {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: true,
+          }
         );
       }
     } catch (error) {
       console.error("Error during login:", error);
       if (error.response && error.response.data) {
-        setErrorMessage(error.response.data.message || "Đăng nhập thất bại.");
+        toast.error(error.response.data.message || "Đăng nhập thất bại.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: true,
+        });
       } else {
-        setErrorMessage("Đã xảy ra lỗi. Vui lòng thử lại.");
+        toast.error("Đã xảy ra lỗi. Vui lòng thử lại.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: true,
+        });
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -99,17 +117,19 @@ const LoginPage = () => {
                 <img src={logo} alt="phoenix" width={58} />
               </a>
               <div className="text-center mb-7">
-                <h3 className="text-body-highlight">Sign In</h3>
-                <p className="text-body-tertiary">Get access to your account</p>
+                <h3 className="text-body-highlight">Đăng nhập</h3>
+                <p className="text-body-tertiary">
+                  Truy cập vào tài khoản của bạn
+                </p>
               </div>
               <div className="position-relative">
                 <hr className="bg-body-secondary mt-5 mb-4" />
-                <div className="divider-content-center">or use email</div>
+                <div className="divider-content-center">hoặc sử dụng email</div>
               </div>
               <form onSubmit={handleLogin}>
                 <div className="mb-3 text-start">
                   <label className="form-label" htmlFor="email">
-                    Email address
+                    Email
                   </label>
                   <div className="form-icon-container">
                     <input
@@ -126,7 +146,7 @@ const LoginPage = () => {
                 </div>
                 <div className="mb-3 text-start">
                   <label className="form-label" htmlFor="password">
-                    Password
+                    Mật khẩu
                   </label>
                   <div className="form-icon-container">
                     <input
@@ -164,14 +184,34 @@ const LoginPage = () => {
                         className="form-check-label mb-0"
                         htmlFor="basic-checkbox"
                       >
-                        Remember me
+                        Ghi nhớ tôi
                       </label>
                     </div>
                   </div>
                 </div>
-                {errorMessage && <p className="text-danger">{errorMessage}</p>}
-                <button type="submit" className="btn btn-primary w-100 mb-3">
-                  Sign In
+
+                <button
+                  type="submit"
+                  className="btn btn-primary w-100 mb-3"
+                  disabled={loading}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {loading ? "Đang xử lý" : "Đăng nhập"}
+
+                  {loading ? (
+                    <HashLoader
+                      color="#ffffff" // Set the color of the loader to white
+                      size={15} // Adjust the size of the loader here (e.g., 20px)
+                      style={{
+                        animation: "spin 1s linear infinite",
+                        marginLeft: "12px", // Space between the text and the icon
+                      }}
+                    />
+                  ) : null}
                 </button>
               </form>
             </div>

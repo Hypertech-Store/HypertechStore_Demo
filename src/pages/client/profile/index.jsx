@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-import { formatDistanceToNow, parseISO } from "date-fns"; // Import from date-fns
 import haha from "../../../assets/img/e-commerce/image-removebg-preview.png";
 import defaultAvatar from "../../../assets/img/team/image-default.png";
 
 const link = "http://127.0.0.1:8000/storage/";
 function Profile() {
-  document.title = "Hypertech Store - Sản phẩm yêu thích";
+  document.title = "Hypertech Store - Thông tin cá nhân";
 
   const [orders, setOrders] = useState([]);
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
@@ -21,12 +20,12 @@ function Profile() {
   const storedUserInfo = localStorage.getItem("userInfo");
   const [formData, setFormData] = useState({});
   const [avatar, setAvatar] = useState(null);
-  
+
   const user = JSON.parse(storedUserInfo);
   const userId = user.id;
 
   console.log(orders);
-  
+
   useEffect(() => {
     fetch(
       `http://127.0.0.1:8000/api/donhang/orders/${userId}?page=${currentOrderPage}&number_row=${ordersPerPage}`
@@ -81,8 +80,6 @@ function Profile() {
         setOrders(data.don_hangs.data); // Assign order data to state
         setTotalOrderPages(data.total_pages);
         setTotalOrder(data.don_hangs.total);
-
-
       })
       .catch((error) => console.error("Error fetching data: ", error));
   }, [currentOrderPage]); // Tái nạp dữ liệu khi trang hiện tại thay đổi
@@ -347,27 +344,27 @@ function Profile() {
         </nav>
         <div className="row align-items-center justify-content-between g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">Profile</h2>
+            <h2 className="mb-0">Hồ sơ</h2>
           </div>
           <div className="col-auto">
             <div className="row g-2 g-sm-3">
               <div className="col-auto">
                 <button className="btn btn-phoenix-danger">
                   <span className="fas fa-trash-alt me-2" />
-                  Delete customer
+                  Xóa tài khoản
                 </button>
               </div>
               <div className="col-auto">
                 <button className="btn btn-phoenix-secondary">
                   <span className="fas fa-key me-2" />
-                  Reset password
+                  Đặt lại mật khẩu
                 </button>
               </div>
             </div>
           </div>
         </div>
         <div className="row g-3 mb-6">
-          <div className="col-12 col-lg-8">
+          <div className="col-12 col-lg-12">
             <div className="card h-100">
               <div className="card-body">
                 <div className="border-bottom border-dashed pb-4">
@@ -383,21 +380,19 @@ function Profile() {
                         className="cursor-pointer avatar avatar-5xl"
                         htmlFor="avatarFile"
                       >
-                        {
-                          (previewImage || (avatar && avatar.trim() !== "")) ? (
-                            <img
-                              className="rounded-circle"
-                              src={previewImage || `${link}${avatar}`}
-                              alt="Avatar"
-                            />
-                          ) : (
-                            <img
-                              className="rounded-circle"
-                              src={defaultAvatar}
-                              alt="Default Avatar"
-                            />
-                          )
-                        }
+                        {previewImage || (avatar && avatar.trim() !== "") ? (
+                          <img
+                            className="rounded-circle"
+                            src={previewImage || `${link}${avatar}`}
+                            alt="Avatar"
+                          />
+                        ) : (
+                          <img
+                            className="rounded-circle"
+                            src={defaultAvatar}
+                            alt="Default Avatar"
+                          />
+                        )}
                       </label>
                     </div>
                     <div className="col-12 col-sm-auto flex-1">
@@ -422,70 +417,28 @@ function Profile() {
                 </div>
                 <div className="d-flex flex-between-center pt-4">
                   <div>
-                    <h6 className="mb-2 text-body-secondary">Total Spent</h6>
+                    <h6 className="mb-2 text-body-secondary">
+                      Tổng số tiền đã chi
+                    </h6>
                     <h4 className="fs-7 text-body-highlight mb-0">
                       {totalSpent || "0"}
                     </h4>
                   </div>
                   <div className="text-end">
-                    <h6 className="mb-2 text-body-secondary">Last Order</h6>
+                    <h6 className="mb-2 text-body-secondary">
+                      Đơn hàng cuối cùng
+                    </h6>
                     <h4 className="fs-7 text-body-highlight mb-0">
                       {lastOrderDate || "No orders yet"}
                     </h4>
                   </div>
                   <div className="text-end">
-                    <h6 className="mb-2 text-body-secondary">Total Orders</h6>
+                    <h6 className="mb-2 text-body-secondary">
+                      Tổng số đơn hàng
+                    </h6>
                     <h4 className="fs-7 text-body-highlight mb-0">
                       {totalOrder || "0"}
                     </h4>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-12 col-lg-4">
-            <div className="card h-100">
-              <div className="card-body">
-                <div className="border-bottom border-dashed">
-                  <h4 className="mb-3">
-                    Default Address
-                    <button className="btn btn-link p-0" type="button">
-                      {" "}
-                      <span className="fas fa-edit fs-9 ms-3 text-body-quaternary" />
-                    </button>
-                  </h4>
-                </div>
-                <div className="pt-4 mb-7 mb-lg-4 mb-xl-7">
-                  <div className="row justify-content-between">
-                    <div className="col-auto">
-                      <h5 className="text-body-highlight">Address</h5>
-                    </div>
-                    <div className="col-auto">
-                      <p className="text-body-secondary">
-                        {formData.dia_chi || ""}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="border-top border-dashed pt-4">
-                  <div className="row flex-between-center mb-2">
-                    <div className="col-auto">
-                      <h5 className="text-body-highlight mb-0">Email</h5>
-                    </div>
-                    <div className="col-auto">
-                      <a className="lh-1" href="">
-                        {formData.email || ""}
-                      </a>
-                    </div>
-                  </div>
-                  <div className="row flex-between-center">
-                    <div className="col-auto">
-                      <h5 className="text-body-highlight mb-0">Phone</h5>
-                    </div>
-                    <div className="col-auto">
-                      <a href="tel:+1234567890">{formData.dien_thoai || ""}</a>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -510,7 +463,7 @@ function Profile() {
                   aria-selected="true"
                 >
                   <span className="fas fa-user me-2" />
-                  Personal info
+                  Thông tin tài khoản
                 </a>
               </li>
               <li className="nav-item me-3">
@@ -524,10 +477,11 @@ function Profile() {
                   aria-selected="true"
                 >
                   <span className="fas fa-shopping-cart me-2" />
-                  Orders{" "}
-
-                  <span className="text-body-tertiary fw-normal"> ({totalOrder})</span>
-
+                  Lịch sử đơn hàng{" "}
+                  <span className="text-body-tertiary fw-normal">
+                    {" "}
+                    ({totalOrder})
+                  </span>
                 </a>
               </li>
               <li className="nav-item me-3">
@@ -541,7 +495,7 @@ function Profile() {
                   aria-selected="true"
                 >
                   <span className="fas fa-star me-2" />
-                  Reviews
+                  Đánh giá
                   <span className="text-body-tertiary fw-normal"> (24)</span>
                 </a>
               </li>
@@ -556,7 +510,7 @@ function Profile() {
                   aria-selected="true"
                 >
                   <span className="fas fa-heart me-2" />
-                  Wishlist{" "}
+                  Danh sách yêu thích{" "}
                   <span className="text-body-tertiary fw-normal">
                     {" "}
                     ({wishlistCount})
@@ -579,7 +533,7 @@ function Profile() {
                     className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm"
                     htmlFor="fullName"
                   >
-                    Full name
+                    Họ và tên
                   </label>
                   <input
                     className="form-control"
@@ -597,7 +551,7 @@ function Profile() {
                     className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm"
                     htmlFor="gender"
                   >
-                    Gender
+                    Giới tính
                   </label>
                   <select
                     className="form-select"
@@ -632,7 +586,7 @@ function Profile() {
                 <div className="col-12 col-lg-6">
                   <div className="row g-2 gy-lg-0">
                     <label className="form-label text-body-highlight fs-8 ps-1 text-capitalize lh-sm mb-1">
-                      Date of birth
+                      Ngày sinh
                     </label>
                     <div className="col-6 col-sm-2 col-lg-3 col-xl-2">
                       <select
@@ -699,7 +653,7 @@ function Profile() {
                     className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm"
                     htmlFor="address"
                   >
-                    Address
+                    Địa chỉ
                   </label>
                   <input
                     className="form-control"
@@ -717,7 +671,7 @@ function Profile() {
                     className="form-label text-body-highlight fs-8 ps-0 text-capitalize lh-sm"
                     htmlFor="phone"
                   >
-                    Phone
+                    Số điện thoại
                   </label>
                   <input
                     className="form-control"
@@ -736,13 +690,13 @@ function Profile() {
                   className="btn btn-primary px-7"
                   onClick={handleUpdateProfile}
                 >
-                  Save changes
+                  Lưu thay đổi
                 </button>
               </div>
             </div>
 
             <div
-              className="tab-pane fade"
+              className="tab-pane fade mt-3"
               id="tab-orders"
               role="tabpanel"
               aria-labelledby="orders-tab"
@@ -757,7 +711,7 @@ function Profile() {
                     <thead>
                       <tr>
                         <th
-                          className="sort white-space-nowrap align-middle pe-3 ps-0"
+                          className="white-space-nowrap align-middle pe-3 ps-0"
                           scope="col"
                           data-sort="order"
                           style={{ width: "15%", minWidth: 140 }}
@@ -765,7 +719,7 @@ function Profile() {
                           Mã đơn hàng
                         </th>
                         <th
-                          className="sort align-middle pe-3"
+                          className="align-middle pe-3"
                           scope="col"
                           data-sort="status"
                           style={{ width: "15%", minWidth: 180 }}
@@ -773,7 +727,7 @@ function Profile() {
                           Trạng thái
                         </th>
                         <th
-                          className="sort align-middle text-start"
+                          className="align-middle text-start"
                           scope="col"
                           data-sort="delivery"
                           style={{ width: "20%", minWidth: 160 }}
@@ -781,7 +735,7 @@ function Profile() {
                           Phương thức thanh toán
                         </th>
                         <th
-                          className="sort align-middle pe-0 text-end"
+                          className="align-middle pe-0 text-end"
                           scope="col"
                           data-sort="date"
                           style={{ width: "15%", minWidth: 160 }}
@@ -789,7 +743,7 @@ function Profile() {
                           Ngày đặt hàng
                         </th>
                         <th
-                          className="sort align-middle text-end"
+                          className="align-middle text-end"
                           scope="col"
                           data-sort="total"
                           style={{ width: "15%", minWidth: 160 }}
@@ -797,7 +751,7 @@ function Profile() {
                           Tổng tiền
                         </th>
                         <th
-                          className="sort align-middle text-end"
+                          className="align-middle text-end"
                           scope="col"
                           data-sort="total"
                           style={{ width: "15%" }}
@@ -938,8 +892,9 @@ function Profile() {
                   </div>
                   <div className="col-auto d-flex">
                     <button
-                      className={`page-link ${currentOrderPage === 1 ? "disabled" : ""
-                        }`}
+                      className={`page-link ${
+                        currentOrderPage === 1 ? "disabled" : ""
+                      }`}
                       data-list-pagination="prev"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage - 1)
@@ -967,8 +922,9 @@ function Profile() {
                       ))}
                     </ul>
                     <button
-                      className={`page-link ${currentOrderPage === totalOrderPages ? "disabled" : ""
-                        }`}
+                      className={`page-link ${
+                        currentOrderPage === totalOrderPages ? "disabled" : ""
+                      }`}
                       data-list-pagination="next"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage + 1)
@@ -998,7 +954,7 @@ function Profile() {
                     <thead>
                       <tr>
                         <th
-                          className="sort white-space-nowrap align-middle"
+                          className="white-space-nowrap align-middle"
                           scope="col"
                           style={{ minWidth: 220 }}
                           data-sort="product"
@@ -1006,7 +962,7 @@ function Profile() {
                           PRODUCT
                         </th>
                         <th
-                          className="sort align-middle"
+                          className="align-middle"
                           scope="col"
                           data-sort="rating"
                           style={{ maxWidth: "10%" }}
@@ -1014,7 +970,7 @@ function Profile() {
                           RATING
                         </th>
                         <th
-                          className="sort align-middle"
+                          className="align-middle"
                           scope="col"
                           style={{ minWidth: 480 }}
                           data-sort="review"
@@ -1022,7 +978,7 @@ function Profile() {
                           REVIEW
                         </th>
                         <th
-                          className="sort align-middle"
+                          className="align-middle"
                           scope="col"
                           style={{ maxWidth: "12%" }}
                           data-sort="status"
@@ -1030,7 +986,7 @@ function Profile() {
                           STATUS
                         </th>
                         <th
-                          className="sort text-end align-middle"
+                          className="text-end align-middle"
                           scope="col"
                           style={{ maxWidth: "10%" }}
                           data-sort="date"
@@ -1038,7 +994,7 @@ function Profile() {
                           DATE
                         </th>
                         <th
-                          className="sort text-end pe-0 align-middle"
+                          className="text-end pe-0 align-middle"
                           scope="col"
                           style={{ width: "7%" }}
                         >
@@ -1712,8 +1668,9 @@ function Profile() {
                     </div>
                     <div className="col-auto d-flex">
                       <button
-                        className={`page-link ${currentPage === 1 ? "disabled" : ""
-                          }`}
+                        className={`page-link ${
+                          currentPage === 1 ? "disabled" : ""
+                        }`}
                         data-list-pagination="prev"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -1739,8 +1696,9 @@ function Profile() {
                         ))}
                       </ul>
                       <button
-                        className={`page-link ${currentPage === totalPages ? "disabled" : ""
-                          }`}
+                        className={`page-link ${
+                          currentPage === totalPages ? "disabled" : ""
+                        }`}
                         data-list-pagination="next"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}

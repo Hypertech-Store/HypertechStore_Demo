@@ -1,8 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-
-const Deals = () => {
+const ListParameter = () => {
   const breadcrumbTitles = {
-    "admin/phuong-thuc-thanh-toan": "Payment Method", // Đây là URL không có "/"
+    "admin/danh-sach-thong-so": "List Parameter", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -29,7 +28,7 @@ const Deals = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List payment</h2>
+            <h2 className="mb-0">List Parameter</h2>
           </div>
         </div>
 
@@ -56,13 +55,13 @@ const Deals = () => {
                   className="btn btn-primary"
                   id="addBtn"
                   data-bs-toggle="modal"
-                  data-bs-target="#addMethod"
+                  data-bs-target="#addParameter"
                   aria-haspopup="true"
                   aria-expanded="false"
                   data-bs-reference="parent"
                 >
                   <span className="fas fa-plus me-2" />
-                  Thêm phương thức
+                  Thêm thông số
                 </button>
               </div>
             </div>
@@ -75,105 +74,66 @@ const Deals = () => {
                     <th
                       className="white-space-nowrap fs-9 align-middle ps-0"
                       scope="col"
-                      style={{ width: "5%" }}
+                      style={{ width: "15%" }}
                     >
                       STT
                     </th>
                     <th
                       className="white-space-nowrap align-middle ps-4"
                       scope="col"
-                      style={{ width: "15%" }}
+                      style={{ width: "30%" }}
+                      data-sort="product"
                     >
-                      MÃ GIẢM GIÁ
-                    </th>
-                    <th
-                      className="white-space-nowrap align-middle ps-4"
-                      scope="col"
-                      style={{ width: "10%" }}
-                    >
-                      LOẠI GIẢM GIÁ
-                    </th>
-                    <th
-                      className="white-space-nowrap align-middle ps-4"
-                      scope="col"
-                      style={{ width: "10%" }}
-                    >
-                      GIÁ TRỊ GIẢM GIÁ
-                    </th>
-                    <th
-                      className="white-space-nowrap align-middle ps-4"
-                      scope="col"
-                      style={{ width: "10%" }}
-                    >
-                      NGÀY BẮT ĐẦU
-                    </th>
-                    <th
-                      className="white-space-nowrap align-middle ps-4"
-                      scope="col"
-                      style={{ width: "10%" }}
-                    >
-                      NGÀY KẾT THÚC
-                    </th>
-                    <th
-                      className="white-space-nowrap align-middle ps-4"
-                      scope="col"
-                      style={{ width: "15%" }}
-                    >
-                      GIÁ TRỊ ĐƠN HÀNG TỐI THIỂU
+                      DANH MỤC
                     </th>
 
                     <th
-                      className="white-space-nowrap align-middle ps-4"
+                      className="align-middle ps-4"
                       scope="col"
-                      style={{ width: "10%" }}
+                      style={{ width: "25%" }}
                     >
-                      Doanh thu dự kiến
+                      TÊN THÔNG SỐ
                     </th>
+
                     <th
-                      className="white-space-nowrap align-middle ps-4"
+                      className="align-middle ps-4"
                       scope="col"
-                      style={{ width: "15%" }}
-                    ></th>
+                      style={{ width: "25%" }}
+                    >
+                      MÔ TẢ
+                    </th>
+
+                    <th className="align-middle" style={{ width: "5%" }}>
+                      HÀNH ĐỘNG
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
                   <tr>
-                    <td>1</td>
-                    <td className="align-middle ps-4">MAGIAM001</td>
-                    <td className="align-middle ps-4">Phần trăm</td>
-                    <td className="align-middle ps-4">20%</td>
-                    <td className="align-middle ps-4">01-01-2024</td>
-                    <td className="align-middle ps-4">31-01-2024</td>
-                    <td className="align-middle ps-4">500,000 VND</td>
-
-                    <td className="align-middle ps-4">1,000,000 VND</td>
-                    <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#view">
-                            Chi tiết
-                          </a>
-                          <a className="dropdown-item" href="#export">
-                            Chỉnh sửa
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger">Xóa</a>
-                        </div>
-                      </div>
+                    <td></td>
+                    <td className="product align-middle ps-4"></td>
+                    <td className="tags align-middle review pb-2 ps-3"></td>
+                    <td className="tags align-middle review pb-2 ps-3"></td>
+                    <td className="align-middle white-space-nowrap">
+                      <button
+                        className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editParameter"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        data-bs-reference="parent"
+                      >
+                        <span className="fa-solid fa-pen-to-square fs-9" />
+                      </button>
+                      <button
+                        className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                        type="button"
+                      >
+                        <span className="fa-solid fa-trash fs-9" />
+                      </button>
                     </td>
                   </tr>
-                  {/* Thêm các dòng tương tự nếu cần */}
                 </tbody>
               </table>
             </div>
@@ -206,17 +166,17 @@ const Deals = () => {
       </div>
       <div
         className="modal fade"
-        id="addMethod"
+        id="addParameter"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="addMethod"
+        aria-labelledby="addParameter"
         aria-hidden="true"
       >
-        <div className="modal-dialog modal-lg modal-dialog-centered">
+        <div className="modal-dialog modal-l modal-dialog-centered">
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Add Method Payment</h3>
+              <h3 className="mb-0">Add Parameter</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -228,12 +188,37 @@ const Deals = () => {
             <div className="modal-body px-0 mt-1">
               <div className="row g-4">
                 <div className="col-lg-12">
-                  {/* Biến thể ) */}
-                  <div className="mb-4">
+                  <div className="mb-2">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Tên phương thức
+                      Danh mục
+                    </label>
+                    <select className="form-control">
+                      <option value="">Chọn danh mục</option>
+                      <option value="product1">Danh mục 1</option>
+                      <option value="product2">Danh mục 2</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="col-lg-12">
+                  <div className="mb-2">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Tên thông số
                     </label>
                     <input className="form-control" type="text" />
+                  </div>
+                </div>
+
+                <div className="col-lg-12">
+                  <div className="mb-2">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Mô tả
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows="4"
+                      placeholder="Mô tả thông số của sản phẩm"
+                    ></textarea>
                   </div>
                 </div>
               </div>
@@ -254,17 +239,17 @@ const Deals = () => {
 
       <div
         className="modal fade"
-        id="editMethod"
+        id="editParameter"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="editMethod"
+        aria-labelledby="editParameter"
         aria-hidden="true"
       >
-        <div className="modal-dialog modal-lg modal-dialog-centered">
+        <div className="modal-dialog modal-l modal-dialog-centered">
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Edit Method Payment</h3>
+              <h3 className="mb-0">Edit Parameter</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -276,12 +261,37 @@ const Deals = () => {
             <div className="modal-body px-0 mt-1">
               <div className="row g-4">
                 <div className="col-lg-12">
-                  {/* Biến thể (readonly) */}
-                  <div className="mb-4">
+                  <div className="mb-2">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Tên phương thức
+                      Danh mục
+                    </label>
+                    <select className="form-control">
+                      <option value="">Chọn danh mục</option>
+                      <option value="product1">Danh mục 1</option>
+                      <option value="product2">Danh mục 2</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="col-lg-12">
+                  <div className="mb-2">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Tên thông số
                     </label>
                     <input className="form-control" type="text" />
+                  </div>
+                </div>
+
+                <div className="col-lg-12">
+                  <div className="mb-2">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Mô tả
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows="4"
+                      placeholder="Mô tả thông số của sản phẩm"
+                    ></textarea>
                   </div>
                 </div>
               </div>
@@ -322,4 +332,4 @@ const Deals = () => {
     </div>
   );
 };
-export default Deals;
+export default ListParameter;
