@@ -1,7 +1,10 @@
+/* eslint-disable no-unused-vars */
+import icon from "../../../../assets/img/icons/image-icon.png";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 const ListValue = () => {
   const breadcrumbTitles = {
-    "admin/danh-sach-gia-tri": "List value", // Đây là URL không có "/"
+    "admin/chi-tiet-bien-the": "Variant detail", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -11,7 +14,35 @@ const ListValue = () => {
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+  const [formData, setFormData] = useState({
+    image: null, // Dữ liệu hình ảnh
+  });
 
+  const [imagePreview, setImagePreview] = useState(""); // Hình ảnh xem trước
+
+  // Hàm xử lý khi ảnh được thả vào khu vực dropzone
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0]; // Lấy ảnh đầu tiên thả vào
+    if (file) {
+      setFormData({ image: file });
+      setImagePreview(URL.createObjectURL(file)); // Cập nhật hình ảnh xem trước
+    }
+  };
+
+  // Hàm xử lý sự kiện kéo thả trên khu vực dropzone
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  // Hàm xử lý khi người dùng chọn ảnh từ thiết bị
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ image: file });
+      setImagePreview(URL.createObjectURL(file)); // Cập nhật hình ảnh xem trước
+    }
+  };
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
@@ -28,7 +59,20 @@ const ListValue = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List value</h2>
+            <h2 className="mb-0 mt-3">List variant detail</h2>
+          </div>
+          <div className="col-auto ms-auto mt-3">
+            <div className="search-box">
+              <form className="position-relative">
+                <input
+                  className="form-control search-input search"
+                  type="search"
+                  placeholder="Search customers"
+                  aria-label="Search"
+                />
+                <span className="fas fa-search search-box-icon" />
+              </form>
+            </div>
           </div>
         </div>
 
@@ -36,28 +80,6 @@ const ListValue = () => {
           id="products"
           data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
         >
-          <div className="mb-4">
-            <div className="d-flex flex-wrap gap-3">
-              <div className="search-box">
-                <form className="position-relative">
-                  <input
-                    className="form-control search-input search"
-                    type="search"
-                    placeholder="Search products"
-                    aria-label="Search"
-                  />
-                  <span className="fas fa-search search-box-icon" />
-                </form>
-              </div>
-
-              <div className="ms-xxl-auto ms-auto">
-                <button className="btn btn-primary" id="addBtn">
-                  <span className="fas fa-plus me-2" />
-                  Add value
-                </button>
-              </div>
-            </div>
-          </div>
           <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis border-top border-bottom border-translucent position-relative top-1">
             <div className="table-responsive scrollbar mx-n1 px-1">
               <table className="table fs-9 mb-0">
@@ -66,24 +88,27 @@ const ListValue = () => {
                     <th
                       className="white-space-nowrap fs-9 align-middle ps-0"
                       scope="col"
-                      style={{ width: "15%" }}
+                      style={{ width: "10%" }}
                     >
                       STT
+                    </th>
+                    <th className="align-middle" style={{ width: "20%" }}>
+                      ẢNH BIẾN THỂ
                     </th>
                     <th
                       className="white-space-nowrap align-middle ps-4"
                       scope="col"
-                      style={{ width: "30%" }}
+                      style={{ width: "25%" }}
                       data-sort="product"
                     >
-                      VALUE NAME
+                      BIẾN THỂ
                     </th>
                     <th
                       className="align-middle ps-3"
                       scope="col"
-                      style={{ width: "25%" }}
+                      style={{ width: "20%" }}
                     >
-                      DESCRIPTION
+                      GIÁ BIẾN THỂ
                     </th>
 
                     <th
@@ -91,10 +116,10 @@ const ListValue = () => {
                       scope="col"
                       style={{ width: "25%" }}
                     >
-                      PUBLISHED ON
+                      HÀNG TỒN KHO
                     </th>
-                    <th className="align-middle ps-4" style={{ width: "5%" }}>
-                      ACTION
+                    <th className="align-middle" style={{ width: "5%" }}>
+                      HÀNH ĐỘNG
                     </th>
                   </tr>
                 </thead>
@@ -105,13 +130,14 @@ const ListValue = () => {
                     <td className="tags align-middle review pb-2 ps-3"></td>
 
                     <td className="time align-middle text-body-tertiary text-opacity-85 ps-4"></td>
+                    <td className="time align-middle text-body-tertiary text-opacity-85 ps-4"></td>
 
                     <td className="align-middle white-space-nowrap">
                       <button
                         className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                         type="button"
                         data-bs-toggle="modal"
-                        data-bs-target="#updateCustomer"
+                        data-bs-target="#updateVariant"
                         aria-haspopup="true"
                         aria-expanded="false"
                         data-bs-reference="parent"
@@ -158,17 +184,17 @@ const ListValue = () => {
       </div>
       <div
         className="modal fade"
-        id="updateCustomer"
+        id="updateVariant"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="updateCustomer"
+        aria-labelledby="updateVariant"
         aria-hidden="true"
       >
-        <div className="modal-dialog modal-l modal-dialog-centered">
+        <div className="modal-dialog modal-lg modal-dialog-centered">
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Edit Attribute Name</h3>
+              <h3 className="mb-0">Edit Variant Detail</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -180,17 +206,112 @@ const ListValue = () => {
             <div className="modal-body px-0 mt-1">
               <div className="row g-4">
                 <div className="col-lg-12">
+                  {/* Ảnh biến thể */}
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Attribute Name
+                      Ảnh biến thể
                     </label>
-                    <input className="form-control" type="text" />
+
+                    <div
+                      className="dropzone dropzone-multiple p-0 mb-5"
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      onClick={() =>
+                        document.getElementById("fileInput").click()
+                      } // Kích hoạt input khi click
+                      id="my-awesome-dropzone"
+                      data-dropzone="data-dropzone"
+                    >
+                      <div className="fallback">
+                        <input
+                          id="fileInput"
+                          type="file"
+                          style={{ display: "none" }} // Ẩn input
+                          onChange={handleFileChange}
+                          multiple="multiple"
+                        />
+                      </div>
+
+                      {formData.image ? (
+                        <div className="dz-preview d-flex flex-wrap">
+                          <div
+                            className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2 col-lg-12"
+                            style={{ height: 150 }}
+                          >
+                            <img
+                              className="dz-image"
+                              src={URL.createObjectURL(formData.image)}
+                              alt="Preview"
+                              data-dz-thumbnail="data-dz-thumbnail"
+                              style={{
+                                maxWidth: "100%",
+                                maxHeight: "100%",
+                                objectFit: "contain",
+                              }}
+                            />
+                            <a
+                              className="dz-remove text-body-quaternary"
+                              href="#!"
+                              data-dz-remove="data-dz-remove"
+                            >
+                              <span data-feather="x" />
+                            </a>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className="dz-message text-body-tertiary text-opacity-85"
+                          data-dz-message="data-dz-message"
+                        >
+                          Drag your photo here
+                          <span className="text-body-secondary px-1">or</span>
+                          <button className="btn btn-link p-0" type="button">
+                            Browse from device
+                          </button>
+                          <br />
+                          <img
+                            className="mt-3 me-2"
+                            src={icon}
+                            width={40}
+                            alt="upload icon"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Biến thể (readonly) */}
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Description
+                      Biến thể
                     </label>
-                    <input className="form-control" type="text" />
+                    <input className="form-control" type="text" readOnly />
+                  </div>
+
+                  {/* Giá biến thể */}
+                  <div className="mb-4">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Giá biến thể
+                    </label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min="0"
+                      placeholder="Nhập giá biến thể"
+                    />
+                  </div>
+
+                  {/* Hàng tồn kho */}
+                  <div className="mb-4">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Hàng tồn kho
+                    </label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min="0"
+                      placeholder="Nhập số lượng hàng tồn kho"
+                    />
                   </div>
                 </div>
               </div>

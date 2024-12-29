@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 const listOfAttributeName = () => {
   const breadcrumbTitles = {
-    "admin/danh-sach-ten-thuoc-tinh": "List attribute name", // Đây là URL không có "/"
+    "admin/ten-thuoc-tinh": "List attribute name", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -51,9 +51,17 @@ const listOfAttributeName = () => {
               </div>
 
               <div className="ms-xxl-auto ms-auto">
-                <button className="btn btn-primary" id="addBtn">
+                <button
+                  className="btn btn-primary"
+                  id="addBtn"
+                  data-bs-toggle="modal"
+                  data-bs-target="#addAttribute"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  data-bs-reference="parent"
+                >
                   <span className="fas fa-plus me-2" />
-                  Add Attribute Name
+                  Thêm thuộc tính
                 </button>
               </div>
             </div>
@@ -78,13 +86,6 @@ const listOfAttributeName = () => {
                     >
                       ATTRIBUTE NAME
                     </th>
-                    <th
-                      className="align-middle ps-3"
-                      scope="col"
-                      style={{ width: "25%" }}
-                    >
-                      DESCRIPTION
-                    </th>
 
                     <th
                       className="align-middle ps-4"
@@ -104,14 +105,12 @@ const listOfAttributeName = () => {
                     <td className="product align-middle ps-4"></td>
                     <td className="tags align-middle review pb-2 ps-3"></td>
 
-                    <td className="time align-middle text-body-tertiary text-opacity-85 ps-4"></td>
-
                     <td className="align-middle white-space-nowrap">
                       <button
                         className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                         type="button"
                         data-bs-toggle="modal"
-                        data-bs-target="#updateCustomer"
+                        data-bs-target="#editAttribute"
                         aria-haspopup="true"
                         aria-expanded="false"
                         data-bs-reference="parent"
@@ -158,17 +157,20 @@ const listOfAttributeName = () => {
       </div>
       <div
         className="modal fade"
-        id="updateCustomer"
+        id="addAttribute"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="updateCustomer"
+        aria-labelledby="addAttribute"
         aria-hidden="true"
       >
-        <div className="modal-dialog modal-l modal-dialog-centered">
+        <div
+          className="modal-dialog modal-l modal-dialog-centered"
+          style={{ width: "25pc" }}
+        >
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Edit Attribute Name</h3>
+              <h3 className="mb-0">Add Attribute</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -182,13 +184,7 @@ const listOfAttributeName = () => {
                 <div className="col-lg-12">
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Attribute Name
-                    </label>
-                    <input className="form-control" type="text" />
-                  </div>
-                  <div className="mb-4">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Description
+                      Tên thuộc tính
                     </label>
                     <input className="form-control" type="text" />
                   </div>
@@ -201,9 +197,59 @@ const listOfAttributeName = () => {
                 data-bs-dismiss="modal"
                 aria-label="Close"
               >
-                Cancel
+                Hủy bỏ
               </button>
-              <button className="btn btn-primary my-0">Update</button>
+              <button className="btn btn-primary my-0">Thêm mới</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="modal fade"
+        id="editAttribute"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+        tabIndex={-1}
+        aria-labelledby="editAttribute"
+        aria-hidden="true"
+      >
+        <div
+          className="modal-dialog modal-l modal-dialog-centered"
+          style={{ width: "25pc" }}
+        >
+          <div className="modal-content bg-body-highlight p-6">
+            <div className="modal-header justify-content-between border-0 p-0 mb-2">
+              <h3 className="mb-0">Edit Attribute</h3>
+              <button
+                className="btn btn-sm btn-phoenix-secondary"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <span className="fas fa-times text-danger" />
+              </button>
+            </div>
+            <div className="modal-body px-0 mt-1">
+              <div className="row g-4">
+                <div className="col-lg-12">
+                  <div className="mb-4">
+                    <label className="text-body-highlight fw-bold mb-2">
+                      Tên thuộc tính
+                    </label>
+                    <input className="form-control" type="text" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer border-0 pt-0 px-0 pb-0">
+              <button
+                className="btn btn-link text-danger px-3 my-0"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                Hủy bỏ
+              </button>
+              <button className="btn btn-primary my-0">Cập nhật</button>
             </div>
           </div>
         </div>

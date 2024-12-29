@@ -3,7 +3,7 @@ import axios from "axios";
 import PulseLoader from "react-spinners/PulseLoader";
 import { Link, useLocation } from "react-router-dom";
 
-import avatar from "../../../../assets/img/team/150x150/avatar.png";
+import avatar from "../../../assets/img/team/150x150/avatar.png";
 const listCustomer = () => {
   const link = "http://127.0.0.1:8000/storage/";
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -84,9 +84,9 @@ const listCustomer = () => {
       <div className="mb-9">
         <div className="row g-2 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0 mt-5">List customers</h2>
+            <h2 className="mb-0 mt-3">List customers</h2>
           </div>
-          <div className="col-auto ms-auto">
+          <div className="col-auto ms-auto mt-3">
             <div className="search-box">
               <form className="position-relative">
                 <input
@@ -181,7 +181,7 @@ const listCustomer = () => {
                             className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                             type="button"
                             data-bs-toggle="modal"
-                            data-bs-target="#addDealModal"
+                            data-bs-target="#addCustomer"
                             aria-haspopup="true"
                             aria-expanded="false"
                             data-bs-reference="parent"
@@ -269,11 +269,11 @@ const listCustomer = () => {
       </div>
       <div
         className="modal fade"
-        id="addDealModal"
+        id="addCustomer"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="addDealModal"
+        aria-labelledby="addCustomer"
         aria-hidden="true"
       >
         <div className="modal-dialog modal-lg modal-dialog-centered">
@@ -304,7 +304,6 @@ const listCustomer = () => {
                       style={{
                         width: "170px",
                         height: "170px",
-                        marginLeft: "50px",
                       }}
                     />
                   </div>

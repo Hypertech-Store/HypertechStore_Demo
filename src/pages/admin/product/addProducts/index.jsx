@@ -1,5 +1,5 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 const AddProducts = () => {
   const navbarTopShape = window.config?.config?.phoenixNavbarTopShape;
   const navbarPosition = window.config?.config?.phoenixNavbarPosition;
@@ -102,7 +102,6 @@ const AddProducts = () => {
   const [attributes, setAttributes] = useState([]); // Dữ liệu từ API
   const [options, setOptions] = useState([]); // Danh sách options được thêm
 
-
   useEffect(() => {
     fetchCategories();
     fetchAttributeValues();
@@ -165,10 +164,10 @@ const AddProducts = () => {
       prev.map((option, i) =>
         i === index
           ? {
-            ...option,
-            attributeId,
-            selectedValues: [],
-          }
+              ...option,
+              attributeId,
+              selectedValues: [],
+            }
           : option
       )
     );
@@ -179,11 +178,11 @@ const AddProducts = () => {
       prev.map((option, index) =>
         index === optionIndex
           ? {
-            ...option,
-            selectedValues: option.selectedValues.includes(valueId)
-              ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
-              : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
-          }
+              ...option,
+              selectedValues: option.selectedValues.includes(valueId)
+                ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
+                : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
+            }
           : option
       )
     );
@@ -192,13 +191,16 @@ const AddProducts = () => {
   // get sub categori
   const fetchSubCategories = async (categoryId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/danh-muc-con/${categoryId}`, {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/danh-muc-con/${categoryId}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const data = await response.json();
       if (response.ok) {
@@ -290,13 +292,16 @@ const AddProducts = () => {
 
     // Gửi dữ liệu qua API
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/san-pham/create", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-        },
-        body: form, // FormData chứa dữ liệu
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/san-pham/create",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          body: form, // FormData chứa dữ liệu
+        }
+      );
 
       const result = await response.json();
 
@@ -368,34 +373,66 @@ const AddProducts = () => {
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
-                style={{
-                  border: "2px dashed #ccc",
-                  padding: "20px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
+                id="my-awesome-dropzone"
+                data-dropzone="data-dropzone"
               >
+                <div className="fallback">
+                  <input
+                    id="fileInput"
+                    type="file"
+                    style={{ display: "none" }} // Ẩn input
+                    onChange={handleFileChange}
+                    multiple="multiple"
+                  />
+                </div>
+
                 {formData.image ? (
-                  <div
-                    className="border border-translucent bg-body-emphasis rounded-3 d-flex flex-center position-relative me-2 mb-2"
-                    style={{ height: 80, width: 80 }}
-                  >
-                    <img
-                      src={URL.createObjectURL(formData.image)}
-                      alt="Preview"
-                      style={{ maxWidth: "100%", maxHeight: "100%" }}
-                    />
+                  <div className="dz-preview d-flex flex-wrap">
+                    <div
+                      className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2"
+                      style={{ height: 120, width: 120 }}
+                    >
+                      <img
+                        className="dz-image"
+                        src={URL.createObjectURL(formData.image)}
+                        alt="Preview"
+                        data-dz-thumbnail="data-dz-thumbnail"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                      <a
+                        className="dz-remove text-body-quaternary"
+                        href="#!"
+                        data-dz-remove="data-dz-remove"
+                      >
+                        <span data-feather="x" />
+                      </a>
+                    </div>
                   </div>
                 ) : (
-                  <p>Drag & drop a file here or click to upload</p>
+                  <div
+                    className="dz-message text-body-tertiary text-opacity-85"
+                    data-dz-message="data-dz-message"
+                  >
+                    Drag your photo here
+                    <span className="text-body-secondary px-1">or</span>
+                    <button className="btn btn-link p-0" type="button">
+                      Browse from device
+                    </button>
+                    <br />
+                    <img
+                      className="mt-3 me-2"
+                      src={icon}
+                      width={40}
+                      alt="upload icon"
+                    />
+                  </div>
                 )}
-                <input
-                  id="fileInput"
-                  type="file"
-                  style={{ display: "none" }} // Ẩn input
-                  onChange={handleFileChange}
-                />
               </div>
+
               <h4 className="mb-3">Inventory</h4>
               <div className="row g-0 border-top border-bottom">
                 <div className="col-sm-4">
@@ -969,7 +1006,10 @@ const AddProducts = () => {
                           );
 
                           return (
-                            <div className="col-12 col-sm-6 col-xl-12" key={index}>
+                            <div
+                              className="col-12 col-sm-6 col-xl-12"
+                              key={index}
+                            >
                               <div className="border-bottom border-translucent border-dashed border-sm-0 border-bottom-xl pb-4">
                                 <div className="d-flex flex-wrap mb-2">
                                   <h5 className="text-body-highlight me-2">
@@ -1004,25 +1044,32 @@ const AddProducts = () => {
                                 {selectedAttribute && (
                                   <div className="product-variant-checkbox-menu">
                                     <h6>Chọn giá trị:</h6>
-                                    {selectedAttribute.gia_tri_thuoc_tinh.map((value) => (
-                                      <div key={value.id} className="form-check mb-2">
-                                        <input
-                                          className="form-check-input"
-                                          type="checkbox"
-                                          id={`value-${index}-${value.id}`}
-                                          checked={option.selectedValues.includes(value.id)}
-                                          onChange={() =>
-                                            handleValueChange(index, value.id)
-                                          }
-                                        />
-                                        <label
-                                          className="form-check-label"
-                                          htmlFor={`value-${index}-${value.id}`}
+                                    {selectedAttribute.gia_tri_thuoc_tinh.map(
+                                      (value) => (
+                                        <div
+                                          key={value.id}
+                                          className="form-check mb-2"
                                         >
-                                          {value.ten_gia_tri}
-                                        </label>
-                                      </div>
-                                    ))}
+                                          <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            id={`value-${index}-${value.id}`}
+                                            checked={option.selectedValues.includes(
+                                              value.id
+                                            )}
+                                            onChange={() =>
+                                              handleValueChange(index, value.id)
+                                            }
+                                          />
+                                          <label
+                                            className="form-check-label"
+                                            htmlFor={`value-${index}-${value.id}`}
+                                          >
+                                            {value.ten_gia_tri}
+                                          </label>
+                                        </div>
+                                      )
+                                    )}
                                   </div>
                                 )}
                               </div>

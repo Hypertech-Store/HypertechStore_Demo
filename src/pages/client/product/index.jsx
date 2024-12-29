@@ -1,23 +1,31 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FadeLoader } from "react-spinners"; // Thêm import FadeLoader
 
 const Shop = () => {
   document.title = "Hypertech Store - Cửa hàng";
   const baseUrl = "http://127.0.0.1:8000/storage/";
   // const [userId] = useState(() => localStorage.getItem('userId'));
+  const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [newProducts, setNewProducts] = useState([]);
   const [saleProducts, setSaleProducts] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [currentTime, setCurrentTime] = useState(new Date());
   const [currentPage, setCurrentPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const [productsPerPage] = useState(9); // Set max 9 products per page
+  // eslint-disable-next-line no-unused-vars
+  const [wishlistData, setWishlistData] = useState(null);
+  const [error, setError] = useState(null);
 
   // Calculate total pages based on total products and products per page
   const totalPages = Math.ceil(totalProducts / productsPerPage);
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true); // Hiển thị loader khi bắt đầu gọi API
       try {
         const response = await fetch(
           `http://127.0.0.1:8000/api/san-pham/allProduct?page=${currentPage}&limit=${productsPerPage}`
@@ -25,8 +33,8 @@ const Shop = () => {
         const data = await response.json();
 
         if (data.status === "success" && Array.isArray(data.data.data)) {
-          setProducts(data.data.data); // Set the current products for the page
-          setTotalProducts(data.data.total); // Update the total products count
+          setProducts(data.data.data);
+          setTotalProducts(data.data.total);
         } else {
           console.error(
             "Error: Expected an array but got",
@@ -35,10 +43,17 @@ const Shop = () => {
         }
       } catch (error) {
         console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false); // Dừng loader khi dữ liệu được tải xong
       }
     };
 
     fetchProducts();
+
+    // Timeout 10 giây để đảm bảo dừng `loading` ngay cả khi lỗi xảy ra
+    const timeout = setTimeout(() => setLoading(false), 10000);
+
+    return () => clearTimeout(timeout); // Dọn dẹp timeout khi component unmount
   }, [currentPage]);
 
   const handlePageChange = (page) => {
@@ -99,7 +114,6 @@ const Shop = () => {
     }
   };
 
-  const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null);
   const [wishlistStatus, setWishlistStatus] = useState({});
 
@@ -125,7 +139,6 @@ const Shop = () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
-
 
   // Hàm để khởi tạo wishlist từ localStorage nếu có
   useEffect(() => {
@@ -175,34 +188,30 @@ const Shop = () => {
     }
   };
 
-  const [wishlistData, setWishlistData] = useState(null);
-  const [error, setError] = useState(null);
-
   useEffect(() => {
     // Hàm gọi API
     const fetchWishlist = async () => {
       try {
         if (!userId) return; // Chỉ gọi API khi `userId` có giá trị hợp lệ
         setLoading(true); // Đánh dấu là đang tải dữ liệu
-        const response = await fetch(`http://127.0.0.1:8000/api/danh-sach-yeu-thich/${userId}`);
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/danh-sach-yeu-thich/${userId}`
+        );
 
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
         console.log(response);
 
-
         const data = await response.json();
         setWishlistData(data);
         const status = {};
-        data.forEach(item => {
+        data.forEach((item) => {
           status[item.san_pham_id] = true;
         });
         console.log(status);
 
-
         setWishlistStatus(status);
-
       } catch (err) {
         setError(err.message); // Lưu lỗi vào state nếu có
       } finally {
@@ -214,13 +223,24 @@ const Shop = () => {
   }, [userId]); // Dùng [] để gọi API chỉ 1 lần khi component mount
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh", // Toàn màn hình
+          backgroundColor: "#f9f9f9", // Nền
+        }}
+      >
+        <FadeLoader color="#36d7b7" />
+      </div>
+    );
   }
 
   if (error) {
     return <div>Error: {error}</div>;
   }
-
 
   return (
     <>
@@ -1291,8 +1311,9 @@ const Shop = () => {
                                 )}
 
                                 <button
-                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${wishlistStatus[product.id] ? "active" : ""
-                                    }`}
+                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${
+                                    wishlistStatus[product.id] ? "active" : ""
+                                  }`}
                                   data-bs-toggle="tooltip"
                                   data-bs-placement="top"
                                   title={
@@ -1306,15 +1327,17 @@ const Shop = () => {
                                   disabled={loading}
                                 >
                                   <span
-                                    className={`fas fa-heart d-block-hover ${wishlistStatus[product.id] ? "d-none" : ""
-                                      }`}
+                                    className={`fas fa-heart d-block-hover ${
+                                      wishlistStatus[product.id] ? "d-none" : ""
+                                    }`}
                                     data-fa-transform="down-1"
                                   />
                                   <span
-                                    className={`far fa-heart d-none-hover ${!wishlistStatus[product.id]
-                                      ? "d-block"
-                                      : ""
-                                      }`}
+                                    className={`far fa-heart d-none-hover ${
+                                      !wishlistStatus[product.id]
+                                        ? "d-block"
+                                        : ""
+                                    }`}
                                     data-fa-transform="down-1"
                                   />
                                 </button>
@@ -1396,8 +1419,9 @@ const Shop = () => {
                   <ul className="pagination mb-0">
                     {/* Previous Button */}
                     <li
-                      className={`page-item ${currentPage === 1 ? "disabled" : ""
-                        }`}
+                      className={`page-item ${
+                        currentPage === 1 ? "disabled" : ""
+                      }`}
                     >
                       <a
                         className="page-link"
@@ -1415,8 +1439,9 @@ const Shop = () => {
                     {/* Page Numbers */}
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
-                        className={`page-item ${currentPage === index + 1 ? "active" : ""
-                          }`}
+                        className={`page-item ${
+                          currentPage === index + 1 ? "active" : ""
+                        }`}
                         key={index}
                       >
                         <a
@@ -1434,8 +1459,9 @@ const Shop = () => {
 
                     {/* Next Button */}
                     <li
-                      className={`page-item ${currentPage === totalPages ? "disabled" : ""
-                        }`}
+                      className={`page-item ${
+                        currentPage === totalPages ? "disabled" : ""
+                      }`}
                     >
                       <a
                         className="page-link"
