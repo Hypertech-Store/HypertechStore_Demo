@@ -125,7 +125,7 @@ const listOfAttributeName = () => {
 
     try {
       await axios.put(`http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${selectedAttribute.id}`, {
-        name: attributeName,
+        ten_thuoc_tinh: attributeName,
       });
       alert("Cập nhật thành công!");
       setData((prevState) => ({
