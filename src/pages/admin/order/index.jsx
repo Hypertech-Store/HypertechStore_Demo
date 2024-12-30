@@ -224,22 +224,9 @@ const Order = () => {
                   <tr>
                     <th
                       className="white-space-nowrap align-middle pe-3 ps-0"
-                      style={{ width: "5%" }}
-                    >
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          id="checkbox-bulk-order-select"
-                          type="checkbox"
-                          data-bulk-select='{"body":"order-table-body"}'
-                        />
-                      </div>
-                    </th>
-                    <th
-                      className="white-space-nowrap align-middle pe-3 ps-0"
                       scope="col"
                       data-sort="order"
-                      style={{ minWidth: 180 }}
+                      style={{ width: "15%", minWidth: 140 }}
                     >
                       Mã đơn hàng
                     </th>
@@ -247,7 +234,7 @@ const Order = () => {
                       className="align-middle pe-3"
                       scope="col"
                       data-sort="status"
-                      style={{ width: "15%", minWidth: 180 }}
+                      style={{ width: "20%", minWidth: 180 }}
                     >
                       Trạng thái
                     </th>
@@ -255,31 +242,31 @@ const Order = () => {
                       className="align-middle text-start"
                       scope="col"
                       data-sort="delivery"
-                      style={{ width: "20%", minWidth: 180 }}
+                      style={{ width: "30%", minWidth: 160 }}
                     >
                       Phương thức thanh toán
                     </th>
                     <th
-                      className="align-middle pe-0 text-end"
+                      className="align-middle pe-0 text-start"
                       scope="col"
                       data-sort="date"
-                      style={{ width: "15%", minWidth: 150 }}
+                      style={{ width: "30%", minWidth: 100 }}
                     >
                       Ngày đặt hàng
                     </th>
                     <th
-                      className="align-middle text-end"
+                      className="align-middle text-start"
                       scope="col"
                       data-sort="total"
-                      style={{ width: "15%", minWidth: 150 }}
+                      style={{ width: "20%", minWidth: 200 }}
                     >
                       Tổng tiền
                     </th>
 
                     <th
-                      className="align-middle pe-0 text-end"
+                      className="align-middle pe-0"
                       scope="col"
-                      style={{ width: "15%" }}
+                      style={{ width: "5%" }}
                     >
                       {" "}
                     </th>
@@ -291,19 +278,6 @@ const Order = () => {
                       key={order.id}
                       className="hover-actions-trigger btn-reveal-trigger position-static"
                     >
-                      <td
-                        className="white-space-nowrap align-middle pe-3 ps-0"
-                        style={{ width: "5%" }}
-                      >
-                        <div className="form-check mb-0 fs-8">
-                          <input
-                            className="form-check-input"
-                            id="checkbox-bulk-order-select"
-                            type="checkbox"
-                            data-bulk-select='{"body":"order-table-body"}'
-                          />
-                        </div>
-                      </td>
                       <td className="order align-middle white-space-nowrap py-2 ps-0">
                         <a className="fw-semibold text-primary" href="#!">
                           #{order.ma_don_hang}
@@ -324,10 +298,10 @@ const Order = () => {
                       <td className="delivery align-middle white-space-nowrap text-body py-2">
                         {order.phuong_thuc_thanh_toan.ten_phuong_thuc}
                       </td>
-                      <td className="total align-middle text-body-tertiary text-end py-2">
+                      <td className="total align-middle text-body-tertiary text-start py-2">
                         {new Date(order.created_at).toLocaleString()}
                       </td>
-                      <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
+                      <td className="date align-middle fw-semibold text-start py-2 text-body-highlight">
                         {new Intl.NumberFormat("vi-VN").format(
                           order.tong_tien
                         ) + " VNĐ"}

@@ -15,6 +15,7 @@ function Profile() {
   const ordersPerPage = 5; // Number of orders per page
   const [totalSpent, setTotalSpent] = useState(0); // Tổng tiền đã chi tiêu
   const [lastOrderDate, setLastOrderDate] = useState(""); // Thời gian đơn hàng cuối
+  // eslint-disable-next-line no-unused-vars
   const [totalOrders, setTotalOrders] = useState(0); // Tổng số đơn hàng
 
   const storedUserInfo = localStorage.getItem("userInfo");
@@ -85,18 +86,8 @@ function Profile() {
   }, [currentOrderPage]); // Tái nạp dữ liệu khi trang hiện tại thay đổi
 
   // Handle previous page
-  const handlePrevPage = () => {
-    if (currentOrderPage > 1) {
-      setCurrentOrderPage(currentOrderPage - 1);
-    }
-  };
 
   // Handle next page
-  const handleNextPage = () => {
-    if (currentOrderPage < totalOrderPages) {
-      setCurrentOrderPage(currentOrderPage + 1);
-    }
-  };
 
   // Handle page change (clicking a page number)
   const handleOrderPageChange = (pageNumber) => {
@@ -325,6 +316,28 @@ function Profile() {
       }));
     }
   };
+
+  // Hàm để lấy class theo trạng thái đơn hàng
+  function getBadgeClass(statusId) {
+    switch (statusId) {
+      case 1:
+        return "badge-phoenix-warning"; // Chờ xác nhận
+      case 2:
+        return "badge-phoenix-info"; // Chờ lấy hàng
+      case 3:
+        return "badge-phoenix-primary"; // Chờ giao hàng
+      case 4:
+        return "badge-phoenix-secondary"; // Đang vận chuyển
+      case 5:
+        return "badge-phoenix-success"; // Đã giao hàng
+      // case 6:
+      //   return "badge-phoenix-success"; // Hoàn thành đơn
+      case 6:
+        return "badge-phoenix-danger"; // Đơn giao thất bại
+      default:
+        return "badge-phoenix-light"; // Mặc định
+    }
+  }
 
   return (
     <section className="pt-5 pb-9">
@@ -722,7 +735,7 @@ function Profile() {
                           className="align-middle pe-3"
                           scope="col"
                           data-sort="status"
-                          style={{ width: "15%", minWidth: 180 }}
+                          style={{ width: "20%", minWidth: 180 }}
                         >
                           Trạng thái
                         </th>
@@ -730,38 +743,31 @@ function Profile() {
                           className="align-middle text-start"
                           scope="col"
                           data-sort="delivery"
-                          style={{ width: "20%", minWidth: 160 }}
+                          style={{ width: "30%", minWidth: 160 }}
                         >
                           Phương thức thanh toán
                         </th>
                         <th
-                          className="align-middle pe-0 text-end"
+                          className="align-middle pe-0 text-start"
                           scope="col"
                           data-sort="date"
-                          style={{ width: "15%", minWidth: 160 }}
+                          style={{ width: "30%", minWidth: 100 }}
                         >
                           Ngày đặt hàng
                         </th>
                         <th
-                          className="align-middle text-end"
+                          className="align-middle text-start"
                           scope="col"
                           data-sort="total"
-                          style={{ width: "15%", minWidth: 160 }}
+                          style={{ width: "20%", minWidth: 200 }}
                         >
                           Tổng tiền
                         </th>
+
                         <th
-                          className="align-middle text-end"
+                          className="align-middle pe-0"
                           scope="col"
-                          data-sort="total"
-                          style={{ width: "15%" }}
-                        >
-                          Chi tiết đơn hàng
-                        </th>
-                        <th
-                          className="align-middle pe-0 text-end"
-                          scope="col"
-                          style={{ width: "15%" }}
+                          style={{ width: "5%" }}
                         >
                           {" "}
                         </th>
@@ -779,30 +785,30 @@ function Profile() {
                             </a>
                           </td>
                           <td className="status align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
-                            <span className="badge badge-phoenix fs-10 badge-phoenix-success">
+                            <span
+                              className={`badge badge-phoenix fs-10 ${getBadgeClass(
+                                order.trang_thai_don_hang_id
+                              )}`}
+                            >
                               <span className="badge-label">
                                 {order.trang_thai_don_hang.ten_trang_thai}
                               </span>
-                              <span
-                                className="ms-1"
-                                data-feather="check"
-                                style={{ height: "12.8px", width: "12.8px" }}
-                              />
                             </span>
                           </td>
+
                           <td className="delivery align-middle white-space-nowrap text-body py-2">
                             {order.phuong_thuc_thanh_toan.ten_phuong_thuc}
                           </td>
-                          <td className="total align-middle text-body-tertiary text-end py-2">
+                          <td className="total align-middle text-body-tertiary text-start py-2">
                             {new Date(order.created_at).toLocaleString()}
                           </td>
-                          <td className="date align-middle fw-semibold text-end py-2 text-body-highlight">
+                          <td className="date align-middle fw-semibold text-start py-2 text-body-highlight">
                             {new Intl.NumberFormat("vi-VN").format(
                               order.tong_tien
                             ) + " VNĐ"}
                           </td>
 
-                          <td className="details align-middle text-end white-space-nowrap py-2">
+                          {/* <td className="details align-middle text-end white-space-nowrap py-2">
                             <button
                               className="btn btn-sm btn-info"
                               data-bs-toggle="collapse"
@@ -839,7 +845,7 @@ function Profile() {
                                 ))}
                               </div>
                             </div>
-                          </td>
+                          </td> */}
                           <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
                             <div className="btn-reveal-trigger position-static">
                               <button
@@ -855,7 +861,7 @@ function Profile() {
                               </button>
                               <div className="dropdown-menu dropdown-menu-end py-2">
                                 <a className="dropdown-item" href="#!">
-                                  View
+                                  Chi tiết
                                 </a>
                                 <a className="dropdown-item" href="#!">
                                   Export
@@ -865,7 +871,7 @@ function Profile() {
                                   className="dropdown-item text-danger"
                                   href="#!"
                                 >
-                                  Remove
+                                  Hủy đơn
                                 </a>
                               </div>
                             </div>
