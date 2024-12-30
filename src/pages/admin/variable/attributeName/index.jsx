@@ -125,7 +125,7 @@ const listOfAttributeName = () => {
 
     try {
       await axios.put(`http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${selectedAttribute.id}`, {
-        name: attributeName,
+        ten_thuoc_tinh: attributeName,
       });
       alert("Cập nhật thành công!");
       setData((prevState) => ({
@@ -134,8 +134,7 @@ const listOfAttributeName = () => {
           item.id === selectedAttribute.id ? { ...item, ten_thuoc_tinh: attributeName } : item
         ),
       }));
-      setSelectedAttribute(null);
-      setAttributeName("");
+
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Cập nhật thất bại, vui lòng thử lại!");
