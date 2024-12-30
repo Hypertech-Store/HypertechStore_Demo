@@ -3,147 +3,18 @@ import { useState, useEffect } from "react";
 import axios from 'axios';
 
 const listOfAttributeName = () => {
-  const [attributes, setAttributes] = useState([]); // Danh sách thuộc tính
-  const [attributeName, setAttributeName] = useState(""); // Tên thuộc tính từ input
-  const [loading, setLoading] = useState(false); // Trạng thái loading
-  const [selectedAttribute, setSelectedAttribute] = useState({ name: "" });
-  const [attributeId, setAttributeId] = useState(null);
-  const [isModalOpen, setModalOpen] = useState(false); // Quản lý hiển thị modal
-  const location = useLocation();
-
-  // Dữ liệu tiêu đề breadcrumb dựa trên đường dẫn
   const breadcrumbTitles = {
-    "admin/ten-thuoc-tinh": "List attribute name",
+    "admin/ten-thuoc-tinh": "List attribute name", // Đây là URL không có "/"
   };
-
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean);
   const [tenThuocTinh, setTenThuocTinh] = useState('');
 
-
-  useEffect(() => {
-    // Gọi API để lấy danh sách thuộc tính
-    const fetchAttributes = async () => {
-      try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/thuoc-tinh-san-pham`
-        );
-        setAttributes(response.data);
-        console.log(response.data);
-      } catch (error) {
-        console.error("Error fetching attributes:", error);
-      }
-    };
-
-    fetchAttributes();
-  }, []);
-
-  const addAttribute = async () => {
-    if (!attributeName.trim()) {
-      alert("Tên thuộc tính không được để trống.");
-      return;
-    }
-
-    setLoading(true); // Enable loading state
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/thuoc-tinh-san-pham",
-        { ten_thuoc_tinh: attributeName }
-      );
-
-      if (response.status === 201) {
-        console.log("Tạo mới thành công:", response.data);
-
-        // Ensure `created_at` is valid before adding it to the state
-        const validCreatedAt = new Date(response.data.created_at);
-        const isValidDate = !isNaN(validCreatedAt.getTime()); // Check if the date is valid
-
-        setAttributes((prevAttributes) => [
-          ...prevAttributes,
-          {
-            id: response.data.id,
-            ten_thuoc_tinh: response.data.ten_thuoc_tinh,
-            created_at: isValidDate ? validCreatedAt.toISOString() : "", // Set an empty string if the date is invalid
-          },
-        ]);
-        alert("Thêm thuộc tính thành công!");
-        setAttributeName(""); // Clear input
-      } else {
-        alert("Lỗi: Thuộc tính không được thêm.");
-      }
-    } catch (error) {
-      console.error("Lỗi khi thêm thuộc tính:", error);
-
-      if (error.response && error.response.data) {
-        alert("Lỗi khi thêm thuộc tính: " + error.response.data.message);
-      } else {
-        alert("Lỗi kết nối với máy chủ.");
-      }
-    } finally {
-      setLoading(false); // Disable loading state
-    }
-  };
-
-  // Xử lý đường dẫn breadcrumb
-  const pathnames = location.pathname.split("/").filter(Boolean);
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
-    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy tiêu đề
-
-  const handleEditClick = (attributeId) => {
-    // Kiểm tra thông tin trong attributeId để hiểu cấu trúc của dữ liệu
-    console.log("attributeId:", attributeId); // Kiểm tra toàn bộ đối tượng attributeId
-
-    // Truy xuất trực tiếp giá trị từ attributeId
-    console.log("ten_thuoc_tinh:", attributeId.ten_thuoc_tinh); // Truy xuất trực tiếp từ attributeId, không phải attributeId.data
-
-    // Cập nhật lại selectedAttribute
-    setSelectedAttribute({
-      id: attributeId.id, // Lấy giá trị id từ attributeId
-      ten_thuoc_tinh: attributeId.ten_thuoc_tinh, // Lấy giá trị từ attributeId
-    });
-  };
-
-  const handleUpdateAttribute = () => {
-    const updateData = {
-      ten_thuoc_tinh: selectedAttribute.ten_thuoc_tinh, // Dữ liệu đã chỉnh sửa
-    };
-
-    axios
-      .put(
-        `http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${selectedAttribute.id}`,
-        updateData
-      )
-      .then((response) => {
-        console.log("Cập nhật thành công:", response.data);
-        setModalOpen(false); // Đóng modal sau khi cập nhật
-        // Cập nhật lại dữ liệu trên giao diện nếu cần
-      })
-      .catch((error) => {
-        console.error("Lỗi khi cập nhật thuộc tính:", error);
-      });
-  };
-  const handleDeleteClick = async (id) => {
-    try {
-      const confirmation = window.confirm(
-        "Bạn có chắc chắn muốn xóa thuộc tính này không?"
-      );
-      if (confirmation) {
-        // Gọi API để xóa thuộc tính
-        await axios.delete(
-          `http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${id}`
-        );
-        console.log("Thuộc tính đã được xóa thành công!");
-
-        // Cập nhật lại danh sách thuộc tính sau khi xóa
-        setAttributes((prevAttributes) =>
-          prevAttributes.filter((attribute) => attribute.id !== id)
-        );
-      }
-    } catch (error) {
-      console.error("Lỗi khi xóa thuộc tính:", error);
-    }
-  };
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
 
   const [data, setData] = useState({
     data: [],
@@ -254,7 +125,7 @@ const listOfAttributeName = () => {
 
     try {
       await axios.put(`http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${selectedAttribute.id}`, {
-        ten_thuoc_tinh: attributeName,
+        name: attributeName,
       });
       alert("Cập nhật thành công!");
       setData((prevState) => ({
@@ -339,16 +210,8 @@ const listOfAttributeName = () => {
                     <th className="white-space-nowrap align-middle ps-4" scope="col" style={{ width: '30%' }} data-sort="product">
                       TÊN THUỘC TÍNH
                     </th>
-
                     <th className="align-middle ps-4" scope="col" style={{ width: '25%' }}>
                       NGÀY THÊM
-                    <th
-                      className="align-middle"
-                      scope="col"
-                      style={{ width: "25%" }}
-                    >
-                      PUBLISHED ON
-
                     </th>
                     <th className="align-middle ps-4" style={{ width: '5%' }}>
                       HÀNH ĐỘNG
@@ -363,19 +226,6 @@ const listOfAttributeName = () => {
                       <td className="tags align-middle review pb-2 ps-3">
                         {formatDate(item.created_at)}
                       </td>
-
-                  {attributes.map((attribute, index) => (
-                    <tr key={attribute.id}>
-                      <td className="align-middle ps-0">{index + 1}</td>
-                      <td className="product align-middle ps-4">
-                        {attribute.ten_thuoc_tinh}
-                      </td>
-                      <td className="tags align-middle review pb-2 ps-3">
-                        {attribute.created_at &&
-                        !isNaN(new Date(attribute.created_at).getTime())
-                          ? new Date(attribute.created_at).toLocaleDateString()
-                          : "Invalid Date"}
-                      </td>p
                       <td className="align-middle white-space-nowrap">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
@@ -385,7 +235,6 @@ const listOfAttributeName = () => {
                           aria-haspopup="true"
                           aria-expanded="false"
                           data-bs-reference="parent"
-
                           onClick={() => handleEditThuocTinh(item)}
                         >
                           <span className="fa-solid fa-pen-to-square fs-9" />
@@ -393,7 +242,6 @@ const listOfAttributeName = () => {
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
-
                           onClick={() => deleteThuocTinh(item.id)}
                         >
                           <span className="fa-solid fa-trash fs-9" />
@@ -409,7 +257,6 @@ const listOfAttributeName = () => {
                 <p className="mb-0 me-3 fw-semibold text-body">
                   Trang {data.current_page} / {data.last_page}
                 </p>
-
               </div>
               <div className="col-auto d-flex">
                 <button
@@ -433,7 +280,6 @@ const listOfAttributeName = () => {
                   onClick={() => handlePageChange(data.current_page + 1)}
                   disabled={data.current_page === data.last_page}
                 >
-
                   <span className="fas fa-chevron-right" />
                 </button>
               </div>
@@ -459,7 +305,6 @@ const listOfAttributeName = () => {
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
               <h3 className="mb-0">Add Attribute</h3>
               <button
-                id="closeModalButton"
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
                 aria-label="Close"
@@ -477,10 +322,8 @@ const listOfAttributeName = () => {
                     <input
                       className="form-control"
                       type="text"
-
                       value={tenThuocTinh}
                       onChange={(e) => setTenThuocTinh(e.target.value)}
-
                     />
                   </div>
                 </div>
@@ -497,11 +340,9 @@ const listOfAttributeName = () => {
               </button>
               <button
                 className="btn btn-primary my-0"
-
                 onClick={handleAddAttribute}
               >
                 Thêm mới
-
               </button>
             </div>
           </div>
@@ -542,10 +383,8 @@ const listOfAttributeName = () => {
                     <input
                       className="form-control"
                       type="text"
-
                       value={attributeName}
                       onChange={(e) => setAttributeName(e.target.value)}
-
                     />
                   </div>
                 </div>
@@ -561,9 +400,8 @@ const listOfAttributeName = () => {
               </button>
               <button
                 className="btn btn-primary my-0"
-
                 onClick={handleUpdate}
-
+              >
                 Cập nhật
               </button>
             </div>
