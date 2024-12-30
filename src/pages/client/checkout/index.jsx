@@ -30,6 +30,8 @@ const Checkout = () => {
   const [selectedPayment, setSelectedPayment] = useState("");
   const [moTa, setMoTa] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [isVoucherApplied, setIsVoucherApplied] = useState(false);
+
   const [discount, setDiscount] = useState(0);
   // const [totalAfterDiscount, setTotalAfterDiscount] = useState(0);
   // eslint-disable-next-line no-unused-vars
@@ -210,17 +212,18 @@ const Checkout = () => {
 
   // Tính toán subtotal và total
   useEffect(() => {
-    let subtotal = 0;
+    let currentSubtotal = 0;
     products.forEach((product) => {
-      subtotal += product.gia; // Tính tổng giá sản phẩm
+      currentSubtotal += product.gia; // Tính tổng giá sản phẩm
     });
 
-    // Tính tổng (subtotal sau khi áp dụng giảm giá và phí vận chuyển)
-    const total = subtotal - discountAmount + shippingCost;
+    // Chỉ trừ số tiền giảm giá khi voucher được áp dụng
+    const discount = isVoucherApplied ? discountAmount : 0;
+    const currentTotal = currentSubtotal - discount + shippingCost;
 
-    setSubtotal(subtotal);
-    setTotal(total);
-  }, [products, shippingCost, discountAmount]); // Chạy lại khi products, shippingCost hoặc discountAmount thay đổi
+    setSubtotal(currentSubtotal);
+    setTotal(currentTotal);
+  }, [products, shippingCost, discountAmount, isVoucherApplied]);
 
   useEffect(() => {
     // Fetching data from the API
@@ -232,6 +235,7 @@ const Checkout = () => {
       );
   }, []);
 
+  // Hàm kiểm tra và áp dụng mã giảm giá
   const handleApplyVoucher = async () => {
     try {
       if (!userInfo || !discountCode) {
@@ -255,7 +259,7 @@ const Checkout = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            khach_hang_id: customerId, // Sử dụng customerId từ session
+            khach_hang_id: customerId,
             ma_giam_gia: discountCode,
           }),
         }
@@ -268,7 +272,6 @@ const Checkout = () => {
       }
 
       const data = await response.json();
-      console.log("Dữ liệu nhận được từ API:", data);
 
       if (data.success) {
         setErrorMessage(""); // Xóa thông báo lỗi
@@ -277,19 +280,8 @@ const Checkout = () => {
         // Tính toán số tiền giảm giá
         const discount =
           (subtotal * parseFloat(data.data.gia_tri_giam_gia)) / 100;
-        setDiscount(discount); // Áp dụng giảm giá và lưu vào state
-
-        // Lưu trạng thái mã giảm giá vào localStorage
-        // Lưu trạng thái vào localStorage
-        localStorage.setItem("voucherApplied", "true");
-        localStorage.setItem("discount", discount.toString());
-
-        // Kiểm tra đã lưu chưa
-        console.log(
-          "voucherApplied:",
-          localStorage.getItem("voucherApplied")
-        );
-        console.log("discount:", localStorage.getItem("discount"));
+        setDiscountAmount(discount); // Lưu số tiền giảm giá vào state
+        setIsVoucherApplied(true); // Đánh dấu mã giảm giá đã được áp dụng
       } else {
         throw new Error("Mã giảm giá không hợp lệ.");
       }
@@ -297,6 +289,8 @@ const Checkout = () => {
       console.error("Lỗi:", error.message);
       setSuccessMessage(""); // Xóa thông báo thành công
       setErrorMessage(error.message); // Hiển thị lỗi
+      setIsVoucherApplied(false); // Đảm bảo không trừ số tiền giảm giá
+      setDiscountAmount(0); // Reset tiền giảm giá về 0
     }
   };
 
@@ -306,6 +300,15 @@ const Checkout = () => {
   };
   const handlePaymentMethodChange = (event) => {
     setSelectedPayment(event.target.value);
+  };
+
+  const generateRandomOrderCode = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < 10; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   };
 
   const handleSubmit = async (event) => {
@@ -345,7 +348,10 @@ const Checkout = () => {
       return;
     }
 
+    const orderCode = generateRandomOrderCode();
+
     const orderData = {
+      ma_don_hang: orderCode, // Thêm mã đơn hàng ngẫu nhiên
       khach_hang_id: khachHangId,
       phuong_thuc_thanh_toan_id: selectedPaymentMethod.id,
       hinh_thuc_van_chuyen_id: selectedShippingOption.id,
@@ -850,8 +856,8 @@ const Checkout = () => {
                     <div className="d-flex justify-content-between mb-2">
                       <h5 className="text-body fw-semibold">Giảm giá</h5>
                       <h5 className="text-danger fw-semibold">
-                        {discount > 0
-                          ? `-${discount.toLocaleString()} VNĐ` // Hiển thị giảm giá
+                        {isVoucherApplied && discountAmount > 0
+                          ? `- ${discountAmount.toLocaleString()} VNĐ` // Hiển thị giảm giá
                           : "0"}
                       </h5>
                     </div>
