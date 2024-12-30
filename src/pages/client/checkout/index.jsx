@@ -386,16 +386,47 @@ const Checkout = () => {
     spinnerModal.show();
 
     try {
-      // Gửi yêu cầu thanh toán
-      const response = await fetch("http://127.0.0.1:8000/api/donhang/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) {
+      if (selectedPaymentMethod.id === 2) {
+        // Thanh toán bằng VNPAY
+        const vnpayResponse = await fetch(
+          "http://127.0.0.1:8000/api/thanh-toan/vppay/create",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: total,
+              ma_don_hang: orderCode,
+            }),
+          }
+        );
+  
+        const vnpayData = await vnpayResponse.json();
+  
+        if (!vnpayResponse.ok || vnpayData.code !== "00") {
+          throw new Error("Gửi yêu cầu thanh toán VNPAY thất bại");
+        }
+  
+        // Redirect đến URL thanh toán VNPAY
+        window.location.href = vnpayData.data;
+        return;
+      }
+  
+      // Thanh toán thông thường
+      const orderResponse = await fetch(
+        "http://127.0.0.1:8000/api/donhang/orders",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderData),
+        }
+      );
+  
+      if (!orderResponse.ok) {
         throw new Error("Gửi đơn hàng thất bại");
       }
 
