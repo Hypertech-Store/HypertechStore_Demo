@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import icon from "../../../assets/img/icons/image-icon.png";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const PaymentMethod = () => {
@@ -18,8 +18,14 @@ const PaymentMethod = () => {
   const [formData, setFormData] = useState({
     image: null, // Dữ liệu hình ảnh
   });
-
-  const [imagePreview, setImagePreview] = useState(""); // Hình ảnh xem trước
+  const [imagePreview, setImagePreview] = useState("");
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [methodData, setMethodData] = useState({
+    id: null,
+    name: '',
+    image: null,
+  });
 
   // Hàm xử lý khi ảnh được thả vào khu vực dropzone
   const handleDrop = (e) => {
@@ -45,6 +51,152 @@ const PaymentMethod = () => {
     }
   };
 
+  const handleFileUpdateChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Create a preview URL for the selected file
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+  const handleSubmit = async () => {
+    const formDataToSend = new FormData();
+    formDataToSend.append("ten_phuong_thuc", formData.ten_phuong_thuc);
+    if (formData.image) {
+      formDataToSend.append("image", formData.image);
+    }
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/phuong-thuc-thanh-toan",
+        {
+          method: "POST",
+          body: formDataToSend,
+        }
+      );
+      if (response.ok) {
+        const newMethod = await response.json();
+        console.log(newMethod.data);
+
+        alert("Thêm phương thức thành công!");
+        setPaymentMethods((prevMethods) => [...prevMethods, newMethod.data]);
+
+        // Reset form sau khi thêm thành công
+        setFormData({ ten_phuong_thuc: "", image: null });
+        setImagePreview(null);
+      } else {
+        alert("Lỗi khi thêm phương thức: " + response.statusText);
+      }
+    } catch (error) {
+      alert("Lỗi kết nối tới server: " + error.message);
+    }
+  };
+
+  useEffect(() => {
+    // Gọi API
+    fetch("http://127.0.0.1:8000/api/phuong-thuc-thanh-toan")
+      .then((response) => response.json())
+      .then((data) => {
+        setPaymentMethods(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching payment methods:", error);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/phuong-thuc-thanh-toan/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        alert("Xóa thành công!");
+
+        // Cập nhật danh sách phương thức trong state
+        setPaymentMethods((prevMethods) =>
+          prevMethods.filter((method) => method.id !== id)
+        );
+      } else {
+        alert("Lỗi khi xóa: " + response.statusText);
+      }
+    } catch (error) {
+      alert("Lỗi kết nối tới server: " + error.message);
+    }
+  };
+
+
+  const handleUpdate = async (id, updatedData) => {
+    const formDataToSend = new FormData();
+    formDataToSend.append("ten_phuong_thuc", updatedData.ten_phuong_thuc);
+    if (updatedData.image) {
+      formDataToSend.append("image", updatedData.image);
+    }
+  
+    try {
+      // Hiển thị trạng thái loading
+      setLoading(true);
+  
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/phuong-thuc-thanh-toan/${id}`,
+        {
+          method: "PUT",
+          body: formDataToSend,
+        }
+      );
+  
+      if (response.ok) {
+        const updatedMethod = await response.json();
+        alert("Cập nhật thành công!");
+  
+        // Cập nhật danh sách phương thức trong state
+        setPaymentMethods((prevMethods) =>
+          prevMethods.map((method) =>
+            method.id === id ? { ...method, ...updatedMethod } : method
+          )
+        );
+        setImagePreview(null);
+      } else {
+        alert("Lỗi khi cập nhật: " + response.statusText);
+      }
+    } catch (error) {
+      alert("Lỗi kết nối tới server: " + error.message);
+    } finally {
+      // Ẩn trạng thái loading khi hoàn thành
+      setLoading(false);
+    }
+  };
+
+  // Hàm xử lý khi nhấn nút chỉnh sửa
+  const handleEditClick = (id) => {
+    // Giả sử bạn gọi API để lấy thông tin phương thức thanh toán theo id
+    fetch(`http://127.0.0.1:8000/api/phuong-thuc-thanh-toan/${id}`)
+      .then((response) => response.json())
+      .then((data) => {
+
+        setMethodData({
+          id: data.data.id,
+          name: data.data.ten_phuong_thuc, // Thay "ten_phuong_thuc" bằng tên trường đúng
+          image: data.data.anh_phuong_thuc, // Thay "image" bằng tên trường đúng
+        });
+        console.log(methodData);
+
+      })
+      .catch((error) => {
+        console.error('Error fetching payment method data:', error);
+      });
+  };
+
+
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
@@ -61,7 +213,7 @@ const PaymentMethod = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List payment</h2>
+            <h2 className="mb-0">Danh sách phương thức thanh toán</h2>
           </div>
         </div>
 
@@ -133,33 +285,47 @@ const PaymentMethod = () => {
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
-                  <tr>
-                    <td></td>
-                    <td className="product align-middle ps-4"></td>
-                    <td className="tags align-middle review pb-2 ps-3"></td>
+                  {paymentMethods.map((method, index) => (
+                    <tr key={method.id}>
+                      <td>{index + 1}</td>
+                      <td className="product align-middle ps-4">
+                        <img
+                          src={`http://127.0.0.1:8000/storage/${method.anh_phuong_thuc}`}
+                          alt={method.ten_phuong_thuc}
+                          style={{
+                            maxWidth: "100px",
+                            maxHeight: "50px",
+                            objectFit: "cover",
+                          }}
+                        /></td>
+                      <td className="tags align-middle review pb-2 ps-3">{method.ten_phuong_thuc}</td>
 
-                    <td className="align-middle white-space-nowrap">
-                      <button
-                        className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                        type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editMethod"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        data-bs-reference="parent"
-                      >
-                        <span className="fa-solid fa-pen-to-square fs-9" />
-                      </button>
-                      <button
-                        className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                        type="button"
-                      >
-                        <span className="fa-solid fa-trash fs-9" />
-                      </button>
-                    </td>
-                  </tr>
+                      <td className="align-middle white-space-nowrap">
+                        <button
+                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                          type="button"
+                          data-bs-toggle="modal"
+                          data-bs-target="#editMethod"
+                          aria-haspopup="true"
+                          aria-expanded="false"
+                          onClick={() => handleEditClick(method.id)}
+                        >
+                          <span className="fa-solid fa-pen-to-square fs-9" />
+                        </button>
+                        <button
+                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                          type="button"
+                          onClick={() => handleDelete(method.id)}
+                        >
+                          <span className="fa-solid fa-trash fs-9" />
+                        </button>
+                      </td>
+
+                    </tr>
+                  ))}
                 </tbody>
               </table>
+
             </div>
             <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
               <div className="col-auto d-flex">
@@ -188,6 +354,7 @@ const PaymentMethod = () => {
           </div>
         </div>
       </div>
+
       <div
         className="modal fade"
         id="addMethod"
@@ -200,7 +367,7 @@ const PaymentMethod = () => {
         <div className="modal-dialog modal-lg modal-dialog-centered">
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Add Method Payment</h3>
+              <h3 className="mb-0">Thêm phương thức mới</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -291,7 +458,15 @@ const PaymentMethod = () => {
                     <label className="text-body-highlight fw-bold mb-2">
                       Tên phương thức
                     </label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={formData.ten_phuong_thuc}
+                      onChange={(e) =>
+                        setFormData({ ...formData, ten_phuong_thuc: e.target.value })
+                      }
+                    />
+
                   </div>
                 </div>
               </div>
@@ -304,7 +479,12 @@ const PaymentMethod = () => {
               >
                 Hủy bỏ
               </button>
-              <button className="btn btn-primary my-0">Thêm mới</button>
+              <button
+                className="btn btn-primary my-0"
+                onClick={handleSubmit}
+              >
+                Thêm mới
+              </button>
             </div>
           </div>
         </div>
@@ -322,7 +502,7 @@ const PaymentMethod = () => {
         <div className="modal-dialog modal-lg modal-dialog-centered">
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Edit Method Payment</h3>
+              <h3 className="mb-0">Sửa phương thức</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -334,7 +514,7 @@ const PaymentMethod = () => {
             <div className="modal-body px-0 mt-1">
               <div className="row g-4">
                 <div className="col-lg-12">
-                  {/* Ảnh biến thể */}
+                  {/* Ảnh phương thức thanh toán */}
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
                       Ảnh phương thức
@@ -344,9 +524,7 @@ const PaymentMethod = () => {
                       className="dropzone dropzone-multiple p-0 mb-5"
                       onDrop={handleDrop}
                       onDragOver={handleDragOver}
-                      onClick={() =>
-                        document.getElementById("fileInput").click()
-                      } // Kích hoạt input khi click
+                      onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
                       id="my-awesome-dropzone"
                       data-dropzone="data-dropzone"
                     >
@@ -355,12 +533,12 @@ const PaymentMethod = () => {
                           id="fileInput"
                           type="file"
                           style={{ display: "none" }} // Ẩn input
-                          onChange={handleFileChange}
+                          onChange={handleFileUpdateChange}
                           multiple="multiple"
                         />
                       </div>
 
-                      {formData.image ? (
+                      {methodData.image || imagePreview ? (
                         <div className="dz-preview d-flex flex-wrap">
                           <div
                             className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2 col-lg-12"
@@ -368,7 +546,7 @@ const PaymentMethod = () => {
                           >
                             <img
                               className="dz-image"
-                              src={URL.createObjectURL(formData.image)}
+                              src={methodData.image ? "http://127.0.0.1:8000/storage/" + methodData.image : imagePreview}
                               alt="Preview"
                               data-dz-thumbnail="data-dz-thumbnail"
                               style={{
@@ -377,9 +555,14 @@ const PaymentMethod = () => {
                                 objectFit: "contain",
                               }}
                             />
+                            {/* Button to remove the image */}
                             <a
-                              className="dz-remove text-body-quaternary"
+                              className="dz-remove text-body-quaternary position-absolute bottom-0 end-0 m-2"
                               href="#!"
+                              onClick={() => {
+                                setMethodData({ ...methodData, image: null });
+                                setImagePreview(""); // Clear the preview when the image is removed
+                              }}
                               data-dz-remove="data-dz-remove"
                             >
                               <span data-feather="x" />
@@ -387,33 +570,31 @@ const PaymentMethod = () => {
                           </div>
                         </div>
                       ) : (
-                        <div
-                          className="dz-message text-body-tertiary text-opacity-85"
-                          data-dz-message="data-dz-message"
-                        >
+                        <div className="dz-message text-body-tertiary text-opacity-85" data-dz-message="data-dz-message">
                           Drag your photo here
                           <span className="text-body-secondary px-1">or</span>
                           <button className="btn btn-link p-0" type="button">
                             Browse from device
                           </button>
                           <br />
-                          <img
-                            className="mt-3 me-2"
-                            src={icon}
-                            width={40}
-                            alt="upload icon"
-                          />
+                          <img className="mt-3 me-2" src={icon} width={40} alt="upload icon" />
                         </div>
                       )}
                     </div>
                   </div>
-
-                  {/* Biến thể (readonly) */}
+                  {/* Tên phương thức */}
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
                       Tên phương thức
                     </label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={methodData.name} // Giá trị sẽ được cập nhật trong modal
+                      onChange={(e) =>
+                        setMethodData({ ...methodData, name: e.target.value })
+                      }
+                    />
                   </div>
                 </div>
               </div>
