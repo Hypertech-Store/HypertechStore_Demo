@@ -4,23 +4,37 @@ import axios from "axios";
 
 const link = "http://127.0.0.1:8000/storage/";
 const ListSubcategory = () => {
-  const [categories, setCategories] = useState([]);
-  const [categoryDetails, setCategoryDetails] = useState({
-    name: "",
-    description: "",
+  const [subCategories, setSubCategories] = useState([]);
+  const [subCategoryDetails, setSubCategoryDetails] = useState({
+    ten_danh_muc_con: "",
+    image: "",
+    danh_muc_id: "",
   });
-  const [categoryId, setCategoryId] = useState(null);
-  // const [tags, setTags] = useState([]);
+  const [subCategoryId, setSubCategoryId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);   
-  const [CategorysPerPage, setCategorysPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [subCategorysPerPage, setSubCategorysPerPage] = useState(10);
+  const [categories, setCategories] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [imgSubCate, setImgSubCate] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewImage) {
+        URL.revokeObjectURL(previewImage);
+      }
+    };
+  }, [previewImage]);
+
+  console.log(previewImage);
+
 
   useEffect(() => {
     // Fetch data for the current page
     axios
-      .get(`http://127.0.0.1:8000/api/danh-muc-con?page=${currentPage}&limit=${CategorysPerPage}`)
+      .get(`http://127.0.0.1:8000/api/danh-muc-con?page=${currentPage}&limit=${subCategorysPerPage}`)
       .then((response) => {
-        setCategories(response.data.data); // Dữ liệu của trang hiện tại
+        setSubCategories(response.data.data); // Dữ liệu của trang hiện tại
         setTotalPages(response.data.last_page); // Tổng số trang
       })
       .catch((error) => {
@@ -28,87 +42,150 @@ const ListSubcategory = () => {
       });
   }, [currentPage]);
 
-  // Hàm chuyển trang
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:8000/api/danh-muc/getAll");
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
-  // Function to format date
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A"; // Return 'N/A' if date is null or undefined
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
     const date = new Date(dateStr);
     const options = {
-      day: "numeric", // Day of the month (1, 2, ...)
-      month: "short", // Abbreviated month name (e.g. 'Jan', 'Feb')
-      year: "numeric", // Full year
-      hour: "2-digit", // Hour with two digits (12:00 PM, 01:00 PM)
-      minute: "2-digit", // Minute with two digits (12:05 PM, 01:45 PM)
-      hour12: true, // Use 12-hour time format
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     };
-
     return date.toLocaleString("en-US", options);
   };
 
+  const handleEditSubCategory = (subCategory) => {
+    setSubCategoryDetails({
+      ten_danh_muc_con: subCategory.ten_danh_muc_con,
+      image: subCategory.img || "", // Ensure image is either empty or the actual image URL
+      danh_muc_id: subCategory.danh_muc_id,
+    });
+    setSubCategoryId(subCategory.id);
+    setImgSubCate(subCategory.img)
+    console.log(subCategoryDetails);
+
+  };
+
   // Handle category selection in the table
-  const updateCategory = async () => {
+  const updateSubCategory = async () => {
     try {
-      const response = await axios.put(
-        `http://127.0.0.1:8000/api/danh-muc-con/${categoryId}`,
+      // Kiểm tra dữ liệu subCategoryDetails
+      console.log("subCategoryDetails:", subCategoryDetails);
+  
+      // Tạo formData
+      const formData = new FormData();
+  
+      // Kiểm tra và thêm các thuộc tính vào formData
+      if (subCategoryDetails.danh_muc_id) {
+        formData.append("danh_muc_id", subCategoryDetails.danh_muc_id);
+      }
+  
+      if (subCategoryDetails.ten_danh_muc_con) {
+        formData.append("ten_danh_muc_con", subCategoryDetails.ten_danh_muc_con);
+      }
+  
+      // Kiểm tra và thêm hình ảnh vào formData nếu có
+      if (subCategoryDetails.image) {
+        formData.append("image", subCategoryDetails.image);
+      }
+
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
+      
+      formData.append('_method', 'PUT');
+      
+      console.log("Form data trước khi gửi:", formData);
+  
+      // Gửi dữ liệu đến API
+      const response = await axios.post(
+        `http://127.0.0.1:8000/api/danh-muc-con/${subCategoryId}`,
+        formData,
         {
-          ten_danh_muc: categoryDetails.name,
-          mo_ta: categoryDetails.description,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
+  
+      // Kiểm tra phản hồi
       if (response.status === 200) {
-        alert("Cập nhật danh mục thành công!");
-        // Cập nhật danh sách categories sau khi sửa
-        setCategories((prev) =>
+        alert("Cập nhật danh mục con thành công!");
+  
+        setSubCategories((prev) =>
           prev.map((cat) =>
-            cat.id === categoryId
-              ? { ...cat, ten_danh_muc: categoryDetails.name, mo_ta: categoryDetails.description }
+            cat.id === subCategoryId
+              ? {
+                  ...cat,
+                  ten_danh_muc_con: subCategoryDetails.ten_danh_muc_con,
+                  img: subCategoryDetails.image, // Cập nhật hình ảnh mới
+                  danh_muc_id: subCategoryDetails.danh_muc_id,
+                }
               : cat
           )
         );
+  
+        const modal = document.getElementById("updateCustomer");
+        if (modal) {
+          const bootstrapModal = bootstrap.Modal.getInstance(modal);
+          bootstrapModal.hide();
+        }
+  
+        console.log("Dữ liệu đã cập nhật:", subCategoryDetails);
       }
     } catch (error) {
       console.error("Lỗi khi cập nhật danh mục:", error);
-      alert("Không thể cập nhật danh mục.");
+      alert("Không thể cập nhật danh mục. Vui lòng kiểm tra lại.");
+    }
+  };
+  
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+      setSubCategoryDetails((subCategoryDetails) => ({
+        ...subCategoryDetails,
+        image: file,
+      }));
     }
   };
 
-  // Hàm xóa danh mục
-  const deleteCategory = async (id) => {
-    // Hiển thị hộp thoại xác nhận
+  const deleteSubCategory = async (id) => {
     const isConfirmed = window.confirm("Bạn có chắc chắn muốn xóa danh mục này?");
-    
-    if (!isConfirmed) {
-      return; // Nếu người dùng không xác nhận, không thực hiện hành động xóa
-    }
-  
+    if (!isConfirmed) return;
+
     try {
-      const response = await axios.delete(
-        `http://127.0.0.1:8000/api/danh-muc-con/${id}`
-      );
+      const response = await axios.delete(`http://127.0.0.1:8000/api/danh-muc-con/${id}`);
       if (response.status === 200) {
-        alert("Xóa danh mục thành công!");
-        // Loại bỏ danh mục khỏi danh sách
-        setCategories((prev) => prev.filter((cat) => cat.id !== id));
+        alert("Xóa danh mục con thành công!");
+        setSubCategories((prev) => prev.filter((cat) => cat.id !== id));
       }
     } catch (error) {
-      console.error("Lỗi khi xóa danh mục:", error);
-      alert("Không thể xóa danh mục.");
+      console.error("Lỗi khi xóa danh mục con:", error);
+      alert("Không thể xóa danh mục con.");
     }
-  };
-  
-
-  const handleEditCategory = (category) => {
-    setCategoryId(category.id);
-    setCategoryDetails({
-      name: category.ten_danh_muc,
-      description: category.mo_ta,
-    });
   };
 
 
@@ -288,24 +365,24 @@ const ListSubcategory = () => {
                     </tr>
                   </thead>
                   <tbody className="list" id="products-table-body">
-                    {categories.map((category, index) => (
-                      <tr key={category.id}>
-                        <td>{(currentPage - 1) * CategorysPerPage + index + 1}</td>
+                    {subCategories.map((subCategory, index) => (
+                      <tr key={subCategory.id}>
+                        <td>{(currentPage - 1) * subCategorysPerPage + index + 1}</td>
                         <td className="tags align-middle review pb-2 ps-3">
-                          {category.danh_muc?.ten_danh_muc}
+                          {subCategory.danh_muc?.ten_danh_muc}
                         </td>
                         <td className="product align-middle ps-4">
-                          {category.ten_danh_muc_con}
+                          {subCategory.ten_danh_muc_con}
                         </td>
                         <td>
                           <img
-                            src={`${link}${category.img}`} // Kết hợp URL gốc và đường dẫn ảnh
-                            alt={category.ten_danh_muc_con}
+                            src={`${link}${subCategory.img}`} // Kết hợp URL gốc và đường dẫn ảnh
+                            alt={subCategory.ten_danh_muc_con}
                             style={{ width: "50px", height: "50px", objectFit: "cover" }}
                           />
                         </td>
                         <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
-                          {formatDate(category.created_at)}
+                          {formatDate(subCategory.created_at)}
                         </td>
 
                         <td className="align-middle white-space-nowrap">
@@ -319,7 +396,7 @@ const ListSubcategory = () => {
                             data-bs-reference="parent"
                             onClick={() => {
                               // Set the selected customer by using the customer object directly
-                              handleEditCategory(category);
+                              handleEditSubCategory(subCategory);
                             }}
                           >
                             <span className="fa-solid fa-pen-to-square fs-9" />
@@ -327,7 +404,7 @@ const ListSubcategory = () => {
                           <button
                             className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                             type="button"
-                            onClick={() => deleteCategory(category.id)}
+                            onClick={() => deleteSubCategory(subCategory.id)}
                           >
                             <span className="fa-solid fa-trash fs-9" />
                           </button>
@@ -372,6 +449,117 @@ const ListSubcategory = () => {
             </div>
           </div>
         </div>
+
+        <div
+          className="modal fade"
+          id="updateCustomer"
+          data-bs-backdrop="static"
+          data-bs-keyboard="false"
+          tabIndex={-1}
+          aria-labelledby="updateCustomer"
+          aria-hidden="true"
+        >
+          <div className="modal-dialog modal-l modal-dialog-centered">
+            <div className="modal-content bg-body-highlight p-6">
+              <div className="modal-header justify-content-between border-0 p-0 mb-2">
+                <h3 className="mb-0">Edit Category</h3>
+                <button
+                  className="btn btn-sm btn-phoenix-secondary"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                >
+                  <span className="fas fa-times text-danger" />
+                </button>
+              </div>
+              <div className="modal-body px-0 mt-1">
+                <div className="row g-4">
+                  <div className="col-lg-12">
+                    <div className="mb-4">
+                      <label className="text-body-highlight fw-bold mb-2">
+                        Danh mục
+                      </label>
+                      <select
+                        className="form-control"
+                        value={subCategoryDetails.danh_muc_id} // Gán giá trị cho select dựa trên danh_muc_id
+                        onChange={(e) =>
+                          setSubCategoryDetails({
+                            ...subCategoryDetails,
+                            danh_muc_id: e.target.value, // Cập nhật danh_muc_id khi người dùng chọn danh mục
+                          })
+                        }
+                      >
+                        <option value="">Chọn danh mục</option>
+                        {categories.map((category) => (
+                          <option
+                            key={category.id}
+                            value={category.id}
+                            selected={subCategoryDetails.danh_muc_id === category.id} // Đánh dấu option là selected nếu id khớp
+                          >
+                            {category.ten_danh_muc} {/* Hiển thị tên danh mục */}
+                          </option>
+                        ))}
+                      </select>
+
+
+                    </div>
+                    <div className="mb-4">
+                      <label className="text-body-highlight fw-bold mb-2">
+                        Tên danh mục con
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        value={subCategoryDetails.ten_danh_muc_con}
+                        onChange={(e) =>
+                          setSubCategoryDetails({
+                            ...subCategoryDetails,
+                            ten_danh_muc_con: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="text-body-highlight fw-bold mb-2">Hình ảnh</label>
+                      <input
+                        className="form-control"
+                        type="file"
+                        accept="image/*" // Restrict to image files only
+                        onChange={handleFileChange} // Call the file change handler
+                      />
+                      {
+                        (previewImage || (imgSubCate && imgSubCate.trim() !== "")) ? (
+                          <img
+                            src={previewImage || `${link}${imgSubCate}`}
+                            alt="imgSubCate"
+                            style={{ maxWidth: '100%', maxHeight: '200px' }}
+                            className="img-thumbnail"
+                          />
+                        ) : null
+                      }
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer border-0 pt-0 px-0 pb-0">
+                <button
+                  className="btn btn-link text-danger px-3 my-0"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                >
+                  Cancel
+                </button>
+                <button className="btn btn-primary my-0" onClick={updateSubCategory}>
+                  Update
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
         <footer className="footer position-absolute">
           <div className="row g-0 justify-content-between align-items-center h-100">
             <div className="col-12 col-sm-auto text-center">
@@ -391,6 +579,7 @@ const ListSubcategory = () => {
             </div>
           </div>
         </footer>
+
       </div>
     </>
   );
