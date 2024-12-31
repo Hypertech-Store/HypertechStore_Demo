@@ -1,7 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
+
 const listCategory = () => {
+  const navigate = useNavigate();
   const breadcrumbTitles = {
     "admin/danh-sach-danh-muc": "List category", // Đây là URL không có "/"
   };
@@ -133,6 +136,9 @@ const listCategory = () => {
       description: category.mo_ta,
     });
   };
+  const handleAddCategoryClick = () => {
+    navigate("/admin/them-danh-muc"); // Navigate to the 'them-danh-muc' page
+  };
 
   return (
     <div className="content">
@@ -173,9 +179,13 @@ const listCategory = () => {
               </div>
 
               <div className="ms-xxl-auto ms-auto">
-                <button className="btn btn-primary" id="addBtn">
+                <button
+                  className="btn btn-primary"
+                  onClick={handleAddCategoryClick}
+                  id="addBtn"
+                >
                   <span className="fas fa-plus me-2" />
-                  Add product
+                  Add category
                 </button>
               </div>
             </div>
@@ -271,12 +281,6 @@ const listCategory = () => {
                 <p className="mb-0 me-3 fw-semibold text-body">
                   Trang {currentPage} / {totalPages}
                 </p>
-                {/* Showing{" "}
-                {currentPage === 1
-                  ? 1
-                  : (currentPage - 1) * CategorysPerPage + 1}{" "}
-                to {Math.min(currentPage * CategorysPerPage, categories.length)}{" "}
-                of {categories.length} items */}
               </div>
               <div className="col-auto d-flex">
                 <button

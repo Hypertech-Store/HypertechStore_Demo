@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const ListParameter = () => {
@@ -18,18 +18,20 @@ const ListParameter = () => {
   const [thongSo, setThongSo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);  // For total pages
+  const [totalPages, setTotalPages] = useState(1); // For total pages
   const itemsPerPage = 10; // Define the number of items per page
   const [categories, setCategories] = useState([]);
   const [editingThongSo, setEditingThongSo] = useState(null); // Lưu thông tin thông số đang chỉnh sửa
-  const [editTenThongSo, setEditTenThongSo] = useState('');
-  const [editMoTa, setEditMoTa] = useState('');
-  const [editCategory, setEditCategory] = useState('');
+  const [editTenThongSo, setEditTenThongSo] = useState("");
+  const [editMoTa, setEditMoTa] = useState("");
+  const [editCategory, setEditCategory] = useState("");
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/danh-muc/getAll");
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/danh-muc/getAll"
+        );
         setCategories(response.data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -47,7 +49,9 @@ const ListParameter = () => {
   // Fetch data from the API
   useEffect(() => {
     setLoading(true);
-    fetch(`http://127.0.0.1:8000/api/thong-so?page=${currentPage}&limit=${itemsPerPage}`)
+    fetch(
+      `http://127.0.0.1:8000/api/thong-so?page=${currentPage}&limit=${itemsPerPage}`
+    )
       .then((response) => response.json())
       .then((data) => {
         setThongSo(data.data);
@@ -55,69 +59,67 @@ const ListParameter = () => {
         setLoading(false);
       })
       .catch((error) => {
-        console.error('Lỗi lấy thông số', error);
+        console.error("Lỗi lấy thông số", error);
         setLoading(false);
       });
   }, [currentPage]);
 
-
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [tenThongSo, setTenThongSo] = useState('');
-  const [moTa, setMoTa] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [tenThongSo, setTenThongSo] = useState("");
+  const [moTa, setMoTa] = useState("");
 
   const handleAddThongSo = () => {
-    
     if (!selectedCategory || !tenThongSo || !moTa) {
-      alert('Vui lòng nhập đủ tất cả các trường thông số!');
-      return;  // Dừng lại nếu có trường bị bỏ trống
+      alert("Vui lòng nhập đủ tất cả các trường thông số!");
+      return; // Dừng lại nếu có trường bị bỏ trống
     }
-    const danhMuc = categories.find(category => category.id === parseInt(selectedCategory, 10));
+    const danhMuc = categories.find(
+      (category) => category.id === parseInt(selectedCategory, 10)
+    );
 
     const newThongSo = {
-      danh_muc_id: selectedCategory,  // Chỉ cần gửi danh_muc_id
-      danh_muc: danhMuc,  // Đưa thông tin chi tiết của danh mục vào
+      danh_muc_id: selectedCategory, // Chỉ cần gửi danh_muc_id
+      danh_muc: danhMuc, // Đưa thông tin chi tiết của danh mục vào
       ten_thong_so: tenThongSo,
       mo_ta: moTa,
     };
 
     // Gửi thông số mới tới API
-    fetch('http://127.0.0.1:8000/api/thong-so', {
-      method: 'POST',
+    fetch("http://127.0.0.1:8000/api/thong-so", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(newThongSo),
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log('Thông số đã được thêm:', data);
+        console.log("Thông số đã được thêm:", data);
 
         // Thông báo thành công
-        alert('Thông số đã được thêm thành công!');
+        alert("Thông số đã được thêm thành công!");
 
         // Thêm thông số mới vào danh sách thông số
         setThongSo((prevThongSo) => [
           ...prevThongSo,
           {
-            ...newThongSo,  // Bao gồm tất cả các thuộc tính của newThongSo
-            id: data.id,  // Giả sử bạn nhận lại ID của thông số mới từ API
+            ...newThongSo, // Bao gồm tất cả các thuộc tính của newThongSo
+            id: data.id, // Giả sử bạn nhận lại ID của thông số mới từ API
           },
         ]);
         console.log(newThongSo);
 
-
         // Reset form sau khi gửi thành công
-        setSelectedCategory('');
-        setTenThongSo('');
-        setMoTa('');
+        setSelectedCategory("");
+        setTenThongSo("");
+        setMoTa("");
       })
       .catch((error) => {
-        console.error('Error adding thong so:', error);
+        console.error("Error adding thong so:", error);
         // Thông báo lỗi
-        alert('Có lỗi xảy ra khi thêm thông số.');
+        alert("Có lỗi xảy ra khi thêm thông số.");
       });
   };
-
 
   const handleDelete = async (id) => {
     try {
@@ -130,7 +132,9 @@ const ListParameter = () => {
 
       if (response.ok) {
         alert("Xóa thông số thành công!");
-        setThongSo((prevThongSo) => prevThongSo.filter((item) => item.id !== id));
+        setThongSo((prevThongSo) =>
+          prevThongSo.filter((item) => item.id !== id)
+        );
       } else {
         const errorData = await response.json();
         alert(`Xóa thất bại: ${errorData.message || "Có lỗi xảy ra"}`);
@@ -141,8 +145,6 @@ const ListParameter = () => {
     }
   };
 
-
-
   const handleEditClick = (item) => {
     setEditingThongSo(item);
     setEditTenThongSo(item.ten_thong_so);
@@ -152,7 +154,9 @@ const ListParameter = () => {
 
   const handleUpdateThongSo = async () => {
     if (!editingThongSo) return;
-    const danhMuc = categories.find(category => category.id === parseInt(editCategory, 10));
+    const danhMuc = categories.find(
+      (category) => category.id === parseInt(editCategory, 10)
+    );
 
     const updatedThongSo = {
       danh_muc_id: editCategory,
@@ -165,9 +169,9 @@ const ListParameter = () => {
       const response = await fetch(
         `http://127.0.0.1:8000/api/thong-so/${editingThongSo.id}`,
         {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(updatedThongSo),
         }
@@ -177,25 +181,26 @@ const ListParameter = () => {
         const updatedData = await response.json();
         console.log(updatedData);
 
-
         // Cập nhật trực tiếp thông số trong state mà không phải tải lại trang
         setThongSo((prevThongSo) =>
           prevThongSo.map((item) =>
-            item.id === editingThongSo.id ? { ...item, ...updatedThongSo } : item
+            item.id === editingThongSo.id
+              ? { ...item, ...updatedThongSo }
+              : item
           )
         );
         console.log(thongSo);
 
-
-        alert('Cập nhật thông số thành công!');
-
+        alert("Cập nhật thông số thành công!");
       } else {
         const errorData = await response.json();
-        alert(`Lỗi cập nhật: ${errorData.message || 'Không thể cập nhật thông số'}`);
+        alert(
+          `Lỗi cập nhật: ${errorData.message || "Không thể cập nhật thông số"}`
+        );
       }
     } catch (error) {
-      console.error('Lỗi khi cập nhật thông số:', error);
-      alert('Có lỗi xảy ra khi cập nhật thông số');
+      console.error("Lỗi khi cập nhật thông số:", error);
+      alert("Có lỗi xảy ra khi cập nhật thông số");
     }
   };
 
@@ -258,25 +263,53 @@ const ListParameter = () => {
               <table className="table fs-9 mb-0">
                 <thead>
                   <tr>
-                    <th className="white-space-nowrap fs-9 align-middle ps-0" style={{ width: '15%' }}>STT</th>
-                    <th className="white-space-nowrap align-middle ps-4" style={{ width: '30%' }}>DANH MỤC</th>
-                    <th className="align-middle ps-4" style={{ width: '25%' }}>TÊN THÔNG SỐ</th>
-                    <th className="align-middle ps-4" style={{ width: '25%' }}>MÔ TẢ</th>
-                    <th className="align-middle" style={{ width: '5%' }}>HÀNH ĐỘNG</th>
+                    <th
+                      className="white-space-nowrap fs-9 align-middle ps-0"
+                      style={{ width: "15%" }}
+                    >
+                      STT
+                    </th>
+                    <th
+                      className="white-space-nowrap align-middle ps-4"
+                      style={{ width: "30%" }}
+                    >
+                      DANH MỤC
+                    </th>
+                    <th className="align-middle ps-4" style={{ width: "25%" }}>
+                      TÊN THÔNG SỐ
+                    </th>
+                    <th className="align-middle ps-4" style={{ width: "25%" }}>
+                      MÔ TẢ
+                    </th>
+                    <th className="align-middle" style={{ width: "5%" }}>
+                      HÀNH ĐỘNG
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="list">
                   {loading ? (
                     <tr>
-                      <td colSpan="5" className="text-center">Loading...</td>
+                      <td colSpan="5" className="text-center">
+                        Loading...
+                      </td>
                     </tr>
                   ) : (
                     thongSo.map((item, index) => (
-                      <tr key={item.id} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
-                        <td>{(currentPage - 1) * itemsPerPage + index + 1}</td> {/* Tính STT đúng cho mỗi trang */}
-                        <td className="product align-middle ps-4">{item.danh_muc.ten_danh_muc}</td>
-                        <td className="tags align-middle review pb-2 ps-3">{item.ten_thong_so}</td>
-                        <td className="tags align-middle review pb-2 ps-3">{item.mo_ta}</td>
+                      <tr
+                        key={item.id}
+                        className={index % 2 === 0 ? "even-row" : "odd-row"}
+                      >
+                        <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>{" "}
+                        {/* Tính STT đúng cho mỗi trang */}
+                        <td className="product align-middle ps-4">
+                          {item.danh_muc.ten_danh_muc}
+                        </td>
+                        <td className="tags align-middle review pb-2 ps-3">
+                          {item.ten_thong_so}
+                        </td>
+                        <td className="tags align-middle review pb-2 ps-3">
+                          {item.mo_ta}
+                        </td>
                         <td className="align-middle white-space-nowrap">
                           <button
                             className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
@@ -294,7 +327,6 @@ const ListParameter = () => {
                           >
                             <span className="fa-solid fa-trash fs-9" />
                           </button>
-
                         </td>
                       </tr>
                     ))
@@ -305,12 +337,16 @@ const ListParameter = () => {
           </div>
 
           <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
+            {/* Hiển thị số trang */}
             <div className="col-auto d-flex">
               <p className="mb-0 me-3 fw-semibold text-body">
                 Trang {currentPage} / {totalPages}
               </p>
             </div>
+
+            {/* Điều hướng phân trang */}
             <div className="col-auto d-flex">
+              {/* Nút Previous */}
               <button
                 className="page-link"
                 onClick={() => goToPage(currentPage - 1)}
@@ -318,15 +354,27 @@ const ListParameter = () => {
               >
                 <span className="fas fa-chevron-left" />
               </button>
-              {[...Array(totalPages).keys()].map((_, index) => (
-                <button
-                  key={index}
-                  className={`page-link ${currentPage === index + 1 ? 'active' : ''}`}
-                  onClick={() => goToPage(index + 1)}
-                >
-                  {index + 1}
-                </button>
-              ))}
+
+              {/* Danh sách các trang */}
+              <ul className="pagination mb-0">
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <li
+                    key={index}
+                    className={`page-item ${
+                      currentPage === index + 1 ? "active" : ""
+                    }`}
+                  >
+                    <button
+                      className="page-link"
+                      onClick={() => goToPage(index + 1)}
+                    >
+                      {index + 1}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Nút Next */}
               <button
                 className="page-link pe-0"
                 onClick={() => goToPage(currentPage + 1)}
@@ -336,7 +384,6 @@ const ListParameter = () => {
               </button>
             </div>
           </div>
-
         </div>
       </div>
       <div
@@ -512,7 +559,12 @@ const ListParameter = () => {
               >
                 Hủy bỏ
               </button>
-              <button className="btn btn-primary my-0" onClick={handleUpdateThongSo} >Cập nhật</button>
+              <button
+                className="btn btn-primary my-0"
+                onClick={handleUpdateThongSo}
+              >
+                Cập nhật
+              </button>
             </div>
           </div>
         </div>
