@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from 'axios';
+import axios from "axios";
 
 const listOfAttributeName = () => {
   const breadcrumbTitles = {
@@ -9,7 +9,7 @@ const listOfAttributeName = () => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean);
-  const [tenThuocTinh, setTenThuocTinh] = useState('');
+  const [tenThuocTinh, setTenThuocTinh] = useState("");
 
   // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
   const currentTitle =
@@ -25,7 +25,9 @@ const listOfAttributeName = () => {
   });
 
   const fetchData = async (page = 1) => {
-    const response = await fetch(`http://127.0.0.1:8000/api/thuoc-tinh-san-pham?page=${page}`);
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/thuoc-tinh-san-pham?page=${page}`
+    );
     const result = await response.json();
     setData(result);
   };
@@ -59,18 +61,21 @@ const listOfAttributeName = () => {
 
   const handleAddAttribute = async () => {
     if (!tenThuocTinh) {
-      alert('Tên thuộc tính không được để trống');
+      alert("Tên thuộc tính không được để trống");
       return;
     }
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/thuoc-tinh-san-pham', {
-        ten_thuoc_tinh: tenThuocTinh
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/thuoc-tinh-san-pham",
+        {
+          ten_thuoc_tinh: tenThuocTinh,
+        }
+      );
 
       if (response.status === 201) {
-        alert('Thuộc tính đã được thêm thành công');
-        setTenThuocTinh(''); // Reset input
+        alert("Thuộc tính đã được thêm thành công");
+        setTenThuocTinh(""); // Reset input
 
         // Cập nhật lại dữ liệu
         const newAttribute = response.data.data;
@@ -81,22 +86,21 @@ const listOfAttributeName = () => {
           data: [...prevState.data, newAttribute], // Thêm thuộc tính mới vào đầu mảng dữ liệu
         }));
         console.log(data);
-
-
       } else {
-        alert('Có lỗi khi thêm thuộc tính');
+        alert("Có lỗi khi thêm thuộc tính");
       }
     } catch (error) {
       console.error(error); // In ra lỗi để kiểm tra
-      alert('Đã có lỗi xảy ra khi thêm thuộc tính');
+      alert("Đã có lỗi xảy ra khi thêm thuộc tính");
     }
   };
-
 
   const deleteThuocTinh = async (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa?")) {
       try {
-        await axios.delete(`http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${id}`);
+        await axios.delete(
+          `http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${id}`
+        );
         // Xóa sản phẩm khỏi state mà không tải lại dữ liệu từ server
         setData((prevState) => ({
           ...prevState,
@@ -115,7 +119,7 @@ const listOfAttributeName = () => {
 
   const handleEditThuocTinh = (attribute) => {
     console.log(attribute);
-    
+
     setSelectedAttribute(attribute);
     setAttributeName(attribute.ten_thuoc_tinh); // Đổ dữ liệu vào input
   };
@@ -124,25 +128,26 @@ const listOfAttributeName = () => {
     if (!selectedAttribute) return;
 
     try {
-      await axios.put(`http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${selectedAttribute.id}`, {
-        ten_thuoc_tinh: attributeName,
-      });
+      await axios.put(
+        `http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${selectedAttribute.id}`,
+        {
+          ten_thuoc_tinh: attributeName,
+        }
+      );
       alert("Cập nhật thành công!");
       setData((prevState) => ({
         ...prevState,
         data: prevState.data.map((item) =>
-          item.id === selectedAttribute.id ? { ...item, ten_thuoc_tinh: attributeName } : item
+          item.id === selectedAttribute.id
+            ? { ...item, ten_thuoc_tinh: attributeName }
+            : item
         ),
       }));
-
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Cập nhật thất bại, vui lòng thử lại!");
     }
   };
-
-
-
 
   return (
     <div className="content">
@@ -203,16 +208,29 @@ const listOfAttributeName = () => {
               <table className="table fs-9 mb-0">
                 <thead>
                   <tr>
-                    <th className="white-space-nowrap fs-9 align-middle ps-0" scope="col" style={{ width: '15%' }}>
+                    <th
+                      className="white-space-nowrap fs-9 align-middle ps-0"
+                      scope="col"
+                      style={{ width: "15%" }}
+                    >
                       STT
                     </th>
-                    <th className="white-space-nowrap align-middle ps-4" scope="col" style={{ width: '30%' }} data-sort="product">
+                    <th
+                      className="white-space-nowrap align-middle ps-4"
+                      scope="col"
+                      style={{ width: "30%" }}
+                      data-sort="product"
+                    >
                       TÊN THUỘC TÍNH
                     </th>
-                    <th className="align-middle ps-4" scope="col" style={{ width: '25%' }}>
+                    <th
+                      className="align-middle ps-4"
+                      scope="col"
+                      style={{ width: "25%" }}
+                    >
                       NGÀY THÊM
                     </th>
-                    <th className="align-middle ps-4" style={{ width: '5%' }}>
+                    <th className="align-middle ps-4" style={{ width: "5%" }}>
                       HÀNH ĐỘNG
                     </th>
                   </tr>
@@ -220,12 +238,16 @@ const listOfAttributeName = () => {
                 <tbody className="list" id="products-table-body">
                   {data.data.map((item, index) => (
                     <tr key={item.id}>
-                      <td>{(data.current_page - 1) * 10 + index + 1}</td>
-                      <td className="product align-middle ps-4">{item.ten_thuoc_tinh}</td>
-                      <td className="tags align-middle review pb-2 ps-3">
+                      <td className="product align-middle ps-2">
+                        {(data.current_page - 1) * 10 + index + 1}
+                      </td>
+                      <td className="product align-middle ps-4">
+                        {item.ten_thuoc_tinh}
+                      </td>
+                      <td className="tags align-middle review pb-2 ps-4">
                         {formatDate(item.created_at)}
                       </td>
-                      <td className="align-middle white-space-nowrap">
+                      <td className="align-middle white-space-nowrap ps-3">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
@@ -268,7 +290,9 @@ const listOfAttributeName = () => {
                 {[...Array(data.last_page).keys()].map((_, index) => (
                   <button
                     key={index}
-                    className={`page-link ${data.current_page === index + 1 ? 'active' : ''}`}
+                    className={`page-link ${
+                      data.current_page === index + 1 ? "active" : ""
+                    }`}
                     onClick={() => handlePageChange(index + 1)}
                   >
                     {index + 1}
@@ -327,7 +351,6 @@ const listOfAttributeName = () => {
                   </div>
                 </div>
               </div>
-
             </div>
             <div className="modal-footer border-0 pt-0 px-0 pb-0">
               <button
@@ -397,10 +420,7 @@ const listOfAttributeName = () => {
               >
                 Hủy bỏ
               </button>
-              <button
-                className="btn btn-primary my-0"
-                onClick={handleUpdate}
-              >
+              <button className="btn btn-primary my-0" onClick={handleUpdate}>
                 Cập nhật
               </button>
             </div>
