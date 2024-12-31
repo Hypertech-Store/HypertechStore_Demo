@@ -45,20 +45,6 @@ const listOfAttributeName = () => {
     }
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    const options = {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    };
-    return date.toLocaleString("en-US", options);
-  };
-
   const handleAddAttribute = async () => {
     if (!tenThuocTinh) {
       alert("Tên thuộc tính không được để trống");
@@ -124,25 +110,67 @@ const listOfAttributeName = () => {
     setAttributeName(attribute.ten_thuoc_tinh); // Đổ dữ liệu vào input
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+
+    // Tạo đối tượng Date từ chuỗi
+    const date = new Date(dateStr);
+
+    // Chuyển đổi thời gian sang giờ UTC+7 (Asia/Ho_Chi_Minh)
+    const offset = 7 * 60; // Chênh lệch múi giờ Việt Nam (7 giờ)
+    const localTime = new Date(date.getTime() + offset * 60 * 1000);
+
+    // Định dạng lại theo yêu cầu (yyyy-MM-dd HH:mm:ss)
+    const year = localTime.getUTCFullYear();
+    const month = String(localTime.getUTCMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+    const day = String(localTime.getUTCDate()).padStart(2, "0");
+    const hours = String(localTime.getUTCHours()).padStart(2, "0");
+    const minutes = String(localTime.getUTCMinutes()).padStart(2, "0");
+    const seconds = String(localTime.getUTCSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+  
   const handleUpdate = async () => {
     if (!selectedAttribute) return;
 
     try {
+      // Lấy thời gian hiện tại theo giờ Việt Nam (UTC+7)
+      const getVietnamTime = () => {
+        const date = new Date();
+        // Lấy giờ UTC
+        const utcTime = date.getTime() + date.getTimezoneOffset() * 60 * 1000;
+        // Chuyển đổi sang giờ Việt Nam (UTC+7)
+        const vietnamTime = new Date(utcTime + 7 * 60 * 60 * 1000);
+        return vietnamTime.toISOString(); // Trả về thời gian ISO
+      };
+
+      const vietnamTime = getVietnamTime();
+
+      // Gửi yêu cầu API với thời gian cập nhật
       await axios.put(
         `http://127.0.0.1:8000/api/thuoc-tinh-san-pham/${selectedAttribute.id}`,
         {
           ten_thuoc_tinh: attributeName,
+          updated_at: vietnamTime, // Cập nhật trường thời gian
         }
       );
-      alert("Cập nhật thành công!");
+
+      // Cập nhật state sau khi update thành công
       setData((prevState) => ({
         ...prevState,
         data: prevState.data.map((item) =>
           item.id === selectedAttribute.id
-            ? { ...item, ten_thuoc_tinh: attributeName }
+            ? {
+                ...item,
+                ten_thuoc_tinh: attributeName,
+                updated_at: vietnamTime, // Cập nhật lại thời gian tại state
+              }
             : item
         ),
       }));
+
+      alert("Cập nhật thành công!");
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Cập nhật thất bại, vui lòng thử lại!");
@@ -230,7 +258,14 @@ const listOfAttributeName = () => {
                     >
                       NGÀY THÊM
                     </th>
-                    <th className="align-middle ps-4" style={{ width: "5%" }}>
+                    <th
+                      className="align-middle ps-4"
+                      scope="col"
+                      style={{ width: "25%" }}
+                    >
+                      NGÀY CẬP NHẬT
+                    </th>
+                    <th className="align-middle" style={{ width: "5%" }}>
                       HÀNH ĐỘNG
                     </th>
                   </tr>
@@ -238,7 +273,7 @@ const listOfAttributeName = () => {
                 <tbody className="list" id="products-table-body">
                   {data.data.map((item, index) => (
                     <tr key={item.id}>
-                      <td className="product align-middle ps-2">
+                      <td className="tags align-middle review pb-2 ps-2">
                         {(data.current_page - 1) * 10 + index + 1}
                       </td>
                       <td className="product align-middle ps-4">
@@ -247,7 +282,10 @@ const listOfAttributeName = () => {
                       <td className="tags align-middle review pb-2 ps-4">
                         {formatDate(item.created_at)}
                       </td>
-                      <td className="align-middle white-space-nowrap ps-3">
+                      <td className="tags align-middle review pb-2 ps-4">
+                        {formatDate(item.updated_at)}
+                      </td>
+                      <td className="align-middle white-space-nowrap">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
@@ -280,6 +318,7 @@ const listOfAttributeName = () => {
                 </p>
               </div>
               <div className="col-auto d-flex">
+                {/* Nút Prev */}
                 <button
                   className="page-link"
                   onClick={() => handlePageChange(data.current_page - 1)}
@@ -287,19 +326,29 @@ const listOfAttributeName = () => {
                 >
                   <span className="fas fa-chevron-left" />
                 </button>
-                {[...Array(data.last_page).keys()].map((_, index) => (
-                  <button
-                    key={index}
-                    className={`page-link ${
-                      data.current_page === index + 1 ? "active" : ""
-                    }`}
-                    onClick={() => handlePageChange(index + 1)}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
+
+                {/* Danh sách các nút trang */}
+                <ul className="pagination mb-0">
+                  {Array.from({ length: data.last_page }, (_, index) => (
+                    <li
+                      key={index}
+                      className={`page-item ${
+                        data.current_page === index + 1 ? "active" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(index + 1)}
+                      >
+                        {index + 1}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Nút Next */}
                 <button
-                  className="page-link pe-0"
+                  className="page-link"
                   onClick={() => handlePageChange(data.current_page + 1)}
                   disabled={data.current_page === data.last_page}
                 >
