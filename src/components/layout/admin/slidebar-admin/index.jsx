@@ -1,6 +1,14 @@
 import { Link } from "react-router-dom";
-
+import { useState } from "react";
 const SlidebarAdmin = () => {
+  // Sử dụng useState để theo dõi mục nào đang active
+  const [activeItem, setActiveItem] = useState("dashboard"); // Mặc định "dashboard" là active
+
+  // Hàm để thay đổi mục active
+  const handleClick = (item) => {
+    setActiveItem(item);
+  };
+
   return (
     <>
       <nav className="navbar navbar-vertical navbar-expand-lg">
@@ -12,11 +20,14 @@ const SlidebarAdmin = () => {
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
                   <a
-                    className="nav-link label-1 active"
+                    className={`nav-link label-1 ${
+                      activeItem === "dashboard" ? "active" : ""
+                    }`}
                     href="/admin"
                     role="button"
                     data-bs-toggle
                     aria-expanded="false"
+                    onClick={() => handleClick("dashboard")}
                   >
                     <div className="d-flex align-items-center">
                       <span className="nav-link-icon">
@@ -91,13 +102,17 @@ const SlidebarAdmin = () => {
                       <li className="collapsed-nav-item-title d-none">
                         E commerce
                       </li>
+
                       <li className="nav-item">
                         <a
-                          className="nav-link dropdown-indicator"
+                          className={`nav-link dropdown-indicator ${
+                            activeItem === "products" ? "active" : ""
+                          }`}
                           href="#nv-products"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
                           aria-controls="nv-products"
+                          onClick={() => handleClick("products")} // Set active item on click
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -114,7 +129,13 @@ const SlidebarAdmin = () => {
                             id="nv-products"
                           >
                             <li className="nav-item">
-                              <Link className="nav-link" to="them-san-pham">
+                              <Link
+                                className={`nav-link ${
+                                  activeItem === "add-product" ? "active" : ""
+                                }`}
+                                to="them-san-pham"
+                                onClick={() => handleClick("add-product")}
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     Add product
@@ -125,8 +146,11 @@ const SlidebarAdmin = () => {
                             </li>
                             <li className="nav-item">
                               <Link
-                                className="nav-link"
+                                className={`nav-link ${
+                                  activeItem === "list-products" ? "active" : ""
+                                }`}
                                 to="danh-sach-san-pham"
+                                onClick={() => handleClick("list-products")}
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
@@ -139,13 +163,17 @@ const SlidebarAdmin = () => {
                           </ul>
                         </div>
                       </li>
+
                       <li className="nav-item">
                         <a
-                          className="nav-link dropdown-indicator"
+                          className={`nav-link dropdown-indicator ${
+                            activeItem === "category" ? "active" : ""
+                          }`}
                           href="#nv-category"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
                           aria-controls="nv-category"
+                          onClick={() => handleClick("category")} // Set active item on click
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -154,7 +182,6 @@ const SlidebarAdmin = () => {
                             <span className="nav-link-text">Category</span>
                           </div>
                         </a>
-                        {/* more inner pages*/}
                         <div className="parent-wrapper">
                           <ul
                             className="nav collapse parent show"
@@ -162,19 +189,27 @@ const SlidebarAdmin = () => {
                             id="nv-category"
                           >
                             <li className="nav-item">
-                              <Link className="nav-link" to="them-danh-muc">
+                              <Link
+                                className={`nav-link ${
+                                  activeItem === "add-category" ? "active" : ""
+                                }`}
+                                to="them-danh-muc"
+                                onClick={() => handleClick("add-category")}
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     Add category
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                             <li className="nav-item">
                               <Link
-                                className="nav-link"
+                                className={`nav-link ${
+                                  activeItem === "list-category" ? "active" : ""
+                                }`}
                                 to="danh-sach-danh-muc"
+                                onClick={() => handleClick("list-category")}
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
@@ -182,18 +217,21 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                           </ul>
                         </div>
                       </li>
+
                       <li className="nav-item">
                         <a
-                          className="nav-link dropdown-indicator"
+                          className={`nav-link dropdown-indicator ${
+                            activeItem === "subcategory" ? "active" : ""
+                          }`}
                           href="#nv-subcategory"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
                           aria-controls="nv-subcategory"
+                          onClick={() => handleClick("subcategory")} // Set active item on click
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -202,7 +240,6 @@ const SlidebarAdmin = () => {
                             <span className="nav-link-text">SubCategory</span>
                           </div>
                         </a>
-                        {/* more inner pages*/}
                         <div className="parent-wrapper">
                           <ul
                             className="nav collapse parent show"
@@ -210,19 +247,31 @@ const SlidebarAdmin = () => {
                             id="nv-subcategory"
                           >
                             <li className="nav-item">
-                              <Link className="nav-link" to="them-danh-muc-con">
+                              <Link
+                                className={`nav-link ${
+                                  activeItem === "add-subcategory"
+                                    ? "active"
+                                    : ""
+                                }`}
+                                to="them-danh-muc-con"
+                                onClick={() => handleClick("add-subcategory")}
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     Add subcategory
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                             <li className="nav-item">
                               <Link
-                                className="nav-link"
+                                className={`nav-link ${
+                                  activeItem === "list-subcategory"
+                                    ? "active"
+                                    : ""
+                                }`}
                                 to="danh-sach-danh-muc-con"
+                                onClick={() => handleClick("list-subcategory")}
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
@@ -230,18 +279,21 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                           </ul>
                         </div>
                       </li>
+
                       <li className="nav-item">
                         <a
-                          className="nav-link dropdown-indicator"
+                          className={`nav-link dropdown-indicator ${
+                            activeItem === "variable" ? "active" : ""
+                          }`}
                           href="#nv-Variable"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
                           aria-controls="nv-Variable"
+                          onClick={() => handleClick("variable")} // Set active item on click
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -252,7 +304,6 @@ const SlidebarAdmin = () => {
                             </span>
                           </div>
                         </a>
-                        {/* more inner pages*/}
                         <div className="parent-wrapper">
                           <ul
                             className="nav collapse parent show"
@@ -260,19 +311,31 @@ const SlidebarAdmin = () => {
                             id="nv-Variable"
                           >
                             <li className="nav-item">
-                              <Link className="nav-link" to="ten-thuoc-tinh">
+                              <Link
+                                className={`nav-link ${
+                                  activeItem === "attribute-name"
+                                    ? "active"
+                                    : ""
+                                }`}
+                                to="ten-thuoc-tinh"
+                                onClick={() => handleClick("attribute-name")}
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     Attribute name
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                             <li className="nav-item">
                               <Link
-                                className="nav-link"
+                                className={`nav-link ${
+                                  activeItem === "attribute-value"
+                                    ? "active"
+                                    : ""
+                                }`}
                                 to="gia-tri-thuoc-tinh"
+                                onClick={() => handleClick("attribute-value")}
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
@@ -280,28 +343,38 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                             <li className="nav-item">
-                              <Link className="nav-link" to="chi-tiet-bien-the">
+                              <Link
+                                className={`nav-link ${
+                                  activeItem === "variation-details"
+                                    ? "active"
+                                    : ""
+                                }`}
+                                to="chi-tiet-bien-the"
+                                onClick={() => handleClick("variation-details")}
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     Variation details
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                           </ul>
                         </div>
                       </li>
+
                       <li className="nav-item">
                         <a
-                          className="nav-link dropdown-indicator"
+                          className={`nav-link dropdown-indicator ${
+                            activeItem === "saleProduct" ? "active" : ""
+                          }`}
                           href="#nv-saleProduct"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
                           aria-controls="nv-saleProduct"
+                          onClick={() => handleClick("saleProduct")}
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -310,7 +383,6 @@ const SlidebarAdmin = () => {
                             <span className="nav-link-text">Product Sale</span>
                           </div>
                         </a>
-                        {/* more inner pages*/}
                         <div className="parent-wrapper">
                           <ul
                             className="nav collapse parent show"
@@ -319,8 +391,11 @@ const SlidebarAdmin = () => {
                           >
                             <li className="nav-item">
                               <Link
-                                className="nav-link"
+                                className={`nav-link ${
+                                  activeItem === "saleList" ? "active" : ""
+                                }`}
                                 to="danh-sach-san-pham-sale"
+                                onClick={() => handleClick("saleList")}
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
@@ -328,18 +403,22 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                           </ul>
                         </div>
                       </li>
+
+                      {/* Specifications Section */}
                       <li className="nav-item">
                         <a
-                          className="nav-link dropdown-indicator"
+                          className={`nav-link dropdown-indicator ${
+                            activeItem === "parameter" ? "active" : ""
+                          }`}
                           href="#nv-parameter"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
                           aria-controls="nv-parameter"
+                          onClick={() => handleClick("parameter")}
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -350,7 +429,6 @@ const SlidebarAdmin = () => {
                             </span>
                           </div>
                         </a>
-                        {/* more inner pages*/}
                         <div className="parent-wrapper">
                           <ul
                             className="nav collapse parent show"
@@ -359,8 +437,11 @@ const SlidebarAdmin = () => {
                           >
                             <li className="nav-item">
                               <Link
-                                className="nav-link"
+                                className={`nav-link ${
+                                  activeItem === "parameterList" ? "active" : ""
+                                }`}
                                 to="danh-sach-thong-so"
+                                onClick={() => handleClick("parameterList")}
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
@@ -368,7 +449,6 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                           </ul>
                         </div>
@@ -379,14 +459,19 @@ const SlidebarAdmin = () => {
                             id="nv-parameter"
                           >
                             <li className="nav-item">
-                              <Link className="nav-link" to="lien-ket-thong-so">
+                              <Link
+                                className={`nav-link ${
+                                  activeItem === "parameterLink" ? "active" : ""
+                                }`}
+                                to="lien-ket-thong-so"
+                                onClick={() => handleClick("parameterLink")}
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     Parameter link
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                           </ul>
                         </div>
@@ -394,15 +479,19 @@ const SlidebarAdmin = () => {
                     </ul>
                   </div>
                 </div>
+
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
                   <a
-                    className="nav-link dropdown-indicator label-1"
+                    className={`nav-link dropdown-indicator label-1 ${
+                      activeItem === "account" ? "active" : ""
+                    }`}
                     href="#account"
                     role="button"
                     data-bs-toggle="collapse"
                     aria-expanded="false"
                     aria-controls="account"
+                    onClick={() => handleClick("account")} // Khi nhấn, cập nhật trạng thái active
                   >
                     <div className="d-flex align-items-center">
                       <div className="dropdown-indicator-icon-wrapper">
@@ -439,11 +528,14 @@ const SlidebarAdmin = () => {
                       </li>
                       <li className="nav-item">
                         <a
-                          className="nav-link dropdown-indicator"
+                          className={`nav-link dropdown-indicator ${
+                            activeItem === "admin" ? "active" : ""
+                          }`}
                           href="#nv-admin"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
                           aria-controls="nv-admin"
+                          onClick={() => handleClick("admin")}
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -462,35 +554,48 @@ const SlidebarAdmin = () => {
                             id="nv-admin"
                           >
                             <li className="nav-item">
-                              <Link className="nav-link" to="them-san-pham">
+                              <Link
+                                className={`nav-link ${
+                                  activeItem === "addAdmin" ? "active" : ""
+                                }`}
+                                to="them-san-pham"
+                                onClick={() => handleClick("addAdmin")}
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     Add admin
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
                             </li>
                             <li className="nav-item">
-                              <a className="nav-link" href="danh-sach-quan-tri">
+                              <Link
+                                className={`nav-link ${
+                                  activeItem === "listAdmin" ? "active" : ""
+                                }`}
+                                to="danh-sach-quan-tri"
+                                onClick={() => handleClick("listAdmin")}
+                              >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
                                     List admin
                                   </span>
                                 </div>
-                              </a>
-                              {/* more inner pages*/}
+                              </Link>
                             </li>
                           </ul>
                         </div>
                       </li>
                       <li className="nav-item">
                         <a
-                          className="nav-link dropdown-indicator"
+                          className={`nav-link dropdown-indicator ${
+                            activeItem === "customer" ? "active" : ""
+                          }`}
                           href="#category"
                           data-bs-toggle="collapse"
                           aria-expanded="true"
                           aria-controls="category"
+                          onClick={() => handleClick("customer")}
                         >
                           <div className="d-flex align-items-center">
                             <div className="dropdown-indicator-icon-wrapper">
@@ -508,7 +613,10 @@ const SlidebarAdmin = () => {
                           >
                             <li className="nav-item">
                               <Link
-                                className="nav-link"
+                                className={`nav-link ${
+                                  activeItem === "listCustomer" ? "active" : ""
+                                }`}
+                                onClick={() => handleClick("listCustomer")}
                                 to="danh-sach-khach-hang"
                               >
                                 <div className="d-flex align-items-center">
@@ -525,15 +633,18 @@ const SlidebarAdmin = () => {
                     </ul>
                   </div>
                 </div>
+
                 <li className="nav-item">
-                  {/* parent pages*/}
                   <div className="nav-item-wrapper">
-                    <a
-                      className="nav-link label-1"
-                      href="khuyen-mai"
+                    <Link
+                      to="khuyen-mai"
+                      className={`nav-link label-1 ${
+                        activeItem === "deals" ? "active" : ""
+                      }`}
                       role="button"
                       data-bs-toggle
                       aria-expanded="false"
+                      onClick={() => handleClick("deals")}
                     >
                       <div className="d-flex align-items-center">
                         <span className="nav-link-icon">
@@ -558,18 +669,22 @@ const SlidebarAdmin = () => {
                         </span>
                         <span className="nav-link-text">Deals</span>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                 </li>
+
                 <li className="nav-item">
                   {/* parent pages*/}
                   <div className="nav-item-wrapper">
                     <Link
-                      className="nav-link label-1"
+                      className={`nav-link label-1 ${
+                        activeItem === "orders" ? "active" : ""
+                      }`}
                       to="don-hang"
                       role="button"
                       data-bs-toggle
                       aria-expanded="false"
+                      onClick={() => handleClick("orders")}
                     >
                       <div className="d-flex align-items-center">
                         <span className="nav-link-icon">
@@ -600,11 +715,14 @@ const SlidebarAdmin = () => {
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
                   <Link
-                    className="nav-link label-1"
+                    className={`nav-link label-1 ${
+                      activeItem === "chat" ? "active" : ""
+                    }`}
                     to="tin-nhan"
                     role="button"
                     data-bs-toggle
                     aria-expanded="false"
+                    onClick={() => handleClick("chat")}
                   >
                     <div className="d-flex align-items-center">
                       <span className="nav-link-icon">
@@ -632,11 +750,14 @@ const SlidebarAdmin = () => {
 
                 <div className="nav-item-wrapper">
                   <Link
-                    className="nav-link label-1"
+                    className={`nav-link label-1 ${
+                      activeItem === "transport" ? "active" : ""
+                    }`}
                     to="hinh-thuc-van-chuyen"
                     role="button"
                     data-bs-toggle
                     aria-expanded="false"
+                    onClick={() => handleClick("transport")}
                   >
                     <div className="d-flex align-items-center">
                       <span className="nav-link-icon">
@@ -667,11 +788,14 @@ const SlidebarAdmin = () => {
 
                 <div className="nav-item-wrapper">
                   <Link
-                    className="nav-link label-1"
+                    className={`nav-link label-1 ${
+                      activeItem === "payment" ? "active" : ""
+                    }`}
                     to="phuong-thuc-thanh-toan"
                     role="button"
                     data-bs-toggle
                     aria-expanded="false"
+                    onClick={() => handleClick("payment")}
                   >
                     <div className="d-flex align-items-center">
                       <span className="nav-link-icon">
@@ -708,12 +832,15 @@ const SlidebarAdmin = () => {
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
                   <Link
-                    className="nav-link dropdown-indicator label-1"
+                    className={`nav-link dropdown-indicator label-1 ${
+                      activeItem === "email" ? "active" : ""
+                    }`}
                     to="#nv-email"
                     role="button"
                     data-bs-toggle="collapse"
                     aria-expanded="false"
                     aria-controls="nv-email"
+                    onClick={() => handleClick("email")} // Xử lý khi click vào
                   >
                     <div className="d-flex align-items-center">
                       <div className="dropdown-indicator-icon-wrapper">
@@ -739,6 +866,7 @@ const SlidebarAdmin = () => {
                       <span className="nav-link-text">Email</span>
                     </div>
                   </Link>
+
                   <div className="parent-wrapper label-1">
                     <ul
                       className="nav collapse parent"
@@ -747,31 +875,43 @@ const SlidebarAdmin = () => {
                     >
                       <li className="collapsed-nav-item-title d-none">Email</li>
                       <li className="nav-item">
-                        <a className="nav-link" href="apps/email/inbox.html">
+                        <Link
+                          className={`nav-link ${
+                            activeItem === "inbox" ? "active" : ""
+                          }`}
+                          to="apps/email/inbox.html"
+                          onClick={() => handleClick("inbox")} // Cập nhật active khi click vào Inbox
+                        >
                           <div className="d-flex align-items-center">
                             <span className="nav-link-text">Inbox</span>
                           </div>
-                        </a>
-                        {/* more inner pages*/}
+                        </Link>
                       </li>
                       <li className="nav-item">
-                        <a
-                          className="nav-link"
-                          href="apps/email/email-detail.html"
+                        <Link
+                          className={`nav-link ${
+                            activeItem === "email-detail" ? "active" : ""
+                          }`}
+                          to="apps/email/email-detail.html"
+                          onClick={() => handleClick("email-detail")} // Cập nhật active khi click vào Email detail
                         >
                           <div className="d-flex align-items-center">
                             <span className="nav-link-text">Email detail</span>
                           </div>
-                        </a>
-                        {/* more inner pages*/}
+                        </Link>
                       </li>
                       <li className="nav-item">
-                        <a className="nav-link" href="apps/email/compose.html">
+                        <Link
+                          className={`nav-link ${
+                            activeItem === "compose" ? "active" : ""
+                          }`}
+                          to="apps/email/compose.html"
+                          onClick={() => handleClick("compose")} // Cập nhật active khi click vào Compose
+                        >
                           <div className="d-flex align-items-center">
                             <span className="nav-link-text">Compose</span>
                           </div>
-                        </a>
-                        {/* more inner pages*/}
+                        </Link>
                       </li>
                     </ul>
                   </div>
@@ -779,12 +919,15 @@ const SlidebarAdmin = () => {
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
                   <Link
-                    className="nav-link dropdown-indicator label-1"
+                    className={`nav-link dropdown-indicator label-1 ${
+                      activeItem === "events" ? "active" : ""
+                    }`}
                     to="#nv-events"
                     role="button"
                     data-bs-toggle="collapse"
                     aria-expanded="false"
                     aria-controls="nv-events"
+                    onClick={() => handleClick("events")} // Xử lý khi nhấp vào mục "Events"
                   >
                     <div className="d-flex align-items-center">
                       <div className="dropdown-indicator-icon-wrapper">
@@ -809,6 +952,7 @@ const SlidebarAdmin = () => {
                       <span className="nav-link-text">Events</span>
                     </div>
                   </Link>
+
                   <div className="parent-wrapper label-1">
                     <ul
                       className="nav collapse parent"
@@ -819,28 +963,32 @@ const SlidebarAdmin = () => {
                         Events
                       </li>
                       <li className="nav-item">
-                        <a
-                          className="nav-link"
-                          href="apps/events/create-an-event.html"
+                        <Link
+                          className={`nav-link ${
+                            activeItem === "create-event" ? "active" : ""
+                          }`}
+                          to="apps/events/create-an-event.html"
+                          onClick={() => handleClick("create-event")} // Cập nhật active khi nhấp vào "Create an event"
                         >
                           <div className="d-flex align-items-center">
                             <span className="nav-link-text">
                               Create an event
                             </span>
                           </div>
-                        </a>
-                        {/* more inner pages*/}
+                        </Link>
                       </li>
                       <li className="nav-item">
-                        <a
-                          className="nav-link"
-                          href="apps/events/event-detail.html"
+                        <Link
+                          className={`nav-link ${
+                            activeItem === "event-detail" ? "active" : ""
+                          }`}
+                          to="apps/events/event-detail.html"
+                          onClick={() => handleClick("event-detail")} // Cập nhật active khi nhấp vào "Event detail"
                         >
                           <div className="d-flex align-items-center">
                             <span className="nav-link-text">Event detail</span>
                           </div>
-                        </a>
-                        {/* more inner pages*/}
+                        </Link>
                       </li>
                     </ul>
                   </div>
@@ -852,12 +1000,15 @@ const SlidebarAdmin = () => {
                 <hr className="navbar-vertical-line" />
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
-                  <a
-                    className="nav-link label-1"
-                    href="pages/notifications.html"
+                  <Link
+                    className={`nav-link label-1 ${
+                      activeItem === "noti" ? "active" : ""
+                    }`}
+                    to="pages/notifications.html"
                     role="button"
                     data-bs-toggle
                     aria-expanded="false"
+                    onClick={() => handleClick("noti")}
                   >
                     <div className="d-flex align-items-center">
                       <span className="nav-link-icon">
@@ -881,7 +1032,7 @@ const SlidebarAdmin = () => {
                         <span className="nav-link-text">Notifications</span>
                       </span>
                     </div>
-                  </a>
+                  </Link>
                 </div>
 
                 {/* parent pages*/}

@@ -12,6 +12,7 @@ const ListSubcategory = () => {
   });
   const [subCategoryId, setSubCategoryId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0); // Total number of items
   const [totalPages, setTotalPages] = useState(1);
   const [subCategorysPerPage, setSubCategorysPerPage] = useState(10);
   const [categories, setCategories] = useState([]);
@@ -28,13 +29,15 @@ const ListSubcategory = () => {
 
   console.log(previewImage);
 
-
   useEffect(() => {
     // Fetch data for the current page
     axios
-      .get(`http://127.0.0.1:8000/api/danh-muc-con?page=${currentPage}&limit=${subCategorysPerPage}`)
+      .get(
+        `http://127.0.0.1:8000/api/danh-muc-con?page=${currentPage}&limit=${subCategorysPerPage}`
+      )
       .then((response) => {
         setSubCategories(response.data.data); // Dữ liệu của trang hiện tại
+        setTotalItems(response.data.total); // Total number of items (could be `total` in the response)
         setTotalPages(response.data.last_page); // Tổng số trang
       })
       .catch((error) => {
@@ -45,7 +48,9 @@ const ListSubcategory = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/danh-muc/getAll");
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/danh-muc/getAll"
+        );
         setCategories(response.data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -82,9 +87,8 @@ const ListSubcategory = () => {
       danh_muc_id: subCategory.danh_muc_id,
     });
     setSubCategoryId(subCategory.id);
-    setImgSubCate(subCategory.img)
+    setImgSubCate(subCategory.img);
     console.log(subCategoryDetails);
-
   };
 
   // Handle category selection in the table
@@ -92,19 +96,22 @@ const ListSubcategory = () => {
     try {
       // Kiểm tra dữ liệu subCategoryDetails
       console.log("subCategoryDetails:", subCategoryDetails);
-  
+
       // Tạo formData
       const formData = new FormData();
-  
+
       // Kiểm tra và thêm các thuộc tính vào formData
       if (subCategoryDetails.danh_muc_id) {
         formData.append("danh_muc_id", subCategoryDetails.danh_muc_id);
       }
-  
+
       if (subCategoryDetails.ten_danh_muc_con) {
-        formData.append("ten_danh_muc_con", subCategoryDetails.ten_danh_muc_con);
+        formData.append(
+          "ten_danh_muc_con",
+          subCategoryDetails.ten_danh_muc_con
+        );
       }
-  
+
       // Kiểm tra và thêm hình ảnh vào formData nếu có
       if (subCategoryDetails.image) {
         formData.append("image", subCategoryDetails.image);
@@ -113,11 +120,11 @@ const ListSubcategory = () => {
       for (let pair of formData.entries()) {
         console.log(pair[0] + ": " + pair[1]);
       }
-      
-      formData.append('_method', 'PUT');
-      
+
+      formData.append("_method", "PUT");
+
       console.log("Form data trước khi gửi:", formData);
-  
+
       // Gửi dữ liệu đến API
       const response = await axios.post(
         `http://127.0.0.1:8000/api/danh-muc-con/${subCategoryId}`,
@@ -128,11 +135,11 @@ const ListSubcategory = () => {
           },
         }
       );
-  
+
       // Kiểm tra phản hồi
       if (response.status === 200) {
         alert("Cập nhật danh mục con thành công!");
-  
+
         setSubCategories((prev) =>
           prev.map((cat) =>
             cat.id === subCategoryId
@@ -145,13 +152,13 @@ const ListSubcategory = () => {
               : cat
           )
         );
-  
+
         const modal = document.getElementById("updateCustomer");
         if (modal) {
           const bootstrapModal = bootstrap.Modal.getInstance(modal);
           bootstrapModal.hide();
         }
-  
+
         console.log("Dữ liệu đã cập nhật:", subCategoryDetails);
       }
     } catch (error) {
@@ -159,7 +166,7 @@ const ListSubcategory = () => {
       alert("Không thể cập nhật danh mục. Vui lòng kiểm tra lại.");
     }
   };
-  
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -173,11 +180,15 @@ const ListSubcategory = () => {
   };
 
   const deleteSubCategory = async (id) => {
-    const isConfirmed = window.confirm("Bạn có chắc chắn muốn xóa danh mục này?");
+    const isConfirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa danh mục này?"
+    );
     if (!isConfirmed) return;
 
     try {
-      const response = await axios.delete(`http://127.0.0.1:8000/api/danh-muc-con/${id}`);
+      const response = await axios.delete(
+        `http://127.0.0.1:8000/api/danh-muc-con/${id}`
+      );
       if (response.status === 200) {
         alert("Xóa danh mục con thành công!");
         setSubCategories((prev) => prev.filter((cat) => cat.id !== id));
@@ -187,7 +198,6 @@ const ListSubcategory = () => {
       alert("Không thể xóa danh mục con.");
     }
   };
-
 
   return (
     <>
@@ -213,7 +223,9 @@ const ListSubcategory = () => {
             <li className="nav-item">
               <a className="nav-link active" aria-current="page" href="#">
                 <span>All </span>
-                <span className="text-body-tertiary fw-semibold">(68817)</span>
+                <span className="text-body-tertiary fw-semibold">
+                  ({totalItems})
+                </span>
               </a>
             </li>
             <li className="nav-item">
@@ -252,101 +264,11 @@ const ListSubcategory = () => {
                     <span className="fas fa-search search-box-icon" />
                   </form>
                 </div>
-                <div className="scrollbar overflow-hidden-y">
-                  <div className="btn-group position-static" role="group">
-                    <div className="btn-group position-static text-nowrap">
-                      <button
-                        className="btn btn-phoenix-secondary px-7 flex-shrink-0"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        data-boundary="window"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        data-bs-reference="parent"
-                      >
-                        {""}
-                        Category
-                        <span className="fas fa-angle-down ms-2" />
-                      </button>
-                      <ul className="dropdown-menu">
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Action
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Another action
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Something else here
-                          </a>
-                        </li>
-                        <li>
-                          <hr className="dropdown-divider" />
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Separated link
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                    <div className="btn-group position-static text-nowrap">
-                      <button
-                        className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        data-boundary="window"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        data-bs-reference="parent"
-                      >
-                        {""}
-                        Vendor
-                        <span className="fas fa-angle-down ms-2" />
-                      </button>
-                      <ul className="dropdown-menu">
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Action
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Another action
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Something else here
-                          </a>
-                        </li>
-                        <li>
-                          <hr className="dropdown-divider" />
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Separated link
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                    <button className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0">
-                      More filters
-                    </button>
-                  </div>
-                </div>
+
                 <div className="ms-xxl-auto">
-                  <button className="btn btn-link text-body me-4 px-0">
-                    <span className="fa-solid fa-file-export fs-9 me-2" />
-                    Export
-                  </button>
                   <button className="btn btn-primary" id="addBtn">
                     <span className="fas fa-plus me-2" />
-                    Add product
+                    Add Subcategory
                   </button>
                 </div>
               </div>
@@ -367,7 +289,9 @@ const ListSubcategory = () => {
                   <tbody className="list" id="products-table-body">
                     {subCategories.map((subCategory, index) => (
                       <tr key={subCategory.id}>
-                        <td>{(currentPage - 1) * subCategorysPerPage + index + 1}</td>
+                        <td>
+                          {(currentPage - 1) * subCategorysPerPage + index + 1}
+                        </td>
                         <td className="tags align-middle review pb-2 ps-3">
                           {subCategory.danh_muc?.ten_danh_muc}
                         </td>
@@ -378,7 +302,11 @@ const ListSubcategory = () => {
                           <img
                             src={`${link}${subCategory.img}`} // Kết hợp URL gốc và đường dẫn ảnh
                             alt={subCategory.ten_danh_muc_con}
-                            style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              objectFit: "cover",
+                            }}
                           />
                         </td>
                         <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
@@ -415,12 +343,16 @@ const ListSubcategory = () => {
                 </table>
               </div>
               <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
+                {/* Hiển thị số trang */}
                 <div className="col-auto d-flex">
                   <p className="mb-0 me-3 fw-semibold text-body">
                     Trang {currentPage} / {totalPages}
                   </p>
                 </div>
+
+                {/* Phần nút phân trang */}
                 <div className="col-auto d-flex">
+                  {/* Nút Previous */}
                   <button
                     className="page-link"
                     onClick={() => goToPage(currentPage - 1)}
@@ -428,15 +360,27 @@ const ListSubcategory = () => {
                   >
                     <span className="fas fa-chevron-left" />
                   </button>
-                  {[...Array(totalPages).keys()].map((_, index) => (
-                    <button
-                      key={index}
-                      className={`page-link ${currentPage === index + 1 ? 'active' : ''}`}
-                      onClick={() => goToPage(index + 1)}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
+
+                  {/* Danh sách các trang */}
+                  <ul className="pagination mb-0">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                      <li
+                        key={index + 1}
+                        className={`page-item ${
+                          currentPage === index + 1 ? "active" : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => goToPage(index + 1)}
+                        >
+                          {index + 1}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Nút Next */}
                   <button
                     className="page-link pe-0"
                     onClick={() => goToPage(currentPage + 1)}
@@ -493,14 +437,15 @@ const ListSubcategory = () => {
                           <option
                             key={category.id}
                             value={category.id}
-                            selected={subCategoryDetails.danh_muc_id === category.id} // Đánh dấu option là selected nếu id khớp
+                            selected={
+                              subCategoryDetails.danh_muc_id === category.id
+                            } // Đánh dấu option là selected nếu id khớp
                           >
-                            {category.ten_danh_muc} {/* Hiển thị tên danh mục */}
+                            {category.ten_danh_muc}{" "}
+                            {/* Hiển thị tên danh mục */}
                           </option>
                         ))}
                       </select>
-
-
                     </div>
                     <div className="mb-4">
                       <label className="text-body-highlight fw-bold mb-2">
@@ -520,24 +465,24 @@ const ListSubcategory = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="text-body-highlight fw-bold mb-2">Hình ảnh</label>
+                      <label className="text-body-highlight fw-bold mb-2">
+                        Hình ảnh
+                      </label>
                       <input
                         className="form-control"
                         type="file"
                         accept="image/*" // Restrict to image files only
                         onChange={handleFileChange} // Call the file change handler
                       />
-                      {
-                        (previewImage || (imgSubCate && imgSubCate.trim() !== "")) ? (
-                          <img
-                            src={previewImage || `${link}${imgSubCate}`}
-                            alt="imgSubCate"
-                            style={{ maxWidth: '100%', maxHeight: '200px' }}
-                            className="img-thumbnail"
-                          />
-                        ) : null
-                      }
-
+                      {previewImage ||
+                      (imgSubCate && imgSubCate.trim() !== "") ? (
+                        <img
+                          src={previewImage || `${link}${imgSubCate}`}
+                          alt="imgSubCate"
+                          style={{ maxWidth: "100%", maxHeight: "200px" }}
+                          className="img-thumbnail"
+                        />
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -550,15 +495,16 @@ const ListSubcategory = () => {
                 >
                   Cancel
                 </button>
-                <button className="btn btn-primary my-0" onClick={updateSubCategory}>
+                <button
+                  className="btn btn-primary my-0"
+                  onClick={updateSubCategory}
+                >
                   Update
                 </button>
               </div>
             </div>
           </div>
         </div>
-
-
 
         <footer className="footer position-absolute">
           <div className="row g-0 justify-content-between align-items-center h-100">
@@ -579,7 +525,6 @@ const ListSubcategory = () => {
             </div>
           </div>
         </footer>
-
       </div>
     </>
   );

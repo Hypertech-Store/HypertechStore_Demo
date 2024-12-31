@@ -1,27 +1,28 @@
-import products from "../../../../assets/img/products/1.png";
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 const ListProducts = () => {
-
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
 
-  const productsPerPage = 9;
+  const productsPerPage = 10; // Số sản phẩm trên mỗi trang
 
   // Lấy danh mục
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/danh-muc/getAll", {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/danh-muc/getAll",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
       const data = await response.json();
       if (response.ok) {
         setCategories(data); // Đảm bảo API trả về danh sách phù hợp
@@ -36,13 +37,16 @@ const ListProducts = () => {
   // Lấy danh mục con
   const fetchSubCategories = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/danh-muc-con/getAll", {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/danh-muc-con/getAll",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
       const data = await response.json();
       if (response.ok) {
         setSubCategories(data);
@@ -76,6 +80,11 @@ const ListProducts = () => {
     fetchProducts();
   }, [currentPage]);
 
+  const totalPages = Math.ceil(totalProducts / productsPerPage); // Tính tổng số trang
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
   // Lấy danh mục và danh mục con khi component mount
   useEffect(() => {
     fetchCategories();
@@ -109,14 +118,18 @@ const ListProducts = () => {
           },
         });
         alert("Sản phẩm đã được xóa thành công.");
-        setProducts((prevProducts) => prevProducts.filter((product) => product.id !== id));
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product.id !== id)
+        );
       } catch (error) {
         console.error("Error deleting product:", error);
         alert("Đã xảy ra lỗi khi xóa sản phẩm. Vui lòng thử lại.");
       }
     }
   };
-
+  const handleAddProductClick = () => {
+    navigate("/admin/them-san-pham"); // Navigate to the 'thêm-san-pham' page
+  };
 
   return (
     <>
@@ -142,7 +155,9 @@ const ListProducts = () => {
             <li className="nav-item">
               <a className="nav-link active" aria-current="page" href="#">
                 <span>All </span>
-                <span className="text-body-tertiary fw-semibold">({totalProducts})</span>
+                <span className="text-body-tertiary fw-semibold">
+                  ({totalProducts})
+                </span>
               </a>
             </li>
             <li className="nav-item">
@@ -273,7 +288,11 @@ const ListProducts = () => {
                     <span className="fa-solid fa-file-export fs-9 me-2" />
                     Export
                   </button>
-                  <button className="btn btn-primary" id="addBtn">
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleAddProductClick}
+                    id="addBtn"
+                  >
                     <span className="fas fa-plus me-2" />
                     Add product
                   </button>
@@ -299,22 +318,34 @@ const ListProducts = () => {
                   <tbody>
                     {products.map((product, index) => (
                       <tr key={product.id}>
-                        <td>{index + 1 + (currentPage - 1) * productsPerPage}</td>
+                        <td>
+                          {index + 1 + (currentPage - 1) * productsPerPage}
+                        </td>
                         <td>
                           <img
                             src={product.duong_dan_anh}
                             alt={product.ten_san_pham}
-                            style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              objectFit: "cover",
+                            }}
                           />
                         </td>
                         <td>{product.ten_san_pham}</td>
                         <td>{Number(product.gia).toLocaleString()}₫</td>
                         <td>{getCategoryNameById(product.danh_muc_id)}</td>
                         <td>
-                          <span className="badge bg-primary">{product.trang_thai || "N/A"}</span>
+                          <span className="badge bg-primary">
+                            {product.trang_thai || "N/A"}
+                          </span>
                         </td>
-                        <td>{getSubCategoryNameById(product.danh_muc_con_id)}</td>
-                        <td>{new Date(product.created_at).toLocaleDateString()}</td>
+                        <td>
+                          {getSubCategoryNameById(product.danh_muc_con_id)}
+                        </td>
+                        <td>
+                          {new Date(product.created_at).toLocaleDateString()}
+                        </td>
                         <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
                           <div className="btn-reveal-trigger position-static">
                             <button
@@ -347,32 +378,68 @@ const ListProducts = () => {
                         </td>
                       </tr>
                     ))}
-
                   </tbody>
                 </table>
               </div>
-              <div className="pagination-container d-flex justify-content-between align-items-center mt-4">
-                <button
-                  className="btn btn-outline-secondary"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Trước
-                </button>
-                <span>
-                  Trang {currentPage} trên {Math.ceil(totalProducts / productsPerPage)}
-                </span>
-                <button
-                  className="btn btn-outline-secondary"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(totalProducts / productsPerPage)))
-                  }
-                  disabled={currentPage === Math.ceil(totalProducts / productsPerPage)}
-                >
-                  Tiếp
-                </button>
-              </div>
+              <div>
+                <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
+                  {/* Hiển thị số trang */}
+                  <div className="col-auto d-flex">
+                    <p className="mb-0 me-3 fw-semibold text-body">
+                      Trang {currentPage} / {totalPages}
+                    </p>
+                  </div>
 
+                  {/* Điều hướng phân trang */}
+                  <div className="col-auto d-flex">
+                    {/* Nút Previous */}
+                    <button
+                      className="page-link"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <span className="fas fa-chevron-left" />
+                    </button>
+
+                    {/* Danh sách các trang */}
+                    <ul className="pagination mb-0">
+                      {Array.from({ length: totalPages }, (_, index) => (
+                        <li
+                          key={index}
+                          className={`page-item ${
+                            currentPage === index + 1 ? "active" : ""
+                          }`}
+                        >
+                          <button
+                            className="page-link"
+                            onClick={() => goToPage(index + 1)}
+                          >
+                            {index + 1}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Nút Next */}
+                    <button
+                      className="page-link pe-0"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <span className="fas fa-chevron-right" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Hiển thị sản phẩm */}
+                <div className="row">
+                  {products.map((product) => (
+                    <div key={product.id} className="col-12 mb-3">
+                      <div className="product-item">{product.name}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
