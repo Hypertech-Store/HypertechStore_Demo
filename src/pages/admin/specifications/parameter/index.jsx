@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 const ListParameter = () => {
@@ -55,6 +55,7 @@ const ListParameter = () => {
       .then((response) => response.json())
       .then((data) => {
         setThongSo(data.data);
+        console.log(data.data);
         setTotalPages(data.last_page); // Update totalPages from API response
         setLoading(false);
       })
@@ -64,61 +65,100 @@ const ListParameter = () => {
       });
   }, [currentPage]);
 
+  const [thongSoList, setThongSoList] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [tenThongSo, setTenThongSo] = useState("");
-  const [moTa, setMoTa] = useState("");
 
   const handleAddThongSo = () => {
-    if (!selectedCategory || !tenThongSo || !moTa) {
-      alert("Vui lòng nhập đủ tất cả các trường thông số!");
-      return; // Dừng lại nếu có trường bị bỏ trống
+    // Kiểm tra nếu không có danh mục đã chọn
+    if (!selectedCategory || !selectedCategory.id) {
+      alert("Vui lòng chọn danh mục trước!");
+      return;
     }
-    const danhMuc = categories.find(
-      (category) => category.id === parseInt(selectedCategory, 10)
-    );
 
-    const newThongSo = {
-      danh_muc_id: selectedCategory, // Chỉ cần gửi danh_muc_id
-      danh_muc: danhMuc, // Đưa thông tin chi tiết của danh mục vào
-      ten_thong_so: tenThongSo,
-      mo_ta: moTa,
-    };
+    // Kiểm tra nếu không có thông số nào được nhập
+    if (thongSoList.length === 0) {
+      alert("Vui lòng nhập ít nhất một thông số!");
+      return;
+    }
 
-    // Gửi thông số mới tới API
-    fetch("http://127.0.0.1:8000/api/thong-so", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newThongSo),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Thông số đã được thêm:", data);
+    try {
+      console.log("Selected category:", selectedCategory); // Kiểm tra selectedCategory
 
-        // Thông báo thành công
-        alert("Thông số đã được thêm thành công!");
+      // Tạo danh sách thông số mới
+      const newThongSoList = thongSoList.map((item) => {
+        // Kiểm tra tên thông số có trống không
+        if (!item.tenThongSo) {
+          throw new Error("Tên thông số là bắt buộc!");
+        }
 
-        // Thêm thông số mới vào danh sách thông số
-        setThongSo((prevThongSo) => [
-          ...prevThongSo,
-          {
-            ...newThongSo, // Bao gồm tất cả các thuộc tính của newThongSo
-            id: data.id, // Giả sử bạn nhận lại ID của thông số mới từ API
-          },
-        ]);
-        console.log(newThongSo);
+        // Log dữ liệu đầu vào trước khi chuyển đến API
+        console.log("New Thong So Data:", {
+          danh_muc_id: selectedCategory.id, // Đảm bảo gửi ID đúng của danh mục
+          ten_thong_so: item.tenThongSo.trim(),
+          mo_ta: item.moTa.trim(),
+        });
 
-        // Reset form sau khi gửi thành công
-        setSelectedCategory("");
-        setTenThongSo("");
-        setMoTa("");
-      })
-      .catch((error) => {
-        console.error("Error adding thong so:", error);
-        // Thông báo lỗi
-        alert("Có lỗi xảy ra khi thêm thông số.");
+        // Trả về dữ liệu sau khi xử lý
+        return {
+          danh_muc_id: selectedCategory.id, // ID danh mục
+          ten_thong_so: item.tenThongSo.trim(),
+          mo_ta: item.moTa.trim(),
+        };
       });
+
+      // Gửi dữ liệu thông số lên server
+      fetch("http://127.0.0.1:8000/api/thong-so", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ thong_so_list: newThongSoList }),
+      })
+        .then((response) => response.json())
+        .then((response) => {
+          console.log("Dữ liệu trả về từ server:", response);
+
+          // Lấy danh sách thông số mới từ phản hồi của server
+          const newThongso = response?.data || [];
+
+          if (newThongso.length > 0) {
+            alert("Thông số đã được thêm thành công!");
+
+            // Cập nhật lại danh sách thongSo sau khi thêm
+            setThongSoList([]); // Reset danh sách thông số đang nhập
+            setThongSo((prevThongSo) => [...prevThongSo, ...newThongso]); // Cập nhật thongSo (nếu cần)
+
+            // Reset danh mục sau khi thêm thành công
+            setSelectedCategory(null); // Reset danh mục
+          } else {
+            alert("Dữ liệu trả về không hợp lệ.");
+          }
+        })
+        .catch((error) => {
+          console.error("Error adding thong so:", error);
+          alert("Có lỗi xảy ra khi thêm thông số.");
+        });
+    } catch (err) {
+      alert(err.message); // Thông báo lỗi nếu có bất kỳ lỗi nào trong quá trình xử lý
+    }
+  };
+
+  // Thêm thông số mới
+  const addThongSo = () => {
+    setThongSoList([...thongSoList, { tenThongSo: "", moTa: "" }]);
+  };
+
+  // Cập nhật thông số
+  const updateThongSo = (index, field, value) => {
+    const updatedList = [...thongSoList];
+    updatedList[index][field] = value;
+    setThongSoList(updatedList);
+  };
+
+  // Xóa một thông số
+  const removeThongSo = (index) => {
+    const updatedList = thongSoList.filter((_, i) => i !== index);
+    setThongSoList(updatedList);
   };
 
   const handleDelete = async (id) => {
@@ -299,11 +339,15 @@ const ListParameter = () => {
                         key={item.id}
                         className={index % 2 === 0 ? "even-row" : "odd-row"}
                       >
-                        <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>{" "}
+                        <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                         {/* Tính STT đúng cho mỗi trang */}
                         <td className="product align-middle ps-4">
-                          {item.danh_muc.ten_danh_muc}
+                          {/* Tìm và hiển thị ten_danh_muc của danh mục */}
+                          {categories.find(
+                            (category) => category.id === item.danh_muc_id
+                          )?.ten_danh_muc || "Chưa có danh mục"}
                         </td>
+
                         <td className="tags align-middle review pb-2 ps-3">
                           {item.ten_thong_so}
                         </td>
@@ -386,6 +430,7 @@ const ListParameter = () => {
           </div>
         </div>
       </div>
+
       <div
         className="modal fade"
         id="addParameter"
@@ -395,8 +440,12 @@ const ListParameter = () => {
         aria-labelledby="addParameter"
         aria-hidden="true"
       >
-        <div className="modal-dialog modal-l modal-dialog-centered">
-          <div className="modal-content bg-body-highlight p-6">
+        <div
+          className="modal-dialog modal-lg modal-dialog-centered"
+          style={{ width: "1100px" }}
+        >
+          <div className="modal-content bg-body-highlight p-4">
+            {/* Modal Header */}
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
               <h3 className="mb-0">Thêm thông số</h3>
               <button
@@ -407,70 +456,116 @@ const ListParameter = () => {
                 <span className="fas fa-times text-danger" />
               </button>
             </div>
-            <div className="modal-body px-0 mt-1">
+
+            <div className="modal-body">
               <div className="row g-4">
+                {/* Danh mục */}
                 <div className="col-lg-12">
-                  <div className="mb-2">
+                  <div className="card p-3">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Danh mục
+                      Chọn danh mục
                     </label>
                     <select
                       className="form-control"
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      value={selectedCategory ? selectedCategory.id : ""}
+                      onChange={(e) => {
+                        const selectedId = e.target.value; // Lấy ID từ phần chọn
+                        const selectedCategoryData = categories.find(
+                          (category) => category.id.toString() === selectedId // So sánh đúng với ID dạng chuỗi
+                        );
+                        setSelectedCategory(selectedCategoryData); // Cập nhật selectedCategory với thông tin đầy đủ
+                      }}
                     >
                       <option value="">Chọn danh mục</option>
                       {categories.map((category) => (
                         <option key={category.id} value={category.id}>
-                          {category.ten_danh_muc} {/* Hiển thị tên danh mục */}
+                          {category.ten_danh_muc}
                         </option>
                       ))}
                     </select>
                   </div>
                 </div>
 
-                <div className="col-lg-12">
-                  <div className="mb-2">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Tên thông số
-                    </label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      value={tenThongSo}
-                      onChange={(e) => setTenThongSo(e.target.value)}
-                    />
+                {thongSoList.length > 0 && (
+                  <div className="col-lg-12">
+                    <h5 className="mb-3">Thông số đã thêm</h5>
                   </div>
-                </div>
+                )}
 
-                <div className="col-lg-12">
-                  <div className="mb-2">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Mô tả
-                    </label>
-                    <textarea
-                      className="form-control"
-                      rows="4"
-                      placeholder="Mô tả thông số của sản phẩm"
-                      value={moTa}
-                      onChange={(e) => setMoTa(e.target.value)}
-                    ></textarea>
+                {thongSoList.map((item, index) => (
+                  <div key={index} className="col-lg-6">
+                    <div className="card p-3 h-100">
+                      <div className="row g-3 align-items-start">
+                        <div className="col-lg-12">
+                          <label className="form-label fw-bold">
+                            Tên thông số
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Tên thông số"
+                            value={item.tenThongSo}
+                            onChange={(e) =>
+                              updateThongSo(index, "tenThongSo", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="col-lg-12">
+                          <label className="form-label fw-bold">Mô tả</label>
+                          <textarea
+                            className="form-control"
+                            rows="2"
+                            placeholder="Mô tả"
+                            value={item.moTa}
+                            onChange={(e) =>
+                              updateThongSo(index, "moTa", e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="row mt-3">
+                        <div className="col-lg-12 text-end">
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => removeThongSo(index)}
+                          >
+                            Xóa thông số
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Nút thêm thông số */}
+                <div className="col-lg-12 text-center mt-4">
+                  <div className="card p-3 bg-light border-dashed">
+                    <button
+                      className="btn btn-outline-success btn-block d-flex align-items-center justify-content-center btn-sm"
+                      style={{ fontSize: "12px", fontWeight: "bold" }}
+                      onClick={addThongSo}
+                    >
+                      <i className="fas fa-plus me-2"></i>
+                      Thêm thông số mới
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="modal-footer border-0 pt-0 px-0 pb-0">
+
+            {/* Đường kẻ ngang */}
+            <hr className="my-5" />
+
+            {/* Modal Footer */}
+            <div className="modal-footer border-0 d-flex justify-content-between">
               <button
-                className="btn btn-link text-danger px-3 my-0"
+                className="btn btn-link text-danger"
                 data-bs-dismiss="modal"
                 aria-label="Close"
               >
                 Hủy bỏ
               </button>
-              <button
-                className="btn btn-primary my-0"
-                onClick={handleAddThongSo}
-              >
+              <button className="btn btn-primary" onClick={handleAddThongSo}>
                 Thêm mới
               </button>
             </div>
