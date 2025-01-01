@@ -10,9 +10,9 @@ const TransportMethod = () => {
     gia_van_chuyen: "",
   });
   const [editData, setEditData] = useState({
-    ten_van_chuyen: '',
-    gia_van_chuyen: '',
-    mo_ta: ''
+    ten_van_chuyen: "",
+    gia_van_chuyen: "",
+    mo_ta: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -38,7 +38,9 @@ const TransportMethod = () => {
 
   const fetchMethods = async (page = 1) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/hinh-thuc-van-chuyen?page=${page}`);
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/hinh-thuc-van-chuyen?page=${page}`
+      );
       setMethods(response.data.data);
       setTotalPages(response.data.last_page);
       setCurrentPage(response.data.current_page);
@@ -65,7 +67,10 @@ const TransportMethod = () => {
         return;
       }
 
-      await axios.post("http://127.0.0.1:8000/api/hinh-thuc-van-chuyen", formData);
+      await axios.post(
+        "http://127.0.0.1:8000/api/hinh-thuc-van-chuyen",
+        formData
+      );
 
       alert("Thêm hình thức vận chuyển thành công!");
       setFormData({ ten_van_chuyen: "", mo_ta: "", gia_van_chuyen: "" });
@@ -91,13 +96,17 @@ const TransportMethod = () => {
   };
 
   const handleDeleteMethod = async (id) => {
-    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa phương thức này không?");
+    const confirmDelete = window.confirm(
+      "Bạn có chắc chắn muốn xóa phương thức này không?"
+    );
     if (!confirmDelete) {
       return; // Nếu người dùng chọn "Hủy", thoát hàm
     }
 
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/hinh-thuc-van-chuyen/${id}`);
+      await axios.delete(
+        `http://127.0.0.1:8000/api/hinh-thuc-van-chuyen/${id}`
+      );
       alert("Xóa hình thức vận chuyển thành công!");
       fetchMethods(); // Tải lại danh sách
     } catch (error) {
@@ -106,19 +115,18 @@ const TransportMethod = () => {
     }
   };
 
-
   const handleChange = (e, isEdit = false) => {
     const { name, value } = e.target;
 
     let updatedValue = value;
-  
+
     // Kiểm tra và xử lý giá trị của "gia_van_chuyen" (giá vận chuyển)
     if (name === "gia_van_chuyen") {
       // Loại bỏ đuôi ".00" nếu giá trị là số nguyên
       if (!isNaN(updatedValue) && updatedValue.endsWith(".00")) {
         updatedValue = updatedValue.slice(0, -3); // Cắt bỏ ".00"
       }
-  
+
       // Chuyển giá trị thành số để tránh NaN
       updatedValue = parseFloat(updatedValue);
       if (isNaN(updatedValue)) {
@@ -131,9 +139,6 @@ const TransportMethod = () => {
       setFormData({ ...formData, [name]: value });
     }
   };
-
-
-
 
   return (
     <div className="content">
@@ -233,13 +238,19 @@ const TransportMethod = () => {
                 <tbody className="list" id="products-table-body">
                   {methods.map((method, index) => (
                     <tr key={method.id}>
-                      <td>
+                      <td className="product align-middle ps-2">
                         {(currentPage - 1) * 10 + index + 1}
                       </td>
-                      <td className="product align-middle ps-4">{method.ten_van_chuyen}</td>
-                      <td className="tags align-middle review pb-2 ps-3">{Number(method.gia_van_chuyen).toLocaleString()} VNĐ</td>
-                      <td className="tags align-middle review pb-2 ps-3">{method.mo_ta}</td>
-                      <td className="align-middle white-space-nowrap">
+                      <td className="product align-middle ps-4">
+                        {method.ten_van_chuyen}
+                      </td>
+                      <td className="tags align-middle review pb-2 ps-4">
+                        {Number(method.gia_van_chuyen).toLocaleString()} VNĐ
+                      </td>
+                      <td className="tags align-middle review pb-2 ps-4">
+                        {method.mo_ta}
+                      </td>
+                      <td className="align-middle white-space-nowrap ps-1">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
@@ -296,8 +307,9 @@ const TransportMethod = () => {
                   ))}
                 </ul>
                 <button
-                  className={`page-link ${currentPage === totalPages ? "disabled" : ""
-                    }`}
+                  className={`page-link ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
@@ -338,19 +350,20 @@ const TransportMethod = () => {
                     <label className="text-body-highlight fw-bold mb-2">
                       Tên vận chuyển
                     </label>
-                    <input className="form-control"
+                    <input
+                      className="form-control"
                       type="text"
                       name="ten_van_chuyen"
                       value={formData.ten_van_chuyen}
                       onChange={handleChange}
                     />
-
                   </div>
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
                       Giá vận chuyển
                     </label>
-                    <input className="form-control"
+                    <input
+                      className="form-control"
                       type="text"
                       name="gia_van_chuyen"
                       value={formData.gia_van_chuyen}
@@ -382,7 +395,12 @@ const TransportMethod = () => {
               >
                 Hủy bỏ
               </button>
-              <button className="btn btn-primary my-0" onClick={handleAddMethod}>Thêm mới</button>
+              <button
+                className="btn btn-primary my-0"
+                onClick={handleAddMethod}
+              >
+                Thêm mới
+              </button>
             </div>
           </div>
         </div>
@@ -417,7 +435,8 @@ const TransportMethod = () => {
                     <label className="text-body-highlight fw-bold mb-2">
                       Tên vận chuyển
                     </label>
-                    <input className="form-control"
+                    <input
+                      className="form-control"
                       type="text"
                       name="ten_van_chuyen"
                       value={editData?.ten_van_chuyen || ""}
@@ -428,8 +447,11 @@ const TransportMethod = () => {
                     <label className="text-body-highlight fw-bold mb-2">
                       Giá vận chuyển
                     </label>
-                    <input className="form-control" type="text" name="gia_van_chuyen"
-                      value={Number(editData?.gia_van_chuyen) || ""} 
+                    <input
+                      className="form-control"
+                      type="text"
+                      name="gia_van_chuyen"
+                      value={Number(editData?.gia_van_chuyen) || ""}
                       onChange={(e) => handleChange(e, true)}
                     />
                   </div>
@@ -457,7 +479,12 @@ const TransportMethod = () => {
               >
                 Hủy bỏ
               </button>
-              <button className="btn btn-primary my-0" onClick={handleEditMethod}>Cập nhật</button>
+              <button
+                className="btn btn-primary my-0"
+                onClick={handleEditMethod}
+              >
+                Cập nhật
+              </button>
             </div>
           </div>
         </div>
