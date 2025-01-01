@@ -48,6 +48,15 @@ const Checkout = () => {
     note: "",
     shippingAddress: "",
   });
+  useEffect(() => {
+    import("../../../assets/js/main.js")
+      .then((module) => {
+        if (module.default) {
+          module.default(); // Gọi hàm mặc định nếu có
+        }
+      })
+      .catch((error) => console.error("Error loading main.js:", error));
+  }, []);
 
   // Giả sử thông tin đã lưu trong localStorage (hoặc có thể dùng localStorage)
   useEffect(() => {
@@ -93,7 +102,7 @@ const Checkout = () => {
 
   useEffect(() => {
     // Fetch data from the API
-    fetch("http://127.0.0.1:8000/api/hinh-thuc-van-chuyen")
+    fetch("http://127.0.0.1:8000/api/get-all-hinh-thuc-van-chuyen")
       .then((response) => response.json())
       .then((data) => setShippingOptions(data))
       .catch((error) => console.error("Error fetching shipping data:", error));
@@ -298,6 +307,7 @@ const Checkout = () => {
     navigate("/cua-hang"); // Điều hướng đến trang giỏ hàng
     window.location.reload(); // Forces the page to refresh
   };
+
   const handlePaymentMethodChange = (event) => {
     setSelectedPayment(event.target.value);
   };
@@ -401,37 +411,42 @@ const Checkout = () => {
               ma_don_hang: orderCode,
             }),
           }
-        );
-  
+        )
+
         const vnpayData = await vnpayResponse.json();
-  
+
         if (!vnpayResponse.ok || vnpayData.code !== "00") {
           throw new Error("Gửi yêu cầu thanh toán VNPAY thất bại");
         }
-  
+
         // Redirect đến URL thanh toán VNPAY
         window.location.href = vnpayData.data;
         return;
-      }
-  
-      // Thanh toán thông thường
-      const orderResponse = await fetch(
-        "http://127.0.0.1:8000/api/donhang/orders",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(orderData),
-        }
-      );
-  
-      if (!orderResponse.ok) {
-        throw new Error("Gửi đơn hàng thất bại");
-      }
+      } else {
+        const orderResponse = await fetch(
+          "http://127.0.0.1:8000/api/donhang/orders",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(orderData),
+          }
+        );
 
-      const data = await response.json();
-      console.log("Đơn hàng đã được gửi:", data);
+        console.log(orderResponse);
+        
+
+        if (!orderResponse.ok) {
+          throw new Error("Gửi đơn hàng thất bại");
+        }
+
+        const data = await orderResponse.json();
+        console.log(data);
+        
+        console.log("Đơn hàng đã được gửi:", data);
+
+      }
 
       // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
       if (khachHangId) {
@@ -1076,11 +1091,10 @@ const Checkout = () => {
                       </button>
                     </div>
                     <span
-                      className={`codeboxinput__dropdown--content1 ${
-                        errorMessage
+                      className={`codeboxinput__dropdown--content1 ${errorMessage
                           ? "error_codebox_input"
                           : "success_codebox_input"
-                      }`}
+                        }`}
                     >
                       {errorMessage || successMessage}
                     </span>
