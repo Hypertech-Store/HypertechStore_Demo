@@ -97,21 +97,38 @@ const ListValue = () => {
         ten_gia_tri: attributeValue, // Chuyển `attributeValue` thành giá trị chuỗi
       };
 
-      console.log("Dữ liệu gửi đi:", data); // Kiểm tra dữ liệu gửi đi
-
       const response = await axios.post(
         "http://127.0.0.1:8000/api/gia-tri-thuoc-tinh",
         data
       );
-
+      console.log(response);
       // Kiểm tra kết quả trả về từ API
       if (
-        response.data &&
-        response.data.message === "Giá trị thuộc tính  được tạo thành công!"
+        response.data.data &&
+        response.status === 201
       ) {
+        const foundAttribute = attributeName.find(
+          (attr) => attr.id === parseInt(selectedAttribute)
+        );
+
+        const newAttribute = {
+          id: response.data.data.id,
+          thuoc_tinh_san_pham_id: selectedAttribute,
+          ten_gia_tri: attributeValue,
+          ten_thuoc_tinh: foundAttribute?.ten_thuoc_tinh || "Không xác định",
+          created_at: response.data.data.created_at , 
+        };
+
+        setAttributes((prevAttributes) => ({
+          ...prevAttributes,
+          data: [...prevAttributes.data, newAttribute],
+        }));
+
         alert("Thêm giá trị thành công!");
-        setSelectedAttribute(""); // Reset trường đã chọn
-        setAttributeValue(""); // Reset trường giá trị
+
+        // Reset các trường
+        setSelectedAttribute("");
+        setAttributeValue("");
       } else {
         alert("Thêm giá trị thất bại. Kiểm tra lại.");
       }
@@ -120,8 +137,7 @@ const ListValue = () => {
       if (error.response) {
         console.error("API Error:", error.response.data);
         alert(
-          `Lỗi: ${
-            error.response.data.message || "Có lỗi xảy ra khi thêm giá trị!"
+          `Lỗi: ${error.response.data.message || "Có lỗi xảy ra khi thêm giá trị!"
           }`
         );
       } else {
@@ -144,6 +160,20 @@ const ListValue = () => {
         setGiaTriThuocTinhId(attributeData.id);
         setSelectedAttribute(attributeData.thuoc_tinh_san_pham_id);
         setAttributeValue(attributeData.ten_gia_tri);
+
+        setAttributes((prevAttributes) => ({
+          ...prevAttributes,
+          data: prevAttributes.data.map((attribute) =>
+            attribute.id === giaTriThuocTinhId
+              ? {
+                ...attribute,
+                thuoc_tinh_san_pham_id: selectedAttribute,
+                ten_gia_tri: attributeValue,
+              }
+              : attribute
+          ),
+        }));
+
       })
       .catch((error) => {
         console.error("Error fetching attribute data:", error);
@@ -172,39 +202,37 @@ const ListValue = () => {
 
       console.log("Response from API:", response);
 
-      if (response.status === 200) {
-        if (
-          response.data.message &&
-          response.data.message.includes("Cập nhật giá trị thuộc tính")
-        ) {
-          alert("Cập nhật giá trị thành công!");
+      if (
+        response.data &&
+        response.data.message.includes("Cập nhật giá trị thuộc tính")
+      ) {
+        const foundAttribute = attributeName.find(
+          (attr) => attr.id === parseInt(selectedAttribute)
+        );
 
-          // Reset lại cả selectedAttribute và attributeValue
-          setSelectedAttribute(""); // Reset ID thuộc tính
-          setAttributeValue(""); // Reset giá trị thuộc tính
+        const updatedAttributes = attributes.data.map((attribute) => {
+          if (attribute.id === giaTriThuocTinhId) {
+            return {
+              ...attribute,
+              thuoc_tinh_san_pham_id: selectedAttribute,
+              ten_gia_tri: attributeValue,
+              ten_thuoc_tinh: foundAttribute?.ten_thuoc_tinh || "Không xác định",
+            };
+          }
+          return attribute;
+        });
 
-          // Cập nhật lại danh sách thuộc tính (giả sử attributes chứa dữ liệu của các thuộc tính)
-          const updatedAttributes = attributes.data.map((attribute) => {
-            if (attribute.id === giaTriThuocTinhId) {
-              // Cập nhật lại thuộc tính theo ID đã sửa (cập nhật giá trị mới)
-              return {
-                ...attribute,
-                ten_gia_tri: attributeValue,
-                ten_thuoc_tinh: selectedAttribute,
-              }; // Cập nhật ID mới và giá trị mới
-            }
-            return attribute; // Giữ nguyên các thuộc tính khác
-          });
+        setAttributes((prevAttributes) => ({
+          ...prevAttributes,
+          data: updatedAttributes,
+        }));
 
-          // Cập nhật lại state attributes để giao diện tự động làm mới
-          setAttributes((prevAttributes) => ({
-            ...prevAttributes,
-            data: updatedAttributes,
-          }));
-        } else {
-          console.log("Message not matching:", response.data.message);
-          alert("Cập nhật giá trị thất bại. Kiểm tra lại.");
-        }
+        alert("Cập nhật giá trị thành công!");
+
+        // Reset lại các trường
+        setSelectedAttribute("");
+        setAttributeValue("");
+        
       } else {
         alert("Cập nhật giá trị thất bại. Kiểm tra lại.");
       }
@@ -220,33 +248,33 @@ const ListValue = () => {
     }
   };
 
-const handleDelete = async (id) => {
-  const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa không?"); // Hiển thị hộp thoại xác nhận
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa không?"); // Hiển thị hộp thoại xác nhận
 
-  if (confirmDelete) {
-    try {
-      const response = await axios.delete(
-        `http://127.0.0.1:8000/api/gia-tri-thuoc-tinh/${id}`
-      );
+    if (confirmDelete) {
+      try {
+        const response = await axios.delete(
+          `http://127.0.0.1:8000/api/gia-tri-thuoc-tinh/${id}`
+        );
 
-      if (response.status === 200) {
-        // Hiển thị thông báo thành công
-        alert("Xóa thành công!");
+        if (response.status === 200) {
+          // Hiển thị thông báo thành công
+          alert("Xóa thành công!");
 
-        // Cập nhật lại danh sách sau khi xóa
-        setAttributes((prevAttributes) => ({
-          ...prevAttributes,
-          data: prevAttributes.data.filter((attribute) => attribute.id !== id),
-        }));
+          // Cập nhật lại danh sách sau khi xóa
+          setAttributes((prevAttributes) => ({
+            ...prevAttributes,
+            data: prevAttributes.data.filter((attribute) => attribute.id !== id),
+          }));
+        }
+      } catch (error) {
+        console.error("Error deleting attribute:", error);
+        alert("Có lỗi xảy ra khi xóa!");
       }
-    } catch (error) {
-      console.error("Error deleting attribute:", error);
-      alert("Có lỗi xảy ra khi xóa!");
+    } else {
+      alert("Hành động xóa đã bị hủy bỏ.");
     }
-  } else {
-    alert("Hành động xóa đã bị hủy bỏ.");
-  }
-};
+  };
 
 
   return (
@@ -406,9 +434,8 @@ const handleDelete = async (id) => {
                   {Array.from({ length: attributes.last_page }, (_, index) => (
                     <li
                       key={index}
-                      className={`page-item ${
-                        attributes.current_page === index + 1 ? "active" : ""
-                      }`}
+                      className={`page-item ${attributes.current_page === index + 1 ? "active" : ""
+                        }`}
                     >
                       <button
                         className="page-link"

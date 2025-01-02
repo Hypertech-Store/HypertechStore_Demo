@@ -1,7 +1,9 @@
 /* eslint-disable no-unused-vars */
 import icon from "../../../../assets/img/icons/image-icon.png";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
+
 const ListValue = () => {
   const breadcrumbTitles = {
     "admin/chi-tiet-bien-the": "Variant detail", // Đây là URL không có "/"
@@ -14,11 +16,47 @@ const ListValue = () => {
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+
   const [formData, setFormData] = useState({
-    image: null, // Dữ liệu hình ảnh
+    image: null,
   });
 
   const [imagePreview, setImagePreview] = useState(""); // Hình ảnh xem trước
+  const [data, setData] = useState([]);
+  const [pagination, setPagination] = useState({});
+  const [variantId, setVariantId] = useState({});
+
+  
+  // Hàm gọi API để lấy dữ liệu
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/get-bien-the-paginate')
+      .then(response => response.json())
+      .then(data => {
+        setData(data.data);
+        setPagination(data.pagination); // Lưu thông tin phân trang
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  }, []);
+
+  // console.log(data);
+
+  const handlePageChange = (page) => {
+    // Kiểm tra nếu trang không hợp lệ
+    if (page < 1 || page > pagination.last_page) return;
+
+    // Gọi API để lấy dữ liệu trang mới
+    fetch(`http://127.0.0.1:8000/api/get-bien-the-paginate?page=${page}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setData(data.data); // Lưu dữ liệu vào state
+        setPagination(data.pagination); // Lưu thông tin phân trang
+      })
+      .catch((error) => console.error("Error fetching data:", error));
+  };
+
+
+
+
 
   // Hàm xử lý khi ảnh được thả vào khu vực dropzone
   const handleDrop = (e) => {
@@ -39,10 +77,110 @@ const ListValue = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData({ image: file });
+      setFormData({ ...formData, image: file });
       setImagePreview(URL.createObjectURL(file)); // Cập nhật hình ảnh xem trước
     }
   };
+
+
+  const handleEditVariant = (bienThe) => {
+    // Log the variant data to the console
+    console.log(bienThe);
+    setVariantId(bienThe.bienTheSanPham.id);
+    // Set the formData with the existing values of the variant
+    setFormData({
+      image: "http://127.0.0.1:8000/storage/" + bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || "",
+      gia: bienThe.bienTheSanPham.gia,
+      so_luong_kho: bienThe.bienTheSanPham.so_luong_kho,
+      san_pham_id: bienThe.bienTheSanPham.san_pham_id
+    });
+
+
+    // Set the image preview if there is an image
+    setImagePreview("http://127.0.0.1:8000/storage/" + bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || "");
+  };
+
+  const handleUpdateVariant = async () => {
+    try {
+      console.log(formData);
+
+      const formDataToSend = new FormData();
+      formDataToSend.append('san_pham_id', formData.san_pham_id); // Giả sử bạn đã có san_pham_id
+      if (formData.image) {
+        formDataToSend.append('image', formData.image); // Thêm ảnh mới nếu có
+      }
+      formDataToSend.append('gia', formData.gia); // Cập nhật giá
+      formDataToSend.append('so_luong_kho', formData.so_luong_kho); // Cập nhật số lượng tồn kho
+      formDataToSend.append('_method', 'PUT'); // Thêm phương thức PUT
+
+      const response = await axios.post(
+        `http://127.0.0.1:8000/api/bien-the-san-pham/${variantId}`, // API URL
+        formDataToSend, // Sử dụng formDataToSend thay vì formData
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const updatedData = response.data.data; // Lấy dữ liệu từ phản hồi
+
+      console.log(updatedData); // Kiểm tra dữ liệu đã nhận được
+
+      if (updatedData && updatedData.id) {
+        setImagePreview(updatedData.image || ""); // Cập nhật lại ảnh
+        alert('Cập nhật biến thể thành công!');
+        window.location.reload();
+      } else {
+        alert('Cập nhật biến thể thất bại. Vui lòng kiểm tra lại!');
+      }
+    } catch (error) {
+      console.error("Error updating variant:", error);
+      alert('Cập nhật thất bại! Đã có lỗi xảy ra. Chi tiết: ' + error.message); // Thêm chi tiết lỗi vào thông báo
+    }
+  };
+
+
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image: null });
+    setImagePreview("");
+  };
+
+  const deleteVariant = async (id) => {
+    // Xác nhận trước khi xóa
+    const isConfirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa biến thể sản phẩm này?"
+    );
+
+    if (!isConfirmed) return;
+
+    try {
+      // Gửi yêu cầu xóa biến thể sản phẩm qua API
+      const response = await axios.delete(
+        `http://127.0.0.1:8000/api/bien-the-san-pham/${id}`
+      );
+
+      if (response.status === 200) {
+        // Nếu xóa thành công, thông báo và cập nhật lại danh sách
+        alert("Xóa biến thể sản phẩm thành công!");
+        // Cập nhật lại dữ liệu trong state (setData hoặc tương tự)
+        setData((prev) => prev.filter((variant) => variant.bienTheSanPham.id !== id));
+      } else {
+        // Nếu có lỗi khác, thông báo cho người dùng
+        alert("Không thể xóa biến thể sản phẩm.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa biến thể sản phẩm:", error);
+      // Thông báo lỗi nếu có sự cố
+      alert("Không thể xóa biến thể sản phẩm. Vui lòng thử lại.");
+    }
+  };
+
+
+
+
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
@@ -93,6 +231,9 @@ const ListValue = () => {
                       STT
                     </th>
                     <th className="align-middle" style={{ width: "20%" }}>
+                      SẢN PHẨM
+                    </th>
+                    <th className="align-middle" style={{ width: "20%" }}>
                       ẢNH BIẾN THỂ
                     </th>
                     <th
@@ -124,77 +265,137 @@ const ListValue = () => {
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
-                  <tr>
-                    <td></td>
-                    <td className="product align-middle ps-4"></td>
-                    <td className="tags align-middle review pb-2 ps-3"></td>
+                  {data.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="text-center">
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  ) : (
+                    data.map((item, index) => (
+                      <tr key={item.bienTheSanPham.id}>
+                        <td>
+                          {(pagination.current_page - 1) * 10 + index + 1}
+                        </td>
+                        <td>
+                          {item.bienTheSanPham.san_pham.ten_san_pham}
+                        </td>
+                        <td className="tags align-middle review pb-2 ps-3">
+                          {item.hinhAnhSanPham.map(link => (
+                            <img src={"http://127.0.0.1:8000/storage/" + link.duong_dan_hinh_anh} style={{
+                              width: "50px",
+                              height: "50px",
+                              objectFit: "cover",
+                            }} />
+                          ))}
+                        </td>
+                        <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                          {item.lienKetBienThe.map(link => (
+                            <div key={link.id}>{link.ten_gia_tri}</div>
+                          ))}
+                        </td>
+                        <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                          {Number(item.bienTheSanPham.gia).toLocaleString()} VNĐ
+                        </td>
+                        <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                          {item.bienTheSanPham.so_luong_kho}
+                        </td>
+                        <td className="align-middle white-space-nowrap">
+                          <button
+                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#updateCustomer"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            data-bs-reference="parent"
+                            onClick={() => {
+                              handleEditVariant(item);
+                            }}
+                          >
+                            <span className="fa-solid fa-pen-to-square fs-9" />
+                          </button>
+                          <button
+                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                            type="button"
+                            onClick={() => deleteVariant(item.bienTheSanPham.id)}
+                          >
+                            <span className="fa-solid fa-trash fs-9" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
 
-                    <td className="time align-middle text-body-tertiary text-opacity-85 ps-4"></td>
-                    <td className="time align-middle text-body-tertiary text-opacity-85 ps-4"></td>
-
-                    <td className="align-middle white-space-nowrap">
-                      <button
-                        className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                        type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#updateVariant"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        data-bs-reference="parent"
-                      >
-                        <span className="fa-solid fa-pen-to-square fs-9" />
-                      </button>
-                      <button
-                        className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                        type="button"
-                      >
-                        <span className="fa-solid fa-trash fs-9" />
-                      </button>
-                    </td>
-                  </tr>
                 </tbody>
               </table>
             </div>
             <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
+              {/* Hiển thị số trang */}
               <div className="col-auto d-flex">
-                <p className="mb-0 me-3 fw-semibold text-body"></p>
-                {/* Showing{" "}
-                {currentPage === 1
-                  ? 1
-                  : (currentPage - 1) * CategorysPerPage + 1}{" "}
-                to {Math.min(currentPage * CategorysPerPage, categories.length)}{" "}
-                of {categories.length} items */}
+                <p className="mb-0 me-3 fw-semibold text-body">
+                  Trang {pagination.current_page} / {pagination.last_page}
+                </p>
               </div>
+
+              {/* Phần nút phân trang */}
               <div className="col-auto d-flex">
-                <button className="" disabled>
+                {/* Nút Previous */}
+                <button
+                  className="page-link"
+                  onClick={() => handlePageChange(pagination.current_page - 1)}
+                  disabled={pagination.current_page === 1}
+                >
                   <span className="fas fa-chevron-left" />
                 </button>
-                <ul className="mb-0 pagination">
-                  <li className="">
-                    <button className="page" type="button"></button>
-                  </li>
+
+                {/* Danh sách các trang */}
+                <ul className="pagination mb-0">
+                  {Array.from({ length: pagination.last_page }, (_, index) => (
+                    <li
+                      key={index + 1}
+                      className={`page-item ${pagination.current_page === index + 1 ? "active" : ""
+                        }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(index + 1)}
+                      >
+                        {index + 1}
+                      </button>
+                    </li>
+                  ))}
                 </ul>
-                <button className="" disabled>
+
+                {/* Nút Next */}
+                <button
+                  className="page-link pe-0"
+                  onClick={() => handlePageChange(pagination.current_page + 1)}
+                  disabled={pagination.current_page === pagination.last_page}
+                >
                   <span className="fas fa-chevron-right" />
                 </button>
               </div>
             </div>
+
+
           </div>
         </div>
       </div>
+
       <div
         className="modal fade"
-        id="updateVariant"
+        id="updateCustomer"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="updateVariant"
+        aria-labelledby="updateCustomer"
         aria-hidden="true"
       >
         <div className="modal-dialog modal-lg modal-dialog-centered">
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Edit Variant Detail</h3>
+              <h3 className="mb-0">Sửa biến thể</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -216,9 +417,7 @@ const ListValue = () => {
                       className="dropzone dropzone-multiple p-0 mb-5"
                       onDrop={handleDrop}
                       onDragOver={handleDragOver}
-                      onClick={() =>
-                        document.getElementById("fileInput").click()
-                      } // Kích hoạt input khi click
+                      onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
                       id="my-awesome-dropzone"
                       data-dropzone="data-dropzone"
                     >
@@ -232,7 +431,7 @@ const ListValue = () => {
                         />
                       </div>
 
-                      {formData.image ? (
+                      {imagePreview ? (
                         <div className="dz-preview d-flex flex-wrap">
                           <div
                             className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2 col-lg-12"
@@ -240,7 +439,7 @@ const ListValue = () => {
                           >
                             <img
                               className="dz-image"
-                              src={URL.createObjectURL(formData.image)}
+                              src={imagePreview} // Hiển thị ảnh xem trước nếu có
                               alt="Preview"
                               data-dz-thumbnail="data-dz-thumbnail"
                               style={{
@@ -253,6 +452,34 @@ const ListValue = () => {
                               className="dz-remove text-body-quaternary"
                               href="#!"
                               data-dz-remove="data-dz-remove"
+                              onClick={handleRemoveImage} // Xử lý khi loại bỏ ảnh
+                            >
+                              <span data-feather="x" />
+                            </a>
+                          </div>
+                        </div>
+                      ) : formData.image ? (
+                        <div className="dz-preview d-flex flex-wrap">
+                          <div
+                            className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2 col-lg-12"
+                            style={{ height: 150 }}
+                          >
+                            <img
+                              className="dz-image"
+                              src={formData.image} // Hiển thị ảnh từ formData nếu không có imgPreview
+                              alt="Preview"
+                              data-dz-thumbnail="data-dz-thumbnail"
+                              style={{
+                                maxWidth: "100%",
+                                maxHeight: "100%",
+                                objectFit: "contain",
+                              }}
+                            />
+                            <a
+                              className="dz-remove text-body-quaternary"
+                              href="#!"
+                              data-dz-remove="data-dz-remove"
+                              onClick={handleRemoveImage} // Xử lý khi loại bỏ ảnh
                             >
                               <span data-feather="x" />
                             </a>
@@ -277,15 +504,8 @@ const ListValue = () => {
                           />
                         </div>
                       )}
-                    </div>
-                  </div>
 
-                  {/* Biến thể (readonly) */}
-                  <div className="mb-4">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Biến thể
-                    </label>
-                    <input className="form-control" type="text" readOnly />
+                    </div>
                   </div>
 
                   {/* Giá biến thể */}
@@ -298,6 +518,8 @@ const ListValue = () => {
                       type="number"
                       min="0"
                       placeholder="Nhập giá biến thể"
+                      value={Number(formData.gia)}
+                      onChange={(e) => setFormData({ ...formData, gia: e.target.value })}
                     />
                   </div>
 
@@ -311,6 +533,8 @@ const ListValue = () => {
                       type="number"
                       min="0"
                       placeholder="Nhập số lượng hàng tồn kho"
+                      value={formData.so_luong_kho} // Gắn giá trị từ formData
+                      onChange={(e) => setFormData({ ...formData, so_luong_kho: e.target.value })}
                     />
                   </div>
                 </div>
@@ -324,11 +548,17 @@ const ListValue = () => {
               >
                 Cancel
               </button>
-              <button className="btn btn-primary my-0">Update</button>
+              <button
+                className="btn btn-primary my-0"
+                onClick={handleUpdateVariant} // Gọi handleUpdateVariant khi bấm nút Cập nhật
+              >
+                Update
+              </button>
             </div>
           </div>
         </div>
       </div>
+
 
       <footer className="footer position-absolute">
         <div className="row g-0 justify-content-between align-items-center h-100">
