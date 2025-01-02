@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+
 const Listsale = () => {
   const breadcrumbTitles = {
     "admin/danh-sach-san-pham-sale": "List product sale", // Đây là URL không có "/"
   };
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean);
 
@@ -11,6 +13,111 @@ const Listsale = () => {
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+
+  const [sales, setSales] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState("");
+  const [salePercentage, setSalePercentage] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [salesPerPage] = useState(10);
+
+
+  // Fetch dữ liệu giảm giá
+  useEffect(() => {
+    fetch(`http://127.0.0.1:8000/api/sale-san-pham/get-sale-paginate?page=${currentPage}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setSales(data.data.data);
+        setTotalPages(data.data.last_page); // Sửa lại từ response thành data
+      })
+      .catch((error) => console.error('Error fetching sale data:', error));
+  }, [currentPage]);
+
+  // Fetch danh sách sản phẩm
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/san-pham/allSanPham')
+      .then((response) => response.json())
+      .then((data) => {
+        setProducts(data.data); // Lưu trữ dữ liệu vào state
+      })
+      .catch((error) => console.error('Error fetching products:', error));
+  }, []);
+
+  // Hàm xử lý thay đổi trang
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // Hàm định dạng ngày tháng
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+  };
+
+  // Hàm định dạng tỷ lệ giảm giá
+  const formatSalePercentage = (percentage) => {
+    return parseInt(percentage, 10); // Chuyển đổi thành số nguyên
+  };
+
+  // Hàm xử lý thay đổi sản phẩm được chọn
+  const handleProductChange = (event) => {
+    setSelectedProduct(event.target.value);
+  };
+
+  const handleSalePercentageChange = (event) => {
+    setSalePercentage(event.target.value);
+  };
+
+  const handleStartDateChange = (event) => {
+    setStartDate(event.target.value);
+  };
+
+  const handleEndDateChange = (event) => {
+    setEndDate(event.target.value);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+  
+    const saleData = {
+      san_pham_id: selectedProduct,
+      sale_theo_phan_tram: salePercentage,
+      ngay_bat_dau_sale: startDate,
+      ngay_ket_thuc_sale: endDate,
+    };
+  
+    // Gửi yêu cầu POST đến API
+    fetch('http://127.0.0.1:8000/api/sale-san-pham/add-sale', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(saleData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          // Hiển thị thông báo thành công
+          alert('Sản phẩm đã được thêm vào sale thành công!');
+          console.log('Sale added:', data);
+        } 
+      })
+      .catch((error) => {
+        console.error('Error adding sale:', error);
+        alert('Có lỗi xảy ra khi gửi yêu cầu!');
+      });
+  };
 
   return (
     <>
@@ -115,56 +222,84 @@ const Listsale = () => {
                     </tr>
                   </thead>
                   <tbody className="list" id="products-table-body">
-                    <tr>
-                      <td></td>
-                      <td className="product align-middle ps-4"></td>
-                      <td className="tags align-middle review pb-2 ps-3"></td>
-                      <td className="tags align-middle review pb-2 ps-3"></td>
-                      <td className="time align-middle text-body-tertiary text-opacity-85 ps-4"></td>
-
-                      <td className="align-middle white-space-nowrap">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="modal"
-                          data-bs-target="#editSale"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fa-solid fa-pen-to-square fs-9" />
-                        </button>
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                        >
-                          <span className="fa-solid fa-trash fs-9" />
-                        </button>
-                      </td>
-                    </tr>
+                    {sales.map((sale, index) => (
+                      <tr key={sale.id}>
+                        <td className="product align-middle ps-4">
+                          {(currentPage - 1) * 10 + index + 1}
+                        </td>
+                        <td className="tags align-middle review pb-2 ps-3">
+                          {sale.san_pham.ten_san_pham}
+                        </td>
+                        <td className="tags align-middle review pb-2 ps-3">
+                          {formatSalePercentage(sale.sale_theo_phan_tram)}%
+                        </td>
+                        <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                          {formatDate(sale.ngay_bat_dau_sale)}
+                        </td>
+                        <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                          {formatDate(sale.ngay_ket_thuc_sale)}
+                        </td>
+                        <td className="align-middle white-space-nowrap">
+                          <button
+                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editSale"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            data-bs-reference="parent"
+                          >
+                            <span className="fa-solid fa-pen-to-square fs-9" />
+                          </button>
+                          <button
+                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                            type="button"
+                            onClick={() => handleDeleteSale(sale.id)}
+                          >
+                            <span className="fa-solid fa-trash fs-9" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
               <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
                 <div className="col-auto d-flex">
-                  <p className="mb-0 me-3 fw-semibold text-body"></p>
-                  {/* Showing{" "}
-                {currentPage === 1
-                  ? 1
-                  : (currentPage - 1) * CategorysPerPage + 1}{" "}
-                to {Math.min(currentPage * CategorysPerPage, categories.length)}{" "}
-                of {categories.length} items */}
+                  <p className="mb-0 me-3 fw-semibold text-body">
+                    Trang {currentPage} / {totalPages}
+                  </p>
                 </div>
                 <div className="col-auto d-flex">
-                  <button className="" disabled>
+                  <button
+                    className={`page-link ${currentPage === 1 ? "disabled" : ""}`}
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
                     <span className="fas fa-chevron-left" />
                   </button>
                   <ul className="mb-0 pagination">
-                    <li className="">
-                      <button className="page" type="button"></button>
-                    </li>
+                    {[...Array(totalPages)].map((_, index) => (
+                      <li
+                        key={index}
+                        className={currentPage === index + 1 ? "active" : ""}
+                      >
+                        <button
+                          className="page"
+                          type="button"
+                          onClick={() => goToPage(index + 1)}
+                        >
+                          {index + 1}
+                        </button>
+                      </li>
+                    ))}
                   </ul>
-                  <button className="" disabled>
+                  <button
+                    className={`page-link ${currentPage === totalPages ? "disabled" : ""
+                      }`}
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
                     <span className="fas fa-chevron-right" />
                   </button>
                 </div>
@@ -172,6 +307,108 @@ const Listsale = () => {
             </div>
           </div>
         </div>
+
+        <div
+          className="modal fade"
+          id="addSale"
+          data-bs-backdrop="static"
+          data-bs-keyboard="false"
+          tabIndex={-1}
+          aria-labelledby="addSale"
+          aria-hidden="true"
+        >
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content bg-body-highlight p-6">
+              <div className="modal-header justify-content-between border-0 p-0 mb-2">
+                <h3 className="mb-0">Thêm sản phẩm sale</h3>
+                <button
+                  className="btn btn-sm btn-phoenix-secondary"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                >
+                  <span className="fas fa-times text-danger" />
+                </button>
+              </div>
+              <div className="modal-body px-0">
+                <div className="row g-4">
+                  {/* Left column with sale details */}
+                  <div className="col-lg-12">
+                    <div className="mb-5">
+                      <div className="row g-3">
+                        <div className="col-md-12">
+                          <label className="text-body-highlight fw-bold mb-2">
+                            Sản phẩm
+                          </label>
+                          <select
+                            className="form-select"
+                            aria-label="Product select"
+                            value={selectedProduct}
+                            onChange={handleProductChange}
+                          >
+                            <option value="">Chọn sản phẩm</option>
+                            {products.map((product) => (
+                              <option key={product.id} value={product.id}>
+                                {product.ten_san_pham}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-md-12">
+                          <label className="text-body-highlight fw-bold mb-2">
+                            Phần trăm sale
+                          </label>
+                          <input
+                            className="form-control"
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="Nhập phần trăm"
+                            value={salePercentage}
+                            onChange={handleSalePercentageChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="text-body-highlight fw-bold mb-2">
+                          Ngày bắt đầu
+                        </label>
+                        <input
+                          className="form-control"
+                          type="datetime-local"
+                          value={startDate}
+                          onChange={handleStartDateChange}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="text-body-highlight fw-bold mb-2">
+                          Ngày kết thúc
+                        </label>
+                        <input
+                          className="form-control"
+                          type="datetime-local"
+                          value={endDate}
+                          onChange={handleEndDateChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn btn-primary"
+                  onClick={handleSubmit}
+                >
+                  Thêm sale
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div
           className="modal fade"
           id="updateCustomer"
@@ -245,175 +482,8 @@ const Listsale = () => {
           </div>
         </footer>
       </div>
-      <div
-        className="modal fade"
-        id="addSale"
-        data-bs-backdrop="static"
-        data-bs-keyboard="false"
-        tabIndex={-1}
-        aria-labelledby="addSale"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-lg modal-dialog-centered">
-          <div className="modal-content bg-body-highlight p-6">
-            <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Add Product Sale</h3>
-              <button
-                className="btn btn-sm btn-phoenix-secondary"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                <span className="fas fa-times text-danger" />
-              </button>
-            </div>
-            <div className="modal-body px-0">
-              <div className="row g-4">
-                {/* Left column with sale details */}
-                <div className="col-lg-12">
-                  <div className="mb-5">
-                    <div className="row g-3">
-                      <div className="col-md-12">
-                        <label className="text-body-highlight fw-bold mb-2">
-                          Sản phẩm
-                        </label>
-                        <select
-                          className="form-select"
-                          aria-label="Product select"
-                        >
-                          <option selected>Chọn sản phẩm</option>
-                          <option value="1">Sản phẩm 1</option>
-                          <option value="2">Sản phẩm 2</option>
-                          <option value="3">Sản phẩm 3</option>
-                        </select>
-                      </div>
-                      <div className="col-md-12">
-                        <label className="text-body-highlight fw-bold mb-2">
-                          Phần trăm sale
-                        </label>
-                        <input
-                          className="form-control"
-                          type="number"
-                          min="0"
-                          max="100"
-                          placeholder="Nhập phần trăm"
-                        />
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="text-body-highlight fw-bold mb-2">
-                        Ngày bắt đầu
-                      </label>
-                      <input
-                        className="form-control"
-                        type="datetime-local"
-                        placeholder="Chọn ngày bắt đầu"
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="text-body-highlight fw-bold mb-2">
-                        Ngày kết thúc
-                      </label>
-                      <input
-                        className="form-control"
-                        type="datetime-local"
-                        placeholder="Chọn ngày kết thúc"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div
-        className="modal fade"
-        id="editSale"
-        data-bs-backdrop="static"
-        data-bs-keyboard="false"
-        tabIndex={-1}
-        aria-labelledby="editSale"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-lg modal-dialog-centered">
-          <div className="modal-content bg-body-highlight p-6">
-            <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Edit Product Sale</h3>
-              <button
-                className="btn btn-sm btn-phoenix-secondary"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                <span className="fas fa-times text-danger" />
-              </button>
-            </div>
-            <div className="modal-body px-0">
-              <div className="row g-4">
-                {/* Left column with sale details */}
-                <div className="col-lg-12">
-                  <div className="mb-5">
-                    <div className="row g-3">
-                      <div className="col-md-12">
-                        <label className="text-body-highlight fw-bold mb-2">
-                          Sản phẩm
-                        </label>
-                        <select
-                          className="form-select"
-                          aria-label="Product select"
-                        >
-                          <option selected>Chọn sản phẩm</option>
-                          <option value="1">Sản phẩm 1</option>
-                          <option value="2">Sản phẩm 2</option>
-                          <option value="3">Sản phẩm 3</option>
-                        </select>
-                      </div>
-                      <div className="col-md-12">
-                        <label className="text-body-highlight fw-bold mb-2">
-                          Phần trăm sale
-                        </label>
-                        <input
-                          className="form-control"
-                          type="number"
-                          min="0"
-                          max="100"
-                          placeholder="Nhập phần trăm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="text-body-highlight fw-bold mb-2">
-                        Ngày bắt đầu
-                      </label>
-                      <input
-                        className="form-control"
-                        type="datetime-local"
-                        placeholder="Chọn ngày bắt đầu"
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="text-body-highlight fw-bold mb-2">
-                        Ngày kết thúc
-                      </label>
-                      <input
-                        className="form-control"
-                        type="datetime-local"
-                        placeholder="Chọn ngày kết thúc"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </>
   );
 };
