@@ -16,38 +16,29 @@ const listCategory = () => {
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [categories, setCategories] = useState([]);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [categoryDetails, setCategoryDetails] = useState({
     name: "",
     description: "",
   });
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [categoryId, setCategoryId] = useState(null);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [currentPage, setCurrentPage] = useState(1);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [totalPages, setTotalPages] = useState(1);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [CategorysPerPage] = useState(10);
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    // Fetch data from API on component mount
     axios
       .get(
         `http://127.0.0.1:8000/api/danh-muc?page=${currentPage}&limit=${CategorysPerPage}`
       )
       .then((response) => {
-        setCategories(response.data.data); // Set categories state from the response data's 'data' field
-        setTotalPages(response.data.last_page); // Set total pages from the response data's 'last_page' field
+        setCategories(response.data.data); 
+        setTotalPages(response.data.last_page); 
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
-  }, [currentPage, CategorysPerPage]); // Add CategorysPerPage to the dependency array if you plan to change it.
+  }, [currentPage, CategorysPerPage]); 
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -55,24 +46,21 @@ const listCategory = () => {
     }
   };
 
-  // Function to format date
   const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A"; // Return 'N/A' if date is null or undefined
-
+    if (!dateStr) return "N/A"; 
     const date = new Date(dateStr);
     const options = {
-      day: "numeric", // Day of the month (1, 2, ...)
-      month: "short", // Abbreviated month name (e.g. 'Jan', 'Feb')
-      year: "numeric", // Full year
-      hour: "2-digit", // Hour with two digits (12:00 PM, 01:00 PM)
-      minute: "2-digit", // Minute with two digits (12:05 PM, 01:45 PM)
-      hour12: true, // Use 12-hour time format
+      day: "numeric",
+      month: "short", 
+      year: "numeric", 
+      hour: "2-digit", 
+      minute: "2-digit", 
+      hour12: true, 
     };
 
     return date.toLocaleString("en-US", options);
   };
 
-  // Handle category selection in the table
   const updateCategory = async () => {
     try {
       const response = await axios.put(
@@ -84,7 +72,6 @@ const listCategory = () => {
       );
       if (response.status === 200) {
         alert("Cập nhật danh mục thành công!");
-        // Cập nhật danh sách categories sau khi sửa
         setCategories((prev) =>
           prev.map((cat) =>
             cat.id === categoryId
@@ -116,8 +103,9 @@ const listCategory = () => {
 
     try {
       const response = await axios.delete(
-        `http://127.0.0.1:8000/api/danh-muc-con/${id}`
+        `http://127.0.0.1:8000/api/danh-muc/${id}`
       );
+      
       if (response.status === 200) {
         alert("Xóa danh mục thành công!");
         // Loại bỏ danh mục khỏi danh sách
@@ -136,6 +124,7 @@ const listCategory = () => {
       description: category.mo_ta,
     });
   };
+  
   const handleAddCategoryClick = () => {
     navigate("/admin/them-danh-muc"); // Navigate to the 'them-danh-muc' page
   };
