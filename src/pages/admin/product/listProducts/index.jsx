@@ -9,7 +9,7 @@ const ListProducts = () => {
   const [subCategories, setSubCategories] = useState([]);
 
   const productsPerPage = 10; // Số sản phẩm trên mỗi trang
-
+  const link = "http://127.0.0.1:8000/storage/";
   // Lấy danh mục
   const fetchCategories = async () => {
     try {
@@ -131,6 +131,9 @@ const ListProducts = () => {
     navigate("/admin/them-san-pham"); // Navigate to the 'thêm-san-pham' page
   };
 
+  const handleEditProductClick = () => {
+    navigate("/admin/sua-san-pham"); // Navigate to the 'thêm-san-pham' page
+  };
   return (
     <>
       <div className="content">
@@ -323,11 +326,11 @@ const ListProducts = () => {
                         </td>
                         <td>
                           <img
-                            src={product.duong_dan_anh}
+                            src={`${link}${product.duong_dan_anh}`}
                             alt={product.ten_san_pham}
                             style={{
-                              width: "50px",
-                              height: "50px",
+                              width: "70px",
+                              height: "70px",
                               objectFit: "cover",
                             }}
                           />
@@ -363,7 +366,10 @@ const ListProducts = () => {
                               <a className="dropdown-item" href="#view">
                                 Chi tiết
                               </a>
-                              <a className="dropdown-item" href="#export">
+                              <a
+                                className="dropdown-item"
+                                onClick={handleEditProductClick}
+                              >
                                 Chỉnh sửa
                               </a>
                               <div className="dropdown-divider" />
