@@ -20,13 +20,22 @@ const Listsale = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState("");
+
+  const [salePercentage, setSalePercentage] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [salesPerPage] = useState(10);
+
   const [salePercentage, setSalePercentage] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+
   // Fetch dữ liệu giảm giá
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/sale-san-pham/get-sale-paginate?page=${currentPage}`)
+    fetch(
+      `http://127.0.0.1:8000/api/sale-san-pham/get-sale-paginate?page=${currentPage}`
+    )
       .then((response) => response.json())
       .then((data) => {
         setSales(data.data.data);
@@ -34,18 +43,22 @@ const Listsale = () => {
 
         setTotalPages(data.data.last_page); // Sửa lại từ response thành data
       })
-      .catch((error) => console.error('Error fetching sale data:', error));
+      .catch((error) => console.error("Error fetching sale data:", error));
   }, [currentPage]);
 
   // Fetch danh sách sản phẩm
   useEffect(() => {
+
+    fetch("http://127.0.0.1:8000/api/san-pham/allSanPham")
+
     fetch('http://127.0.0.1:8000/api/san-pham/san-pham-chua-sale')
+
       .then((response) => response.json())
       .then((data) => {
         setProducts(data.data);
 
       })
-      .catch((error) => console.error('Error fetching products:', error));
+      .catch((error) => console.error("Error fetching products:", error));
   }, []);
 
   // Hàm xử lý thay đổi trang
@@ -58,11 +71,11 @@ const Listsale = () => {
   // Hàm định dạng ngày tháng
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
 
     return `${day}-${month}-${year} ${hours}:${minutes}`;
   };
@@ -100,10 +113,10 @@ const Listsale = () => {
     };
 
     // Gửi yêu cầu POST đến API
-    fetch('http://127.0.0.1:8000/api/sale-san-pham/add-sale', {
-      method: 'POST',
+    fetch("http://127.0.0.1:8000/api/sale-san-pham/add-sale", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(saleData),
     })
@@ -113,6 +126,10 @@ const Listsale = () => {
           const newSale = data.data.sale_san_pham;
 
           // Hiển thị thông báo thành công
+
+          alert("Sản phẩm đã được thêm vào sale thành công!");
+          console.log("Sale added:", data);
+
           alert(`Sản phẩm đã được thêm vào sale thành công!`);
           console.log(data);
 
@@ -131,11 +148,12 @@ const Listsale = () => {
           setEndDate("");
         } else if (data.error) {
           alert(`Lỗi: ${data.error}`);
+
         }
       })
       .catch((error) => {
-        console.error('Error adding sale:', error);
-        alert('Có lỗi xảy ra khi gửi yêu cầu!');
+        console.error("Error adding sale:", error);
+        alert("Có lỗi xảy ra khi gửi yêu cầu!");
       });
   };
 
@@ -241,7 +259,7 @@ const Listsale = () => {
                   <thead>
                     <tr>
                       <th
-                        className="white-space-nowrap fs-9 align-middle ps-0"
+                        className="white-space-nowrap fs-9 align-middle"
                         scope="col"
                         style={{ width: "10%" }}
                       >
@@ -283,10 +301,49 @@ const Listsale = () => {
                     </tr>
                   </thead>
                   <tbody className="list" id="products-table-body">
+
+                    {sales.map((sale, index) => (
+                      <tr key={sale.id}>
+                        <td className="product align-middle ps-3">
+                          {(currentPage - 1) * 10 + index + 1}
+                        </td>
+                        <td className="tags align-middle review pb-2 ps-4">
+                          {sale.san_pham.ten_san_pham}
+                        </td>
+                        <td className="tags align-middle review pb-2 ps-4">
+                          {formatSalePercentage(sale.sale_theo_phan_tram)}%
+                        </td>
+                        <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                          {formatDate(sale.ngay_bat_dau_sale)}
+                        </td>
+                        <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                          {formatDate(sale.ngay_ket_thuc_sale)}
+                        </td>
+                        <td className="align-middle white-space-nowrap ps-2">
+                          <button
+                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editSale"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            data-bs-reference="parent"
+                          >
+                            <span className="fa-solid fa-pen-to-square fs-9" />
+                          </button>
+                          <button
+                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                            type="button"
+                            onClick={() => handleDeleteSale(sale.id)}
+                          >
+                            <span className="fa-solid fa-trash fs-9" />
+                          </button>
+
                     {sales?.length === 0 ? (
                       <tr>
                         <td colSpan="7" className="text-center">
                           Không có dữ liệu
+
                         </td>
                       </tr>
                     ) : (
@@ -341,7 +398,9 @@ const Listsale = () => {
                 </div>
                 <div className="col-auto d-flex">
                   <button
-                    className={`page-link ${currentPage === 1 ? "disabled" : ""}`}
+                    className={`page-link ${
+                      currentPage === 1 ? "disabled" : ""
+                    }`}
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -364,8 +423,9 @@ const Listsale = () => {
                     ))}
                   </ul>
                   <button
-                    className={`page-link ${currentPage === totalPages ? "disabled" : ""
-                      }`}
+                    className={`page-link ${
+                      currentPage === totalPages ? "disabled" : ""
+                    }`}
                     onClick={() => goToPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
                   >
@@ -466,12 +526,16 @@ const Listsale = () => {
                   </div>
                 </div>
               </div>
-              <div className="modal-footer">
+              <div className="border-0 d-flex justify-content-between mt-5">
                 <button
-                  className="btn btn-primary"
-                  onClick={handleSubmit}
+                  className="btn btn-link text-danger"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
                 >
-                  Thêm sale
+                  Hủy bỏ
+                </button>
+                <button className="btn btn-primary" onClick={handleSubmit}>
+                  Thêm mới
                 </button>
               </div>
             </div>
@@ -551,8 +615,6 @@ const Listsale = () => {
           </div>
         </footer>
       </div>
-
-
     </>
   );
 };
