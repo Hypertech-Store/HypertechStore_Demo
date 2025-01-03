@@ -98,22 +98,43 @@ const ListValue = () => {
     );
   };
 
+  const refreshVariants = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/get-bien-the-paginate');
+      const data = await response.json();
+      setData(data.data);
+      setPagination(data.pagination);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
   const handleUpdateVariant = async () => {
     try {
-      console.log(formData);
+      if (!variantId) {
+        alert('Không tìm thấy ID biến thể để cập nhật!');
+        return;
+      }
+
+      if (!formData.san_pham_id || !formData.gia || !formData.so_luong_kho) {
+        alert('Vui lòng điền đầy đủ thông tin!');
+        return;
+      }
 
       const formDataToSend = new FormData();
-      formDataToSend.append("san_pham_id", formData.san_pham_id); // Giả sử bạn đã có san_pham_id
+
+      formDataToSend.append('san_pham_id', formData.san_pham_id);
       if (formData.image) {
-        formDataToSend.append("image", formData.image); // Thêm ảnh mới nếu có
+        formDataToSend.append('image', formData.image);
       }
-      formDataToSend.append("gia", formData.gia); // Cập nhật giá
-      formDataToSend.append("so_luong_kho", formData.so_luong_kho); // Cập nhật số lượng tồn kho
-      formDataToSend.append("_method", "PUT"); // Thêm phương thức PUT
+      formDataToSend.append('gia', formData.gia);
+      formDataToSend.append('so_luong_kho', formData.so_luong_kho);
+      formDataToSend.append('_method', 'PUT');
+
 
       const response = await axios.post(
-        `http://127.0.0.1:8000/api/bien-the-san-pham/${variantId}`, // API URL
-        formDataToSend, // Sử dụng formDataToSend thay vì formData
+        `http://127.0.0.1:8000/api/bien-the-san-pham/${variantId}`,
+        formDataToSend,
         {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -121,22 +142,26 @@ const ListValue = () => {
         }
       );
 
-      const updatedData = response.data.data; // Lấy dữ liệu từ phản hồi
-
-      console.log(updatedData); // Kiểm tra dữ liệu đã nhận được
+      const updatedData = response.data.data;
 
       if (updatedData && updatedData.id) {
-        setImagePreview(updatedData.image || ""); // Cập nhật lại ảnh
-        alert("Cập nhật biến thể thành công!");
-        window.location.reload();
+        setImagePreview(updatedData.image || "");
+        alert('Cập nhật biến thể thành công!');
+        await refreshVariants(); 
+        const modalElement = document.getElementById('updateCustomer');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) modalInstance.hide();
       } else {
         alert("Cập nhật biến thể thất bại. Vui lòng kiểm tra lại!");
       }
     } catch (error) {
       console.error("Error updating variant:", error);
-      alert("Cập nhật thất bại! Đã có lỗi xảy ra. Chi tiết: " + error.message); // Thêm chi tiết lỗi vào thông báo
+
+      const errorMessage = error.response?.data?.message || error.message;
+      alert('Cập nhật thất bại! Chi tiết: ' + errorMessage);
     }
   };
+
 
   const handleRemoveImage = () => {
     setFormData({ ...formData, image: null });
