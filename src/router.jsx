@@ -6,6 +6,7 @@ import LayoutAdmin from "./components/layout/admin/layout-admin";
 // import AdminLogin from "./pages/admin/login";
 import Dashboard from "./pages/admin/dashboard";
 import AddProducts from "./pages/admin/product/addProducts";
+import EditProducts from "./pages/admin/product/editProducts";
 import ListProducts from "./pages/admin/product/listProducts";
 import AddCategory from "./pages/admin/category/addCategory";
 import ListCategory from "./pages/admin/category/listCategory";
@@ -56,6 +57,7 @@ const Router = () => {
           <Route path="/admin" element={<LayoutAdmin />}>
             <Route index element={<Dashboard />} />
             <Route path="them-san-pham" element={<AddProducts />} />
+            <Route path="sua-san-pham" element={<EditProducts />} />
             <Route path="danh-sach-san-pham" element={<ListProducts />} />
             <Route path="them-danh-muc" element={<AddCategory />} />
             <Route path="danh-sach-danh-muc" element={<ListCategory />} />

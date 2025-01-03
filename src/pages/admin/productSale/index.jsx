@@ -20,16 +20,9 @@ const Listsale = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState("");
-
   const [salePercentage, setSalePercentage] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [salesPerPage] = useState(10);
-
-  const [salePercentage, setSalePercentage] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-
 
   // Fetch dữ liệu giảm giá
   useEffect(() => {
@@ -48,15 +41,10 @@ const Listsale = () => {
 
   // Fetch danh sách sản phẩm
   useEffect(() => {
-
-    fetch("http://127.0.0.1:8000/api/san-pham/allSanPham")
-
-    fetch('http://127.0.0.1:8000/api/san-pham/san-pham-chua-sale')
-
+    fetch("http://127.0.0.1:8000/api/san-pham/san-pham-chua-sale")
       .then((response) => response.json())
       .then((data) => {
         setProducts(data.data);
-
       })
       .catch((error) => console.error("Error fetching products:", error));
   }, []);
@@ -126,10 +114,6 @@ const Listsale = () => {
           const newSale = data.data.sale_san_pham;
 
           // Hiển thị thông báo thành công
-
-          alert("Sản phẩm đã được thêm vào sale thành công!");
-          console.log("Sale added:", data);
-
           alert(`Sản phẩm đã được thêm vào sale thành công!`);
           console.log(data);
 
@@ -148,7 +132,6 @@ const Listsale = () => {
           setEndDate("");
         } else if (data.error) {
           alert(`Lỗi: ${data.error}`);
-
         }
       })
       .catch((error) => {
@@ -178,13 +161,12 @@ const Listsale = () => {
         // Cập nhật lại danh sách trong state (setData hoặc tương tự)
         setSales((prev) => prev.filter((prevSales) => prevSales.id !== id));
 
-        fetch('http://127.0.0.1:8000/api/san-pham/san-pham-chua-sale')
+        fetch("http://127.0.0.1:8000/api/san-pham/san-pham-chua-sale")
           .then((response) => response.json())
           .then((data) => {
             setProducts(data.data);
-
           })
-          .catch((error) => console.error('Error fetching products:', error));
+          .catch((error) => console.error("Error fetching products:", error));
       } else {
         // Nếu có lỗi khác, thông báo cho người dùng
         alert("Không thể xóa sản phẩm sale.");
@@ -195,8 +177,6 @@ const Listsale = () => {
       alert("Không thể xóa sản phẩm sale. Vui lòng thử lại.");
     }
   };
-
-
 
   return (
     <>
@@ -259,7 +239,7 @@ const Listsale = () => {
                   <thead>
                     <tr>
                       <th
-                        className="white-space-nowrap fs-9 align-middle"
+                        className="white-space-nowrap fs-9 align-middle ps-2"
                         scope="col"
                         style={{ width: "10%" }}
                       >
@@ -274,7 +254,7 @@ const Listsale = () => {
                         SẢN PHẨM
                       </th>
                       <th
-                        className="align-middle ps-3"
+                        className="align-middle ps-4"
                         scope="col"
                         style={{ width: "20%" }}
                       >
@@ -301,61 +281,22 @@ const Listsale = () => {
                     </tr>
                   </thead>
                   <tbody className="list" id="products-table-body">
-
-                    {sales.map((sale, index) => (
-                      <tr key={sale.id}>
-                        <td className="product align-middle ps-3">
-                          {(currentPage - 1) * 10 + index + 1}
-                        </td>
-                        <td className="tags align-middle review pb-2 ps-4">
-                          {sale.san_pham.ten_san_pham}
-                        </td>
-                        <td className="tags align-middle review pb-2 ps-4">
-                          {formatSalePercentage(sale.sale_theo_phan_tram)}%
-                        </td>
-                        <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
-                          {formatDate(sale.ngay_bat_dau_sale)}
-                        </td>
-                        <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
-                          {formatDate(sale.ngay_ket_thuc_sale)}
-                        </td>
-                        <td className="align-middle white-space-nowrap ps-2">
-                          <button
-                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                            type="button"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editSale"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                            data-bs-reference="parent"
-                          >
-                            <span className="fa-solid fa-pen-to-square fs-9" />
-                          </button>
-                          <button
-                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                            type="button"
-                            onClick={() => handleDeleteSale(sale.id)}
-                          >
-                            <span className="fa-solid fa-trash fs-9" />
-                          </button>
-
                     {sales?.length === 0 ? (
                       <tr>
                         <td colSpan="7" className="text-center">
                           Không có dữ liệu
-
                         </td>
                       </tr>
                     ) : (
                       sales?.map((sale, index) => (
                         <tr key={sale.id}>
-                          <td className="product align-middle ps-4">
+                          <td className="product align-middle ps-2">
                             {(currentPage - 1) * 10 + index + 1}
                           </td>
-                          <td className="tags align-middle review pb-2 ps-3">
+                          <td className="tags align-middle review pb-2 ps-4">
                             {sale.san_pham.ten_san_pham}
                           </td>
-                          <td className="tags align-middle review pb-2 ps-3">
+                          <td className="tags align-middle review pb-2 ps-4">
                             {formatSalePercentage(sale.sale_theo_phan_tram)}%
                           </td>
                           <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
@@ -526,16 +467,9 @@ const Listsale = () => {
                   </div>
                 </div>
               </div>
-              <div className="border-0 d-flex justify-content-between mt-5">
-                <button
-                  className="btn btn-link text-danger"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                >
-                  Hủy bỏ
-                </button>
+              <div className="modal-footer">
                 <button className="btn btn-primary" onClick={handleSubmit}>
-                  Thêm mới
+                  Thêm sale
                 </button>
               </div>
             </div>

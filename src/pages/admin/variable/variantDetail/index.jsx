@@ -26,16 +26,15 @@ const ListValue = () => {
   const [pagination, setPagination] = useState({});
   const [variantId, setVariantId] = useState({});
 
-
   // Hàm gọi API để lấy dữ liệu
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/get-bien-the-paginate')
-      .then(response => response.json())
-      .then(data => {
+    fetch("http://127.0.0.1:8000/api/get-bien-the-paginate")
+      .then((response) => response.json())
+      .then((data) => {
         setData(data.data);
         setPagination(data.pagination); // Lưu thông tin phân trang
       })
-      .catch(error => console.error('Error fetching data:', error));
+      .catch((error) => console.error("Error fetching data:", error));
   }, []);
 
   // console.log(data);
@@ -53,10 +52,6 @@ const ListValue = () => {
       })
       .catch((error) => console.error("Error fetching data:", error));
   };
-
-
-
-
 
   // Hàm xử lý khi ảnh được thả vào khu vực dropzone
   const handleDrop = (e) => {
@@ -82,22 +77,25 @@ const ListValue = () => {
     }
   };
 
-
   const handleEditVariant = (bienThe) => {
     // Log the variant data to the console
     console.log(bienThe);
     setVariantId(bienThe.bienTheSanPham.id);
     // Set the formData with the existing values of the variant
     setFormData({
-      image: "http://127.0.0.1:8000/storage/" + bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || "",
+      image:
+        "http://127.0.0.1:8000/storage/" +
+          bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || "",
       gia: bienThe.bienTheSanPham.gia,
       so_luong_kho: bienThe.bienTheSanPham.so_luong_kho,
-      san_pham_id: bienThe.bienTheSanPham.san_pham_id
+      san_pham_id: bienThe.bienTheSanPham.san_pham_id,
     });
 
-
     // Set the image preview if there is an image
-    setImagePreview("http://127.0.0.1:8000/storage/" + bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || "");
+    setImagePreview(
+      "http://127.0.0.1:8000/storage/" +
+        bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || ""
+    );
   };
 
   const refreshVariants = async () => {
@@ -124,6 +122,7 @@ const ListValue = () => {
       }
 
       const formDataToSend = new FormData();
+
       formDataToSend.append('san_pham_id', formData.san_pham_id);
       if (formData.image) {
         formDataToSend.append('image', formData.image);
@@ -131,6 +130,7 @@ const ListValue = () => {
       formDataToSend.append('gia', formData.gia);
       formDataToSend.append('so_luong_kho', formData.so_luong_kho);
       formDataToSend.append('_method', 'PUT');
+
 
       const response = await axios.post(
         `http://127.0.0.1:8000/api/bien-the-san-pham/${variantId}`,
@@ -152,16 +152,15 @@ const ListValue = () => {
         const modalInstance = bootstrap.Modal.getInstance(modalElement);
         if (modalInstance) modalInstance.hide();
       } else {
-        alert('Cập nhật biến thể thất bại. Vui lòng kiểm tra lại!');
+        alert("Cập nhật biến thể thất bại. Vui lòng kiểm tra lại!");
       }
     } catch (error) {
       console.error("Error updating variant:", error);
+
       const errorMessage = error.response?.data?.message || error.message;
       alert('Cập nhật thất bại! Chi tiết: ' + errorMessage);
     }
   };
-
-
 
 
   const handleRemoveImage = () => {
@@ -187,7 +186,9 @@ const ListValue = () => {
         // Nếu xóa thành công, thông báo và cập nhật lại danh sách
         alert("Xóa biến thể sản phẩm thành công!");
         // Cập nhật lại dữ liệu trong state (setData hoặc tương tự)
-        setData((prev) => prev.filter((variant) => variant.bienTheSanPham.id !== id));
+        setData((prev) =>
+          prev.filter((variant) => variant.bienTheSanPham.id !== id)
+        );
       } else {
         // Nếu có lỗi khác, thông báo cho người dùng
         alert("Không thể xóa biến thể sản phẩm.");
@@ -198,10 +199,6 @@ const ListValue = () => {
       alert("Không thể xóa biến thể sản phẩm. Vui lòng thử lại.");
     }
   };
-
-
-
-
 
   return (
     <div className="content">
@@ -299,20 +296,30 @@ const ListValue = () => {
                         <td>
                           {(pagination.current_page - 1) * 10 + index + 1}
                         </td>
-                        <td>
-                          {item.bienTheSanPham.san_pham.ten_san_pham}
-                        </td>
+                        <td>{item.bienTheSanPham.san_pham.ten_san_pham}</td>
                         <td className="tags align-middle review pb-2 ps-3">
-                          {item.hinhAnhSanPham.map(link => (
-                            <img src={"http://127.0.0.1:8000/storage/" + link.duong_dan_hinh_anh} style={{
-                              width: "50px",
-                              height: "50px",
-                              objectFit: "cover",
-                            }} />
-                          ))}
+                          {item.hinhAnhSanPham &&
+                          Array.isArray(item.hinhAnhSanPham) ? (
+                            item.hinhAnhSanPham.map((link, index) => (
+                              <img
+                                key={index} // Dùng index hoặc một thuộc tính duy nhất từ đối tượng link như ID
+                                src={`http://127.0.0.1:8000/storage/${link.duong_dan_hinh_anh}`}
+                                alt={`Hình ảnh sản phẩm ${index + 1}`}
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  objectFit: "cover",
+                                  marginRight: "5px", // Thêm khoảng cách giữa các hình ảnh
+                                }}
+                              />
+                            ))
+                          ) : (
+                            <span>Không có hình ảnh</span> // Nếu không có ảnh, sẽ hiển thị thông báo
+                          )}
                         </td>
+
                         <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
-                          {item.lienKetBienThe.map(link => (
+                          {item.lienKetBienThe.map((link) => (
                             <div key={link.id}>{link.ten_gia_tri}</div>
                           ))}
                         </td>
@@ -340,7 +347,9 @@ const ListValue = () => {
                           <button
                             className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                             type="button"
-                            onClick={() => deleteVariant(item.bienTheSanPham.id)}
+                            onClick={() =>
+                              deleteVariant(item.bienTheSanPham.id)
+                            }
                           >
                             <span className="fa-solid fa-trash fs-9" />
                           </button>
@@ -348,7 +357,6 @@ const ListValue = () => {
                       </tr>
                     ))
                   )}
-
                 </tbody>
               </table>
             </div>
@@ -376,8 +384,9 @@ const ListValue = () => {
                   {Array.from({ length: pagination.last_page }, (_, index) => (
                     <li
                       key={index + 1}
-                      className={`page-item ${pagination.current_page === index + 1 ? "active" : ""
-                        }`}
+                      className={`page-item ${
+                        pagination.current_page === index + 1 ? "active" : ""
+                      }`}
                     >
                       <button
                         className="page-link"
@@ -399,8 +408,6 @@ const ListValue = () => {
                 </button>
               </div>
             </div>
-
-
           </div>
         </div>
       </div>
@@ -439,7 +446,9 @@ const ListValue = () => {
                       className="dropzone dropzone-multiple p-0 mb-5"
                       onDrop={handleDrop}
                       onDragOver={handleDragOver}
-                      onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
+                      onClick={() =>
+                        document.getElementById("fileInput").click()
+                      } // Kích hoạt input khi click
                       id="my-awesome-dropzone"
                       data-dropzone="data-dropzone"
                     >
@@ -526,7 +535,6 @@ const ListValue = () => {
                           />
                         </div>
                       )}
-
                     </div>
                   </div>
 
@@ -537,11 +545,12 @@ const ListValue = () => {
                     </label>
                     <input
                       className="form-control"
-                      type="number"
-                      min="0"
+                      type="text"
                       placeholder="Nhập giá biến thể"
                       value={Number(formData.gia)}
-                      onChange={(e) => setFormData({ ...formData, gia: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, gia: e.target.value })
+                      }
                     />
                   </div>
 
@@ -556,7 +565,12 @@ const ListValue = () => {
                       min="0"
                       placeholder="Nhập số lượng hàng tồn kho"
                       value={formData.so_luong_kho} // Gắn giá trị từ formData
-                      onChange={(e) => setFormData({ ...formData, so_luong_kho: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          so_luong_kho: e.target.value,
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -580,7 +594,6 @@ const ListValue = () => {
           </div>
         </div>
       </div>
-
 
       <footer className="footer position-absolute">
         <div className="row g-0 justify-content-between align-items-center h-100">
