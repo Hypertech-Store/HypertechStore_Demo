@@ -467,8 +467,15 @@ const Listsale = () => {
                   </div>
                 </div>
               </div>
-              <div className="modal-footer">
-                <button className="btn btn-primary" onClick={handleSubmit}>
+              <div className="modal-footer border-0 pt-0 px-0 pb-0 mt-5">
+                <button
+                  className="btn btn-link text-danger px-3 my-0"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                >
+                  Hủy bỏ
+                </button>
+                <button className="btn btn-primary my-0" onClick={handleSubmit}>
                   Thêm sale
                 </button>
               </div>
@@ -485,10 +492,10 @@ const Listsale = () => {
           aria-labelledby="editSale"
           aria-hidden="true"
         >
-          <div className="modal-dialog modal-l modal-dialog-centered">
+          <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content bg-body-highlight p-6">
               <div className="modal-header justify-content-between border-0 p-0 mb-2">
-                <h3 className="mb-0">Edit Attribute Name</h3>
+                <h3 className="mb-0">Sửa sản phẩm sale</h3>
                 <button
                   className="btn btn-sm btn-phoenix-secondary"
                   data-bs-dismiss="modal"
@@ -497,33 +504,64 @@ const Listsale = () => {
                   <span className="fas fa-times text-danger" />
                 </button>
               </div>
-              <div className="modal-body px-0 mt-1">
+              <div className="modal-body px-0">
                 <div className="row g-4">
+                  {/* Left column with sale details */}
                   <div className="col-lg-12">
-                    <div className="mb-4">
-                      <label className="text-body-highlight fw-bold mb-2">
-                        Attribute Name
-                      </label>
-                      <input className="form-control" type="text" />
+                    <div className="mb-5">
+                      <div className="row g-3">
+                        <div className="col-md-12">
+                          <label className="text-body-highlight fw-bold mb-2">
+                            Sản phẩm
+                          </label>
+                          <select
+                            className="form-select"
+                            aria-label="Product select"
+                          >
+                            <option value="">Chọn sản phẩm</option>
+                          </select>
+                        </div>
+                        <div className="col-md-12">
+                          <label className="text-body-highlight fw-bold mb-2">
+                            Phần trăm sale
+                          </label>
+                          <input
+                            className="form-control"
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="Nhập phần trăm"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="mb-4">
-                      <label className="text-body-highlight fw-bold mb-2">
-                        Description
-                      </label>
-                      <input className="form-control" type="text" />
+
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="text-body-highlight fw-bold mb-2">
+                          Ngày bắt đầu
+                        </label>
+                        <input className="form-control" type="datetime-local" />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="text-body-highlight fw-bold mb-2">
+                          Ngày kết thúc
+                        </label>
+                        <input className="form-control" type="datetime-local" />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="modal-footer border-0 pt-0 px-0 pb-0">
+              <div className="modal-footer border-0 pt-0 px-0 pb-0 mt-5">
                 <button
                   className="btn btn-link text-danger px-3 my-0"
                   data-bs-dismiss="modal"
                   aria-label="Close"
                 >
-                  Cancel
+                  Hủy bỏ
                 </button>
-                <button className="btn btn-primary my-0">Update</button>
+                <button className="btn btn-primary my-0">Cập nhật</button>
               </div>
             </div>
           </div>
