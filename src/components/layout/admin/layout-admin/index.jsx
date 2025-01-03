@@ -21,6 +21,7 @@ import "../../../../assets/vendors/simplebar/simplebar.min.css"; // SimpleBar CS
 import "../../../../assets/vendors/unicons.iconscout.com/release/v4.0.8/css/line.css";
 // import "../../../../assets/css/theme-rtl.min.css";
 import "../../../../assets/css/theme.min.css";
+import "../../../../assets/vendors/choices/choices.min.css";
 import "../../../../assets/vendors/leaflet/leaflet.css";
 import "../../../../assets/vendors/leaflet.markercluster/MarkerCluster.css";
 import "../../../../assets/vendors/leaflet.markercluster/MarkerCluster.Default.css";
@@ -33,7 +34,7 @@ import "../../../../assets/vendors/fontawesome/all.min.js"; // FontAwesome
 import "../../../../assets/vendors/lodash/lodash.min.js"; // Lodash
 import "../../../../assets/vendors/list.js/list.min.js"; // List.js
 import "../../../../assets/vendors/feather-icons/feather.min.js"; // Feather Icons
-
+import "../../../../assets/vendors/choices/choices.min.js";
 import "../../../../assets/vendors/dayjs/dayjs.min.js"; // Day.js
 import "../../../../assets/vendors/leaflet/leaflet.js";
 import "../../../../assets/vendors/leaflet.markercluster/leaflet.markercluster.js";

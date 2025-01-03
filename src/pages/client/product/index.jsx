@@ -1344,6 +1344,9 @@ const Shop = () => {
 
                                 <img
                                   className="img-fluid"
+                                  style={{
+                                    padding: "10px", // Tạo khoảng cách bên trong để ảnh nhỏ hơn viền
+                                  }}
                                   src={`${baseUrl}${product.duong_dan_anh}`}
                                   alt={product.ten_san_pham}
                                 />

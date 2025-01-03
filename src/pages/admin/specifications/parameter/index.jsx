@@ -246,12 +246,11 @@ const ListParameter = () => {
 
   return (
     <div className="content">
-      <nav className="mb-3" aria-label="breadcrumb">
+      <nav aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
             <Link to="/admin">Dashboard</Link>
           </li>
-
           <li className="breadcrumb-item active" aria-current="page">
             {currentTitle}
           </li>
@@ -348,13 +347,13 @@ const ListParameter = () => {
                           )?.ten_danh_muc || "Chưa có danh mục"}
                         </td>
 
-                        <td className="tags align-middle review pb-2 ps-3">
+                        <td className="tags align-middle review pb-2 ps-4">
                           {item.ten_thong_so}
                         </td>
-                        <td className="tags align-middle review pb-2 ps-3">
+                        <td className="tags align-middle review pb-2 ps-4">
                           {item.mo_ta}
                         </td>
-                        <td className="align-middle white-space-nowrap">
+                        <td className="align-middle white-space-nowrap ps-2">
                           <button
                             className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                             type="button"
