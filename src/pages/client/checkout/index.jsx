@@ -411,7 +411,7 @@ const Checkout = () => {
               ma_don_hang: orderCode,
             }),
           }
-        )
+        );
 
         const vnpayData = await vnpayResponse.json();
 
@@ -420,9 +420,11 @@ const Checkout = () => {
         }
 
         // Redirect đến URL thanh toán VNPAY
-        window.location.href = vnpayData.data;
+        const callbackUrl = `http://127.0.0.1:8000/api/thanh-toan/vppay/callback?customer_id=${khachHangId}&ma_don_hang=${orderCode}`;
+        window.location.href = `${vnpayData.data}&vnp_ReturnUrl=${callbackUrl}`;
         return;
-      } else {
+      }
+      else {
         const orderResponse = await fetch(
           "http://127.0.0.1:8000/api/donhang/orders",
           {
@@ -435,7 +437,7 @@ const Checkout = () => {
         );
 
         console.log(orderResponse);
-        
+
 
         if (!orderResponse.ok) {
           throw new Error("Gửi đơn hàng thất bại");
@@ -443,7 +445,7 @@ const Checkout = () => {
 
         const data = await orderResponse.json();
         console.log(data);
-        
+
         console.log("Đơn hàng đã được gửi:", data);
 
       }
@@ -1092,8 +1094,8 @@ const Checkout = () => {
                     </div>
                     <span
                       className={`codeboxinput__dropdown--content1 ${errorMessage
-                          ? "error_codebox_input"
-                          : "success_codebox_input"
+                        ? "error_codebox_input"
+                        : "success_codebox_input"
                         }`}
                     >
                       {errorMessage || successMessage}

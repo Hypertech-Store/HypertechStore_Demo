@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 const Listsale = () => {
   const breadcrumbTitles = {
@@ -19,10 +20,16 @@ const Listsale = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState("");
+
   const [salePercentage, setSalePercentage] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [salesPerPage] = useState(10);
+
+  const [salePercentage, setSalePercentage] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
 
   // Fetch dữ liệu giảm giá
   useEffect(() => {
@@ -32,6 +39,8 @@ const Listsale = () => {
       .then((response) => response.json())
       .then((data) => {
         setSales(data.data.data);
+        console.log(data.data.data);
+
         setTotalPages(data.data.last_page); // Sửa lại từ response thành data
       })
       .catch((error) => console.error("Error fetching sale data:", error));
@@ -39,10 +48,15 @@ const Listsale = () => {
 
   // Fetch danh sách sản phẩm
   useEffect(() => {
+
     fetch("http://127.0.0.1:8000/api/san-pham/allSanPham")
+
+    fetch('http://127.0.0.1:8000/api/san-pham/san-pham-chua-sale')
+
       .then((response) => response.json())
       .then((data) => {
-        setProducts(data.data); // Lưu trữ dữ liệu vào state
+        setProducts(data.data);
+
       })
       .catch((error) => console.error("Error fetching products:", error));
   }, []);
@@ -109,9 +123,32 @@ const Listsale = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
+          const newSale = data.data.sale_san_pham;
+
           // Hiển thị thông báo thành công
+
           alert("Sản phẩm đã được thêm vào sale thành công!");
           console.log("Sale added:", data);
+
+          alert(`Sản phẩm đã được thêm vào sale thành công!`);
+          console.log(data);
+
+          // Cập nhật danh sách sales
+          setSales((prevSales) => [...prevSales, newSale]);
+
+          // Xóa sản phẩm vừa chọn khỏi danh sách sản phẩm chưa sale
+          setProducts((prevProducts) =>
+            prevProducts.filter((product) => product.id !== newSale.san_pham_id)
+          );
+
+          // Reset form
+          setSelectedProduct("");
+          setSalePercentage("");
+          setStartDate("");
+          setEndDate("");
+        } else if (data.error) {
+          alert(`Lỗi: ${data.error}`);
+
         }
       })
       .catch((error) => {
@@ -119,6 +156,47 @@ const Listsale = () => {
         alert("Có lỗi xảy ra khi gửi yêu cầu!");
       });
   };
+
+  const handleDeleteSale = async (id) => {
+    // Xác nhận trước khi xóa
+    const isConfirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa biến thể sản phẩm này?"
+    );
+
+    if (!isConfirmed) return;
+
+    try {
+      // Gửi yêu cầu xóa biến thể sản phẩm qua API
+      const response = await axios.delete(
+        `http://127.0.0.1:8000/api/sale-san-pham/${id}`
+      );
+
+      if (response.status === 200) {
+        // Nếu xóa thành công, thông báo và cập nhật lại danh sách
+        alert("Xóa sản phẩm sale thành công!");
+
+        // Cập nhật lại danh sách trong state (setData hoặc tương tự)
+        setSales((prev) => prev.filter((prevSales) => prevSales.id !== id));
+
+        fetch('http://127.0.0.1:8000/api/san-pham/san-pham-chua-sale')
+          .then((response) => response.json())
+          .then((data) => {
+            setProducts(data.data);
+
+          })
+          .catch((error) => console.error('Error fetching products:', error));
+      } else {
+        // Nếu có lỗi khác, thông báo cho người dùng
+        alert("Không thể xóa sản phẩm sale.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa sản phẩm sale:", error);
+      // Thông báo lỗi nếu có sự cố
+      alert("Không thể xóa sản phẩm sale. Vui lòng thử lại.");
+    }
+  };
+
+
 
   return (
     <>
@@ -223,6 +301,7 @@ const Listsale = () => {
                     </tr>
                   </thead>
                   <tbody className="list" id="products-table-body">
+
                     {sales.map((sale, index) => (
                       <tr key={sale.id}>
                         <td className="product align-middle ps-3">
@@ -259,9 +338,55 @@ const Listsale = () => {
                           >
                             <span className="fa-solid fa-trash fs-9" />
                           </button>
+
+                    {sales?.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="text-center">
+                          Không có dữ liệu
+
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      sales?.map((sale, index) => (
+                        <tr key={sale.id}>
+                          <td className="product align-middle ps-4">
+                            {(currentPage - 1) * 10 + index + 1}
+                          </td>
+                          <td className="tags align-middle review pb-2 ps-3">
+                            {sale.san_pham.ten_san_pham}
+                          </td>
+                          <td className="tags align-middle review pb-2 ps-3">
+                            {formatSalePercentage(sale.sale_theo_phan_tram)}%
+                          </td>
+                          <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                            {formatDate(sale.ngay_bat_dau_sale)}
+                          </td>
+                          <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
+                            {formatDate(sale.ngay_ket_thuc_sale)}
+                          </td>
+                          <td className="align-middle white-space-nowrap">
+                            <button
+                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                              type="button"
+                              data-bs-toggle="modal"
+                              data-bs-target="#editSale"
+                              aria-haspopup="true"
+                              aria-expanded="false"
+                              data-bs-reference="parent"
+                            >
+                              <span className="fa-solid fa-pen-to-square fs-9" />
+                            </button>
+                            <button
+                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                              type="button"
+                              onClick={() => handleDeleteSale(sale.id)}
+                            >
+                              <span className="fa-solid fa-trash fs-9" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -419,11 +544,11 @@ const Listsale = () => {
 
         <div
           className="modal fade"
-          id="updateCustomer"
+          id="editSale"
           data-bs-backdrop="static"
           data-bs-keyboard="false"
           tabIndex={-1}
-          aria-labelledby="updateCustomer"
+          aria-labelledby="editSale"
           aria-hidden="true"
         >
           <div className="modal-dialog modal-l modal-dialog-centered">

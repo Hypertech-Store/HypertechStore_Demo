@@ -13,6 +13,12 @@ const AddCategory = () => {
     setError(null);
 
     try {
+      if (!tenDanhMuc.trim() || !moTa.trim()) {
+        alert("Vui lòng điền đầy đủ các trường thông tin.");
+        setLoading(false);
+        return; // Dừng lại nếu dữ liệu không hợp lệ
+      }
+    
       const response = await fetch("http://127.0.0.1:8000/api/danh-muc/", {
         method: "POST",
         headers: {
@@ -29,7 +35,7 @@ const AddCategory = () => {
       }
 
       const data = await response.json();
-      alert("Category added successfully!");
+      alert("Thêm danh mục thành công!");
       setTenDanhMuc("");
       setMoTa("");
       navigate("/admin/danh-sach-danh-muc");
