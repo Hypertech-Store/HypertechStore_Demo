@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import axios from 'axios';
+
 import { toast } from "react-toastify"; // Thư viện toast cho thông báo
 import PacmanLoader from "react-spinners/PacmanLoader";
 import { useNavigate } from "react-router-dom"; // Import hook điều hướng
@@ -12,12 +12,7 @@ import products5 from "../../../assets/img/products/3.png";
 import products6 from "../../../assets/img/products/5.png";
 import products7 from "../../../assets/img/products/6.png";
 import icon from "../../../assets/img/icons/image-icon.png";
-import review1 from "../../../assets/img/e-commerce/review-11.jpg";
-import review2 from "../../../assets/img/e-commerce/review-12.jpg";
-import review3 from "../../../assets/img/e-commerce/review-13.jpg";
-import review4 from "../../../assets/img/e-commerce/review-14.jpg";
-import review5 from "../../../assets/img/e-commerce/review-15.jpg";
-import review6 from "../../../assets/img/e-commerce/review-16.jpg";
+
 
 const ProductDetails = () => {
   const { search } = useLocation();

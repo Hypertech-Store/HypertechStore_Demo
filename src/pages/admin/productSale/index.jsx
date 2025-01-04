@@ -14,11 +14,12 @@ const Listsale = () => {
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
-
+  const [saleSanPhamId, setSaleSanPhamId] = useState(null); // State to store saleSanPhamId
   const [sales, setSales] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [products, setProducts] = useState([]);
+  const [percentSale, setPercentSale] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [salePercentage, setSalePercentage] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -54,18 +55,6 @@ const Listsale = () => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
-  };
-
-  // Hàm định dạng ngày tháng
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-
-    return `${day}-${month}-${year} ${hours}:${minutes}`;
   };
 
   // Hàm định dạng tỷ lệ giảm giá
@@ -138,6 +127,135 @@ const Listsale = () => {
         console.error("Error adding sale:", error);
         alert("Có lỗi xảy ra khi gửi yêu cầu!");
       });
+  };
+
+  const handleEditButtonClick = (id) => {
+    console.log("Sale ID clicked:", id); // Log the ID of the clicked sale product
+
+    // Set the selected saleSanPhamId to track the current sale being edited
+    setSaleSanPhamId(id);
+
+    // Fetch details of the selected product for the sale
+    fetch(`http://127.0.0.1:8000/api/sale-san-pham/chi-tiet-sale/${id}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Sale details fetched:", data.data); // Log the entire fetched sale details
+
+        // Log product information with the name from san_pham.ten_san_pham
+        console.log(
+          "Product Name (san_pham.ten_san_pham):",
+          data.data.san_pham.ten_san_pham
+        );
+        console.log(
+          "Sale Percentage (sale_theo_phan_tram):",
+          data.data.sale_theo_phan_tram
+        );
+        console.log(
+          "Start Date (ngay_bat_dau_sale):",
+          data.data.ngay_bat_dau_sale
+        );
+        console.log(
+          "End Date (ngay_ket_thuc_sale):",
+          data.data.ngay_ket_thuc_sale
+        );
+
+        // Directly set the selectedProduct with data from the API response
+        setSelectedProduct({
+          ...data.data, // Add sale data
+          product_name: data.data.san_pham.ten_san_pham, // Store the product name from san_pham
+        });
+
+        // Set the state for sale details to auto-update the modal fields
+        setPercentSale(data.data.sale_theo_phan_tram);
+        setStartDate(data.data.ngay_bat_dau_sale);
+        setEndDate(data.data.ngay_ket_thuc_sale);
+      })
+      .catch((error) => {
+        console.error("Error fetching sale product details:", error);
+      });
+  };
+
+  const handleUpdateSaleProduct = () => {
+    // Kiểm tra xem tất cả các trường có hợp lệ không
+    if (!percentSale || !startDate || !endDate) {
+      alert("Vui lòng điền đầy đủ thông tin để cập nhật sản phẩm sale!");
+      return;
+    }
+
+    // Chuyển đổi ngày từ datetime-local sang YYYY-MM-DD format
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+
+    // Tạo đối tượng gửi lên API
+    const updatedSaleProduct = {
+      sale_theo_phan_tram: percentSale,
+      ngay_bat_dau_sale: formattedStartDate,
+      ngay_ket_thuc_sale: formattedEndDate,
+    };
+
+    // Log dữ liệu gửi lên API để kiểm tra
+    console.log("Cập nhật dữ liệu gửi lên API: ", updatedSaleProduct);
+
+    // Gửi yêu cầu PUT lên API
+    fetch(`http://127.0.0.1:8000/api/sale-san-pham/${saleSanPhamId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedSaleProduct),
+    })
+      .then((response) => {
+        // Kiểm tra xem mã trạng thái HTTP có ok không
+        if (!response.ok) {
+          // Nếu không, trả về lỗi từ server
+          return response.text().then((text) => {
+            throw new Error(text);
+          });
+        }
+        return response.json(); // Nếu thành công, chuyển sang định dạng JSON
+      })
+      .then((data) => {
+        // Log dữ liệu phản hồi từ API
+        console.log("API trả về sau khi cập nhật: ", data);
+
+        // Kiểm tra điều kiện đúng từ thông báo thành công
+        if (
+          data.message === "Thông tin giảm giá đã được cập nhật thành công."
+        ) {
+          alert("Cập nhật sản phẩm sale thành công!");
+
+          // Cập nhật lại danh sách các sản phẩm sau khi cập nhật
+          fetch("http://127.0.0.1:8000/api/sale-san-pham/get-sale")
+            .then((response) => response.json())
+            .then((data) => {
+              if (data && data.data) {
+                // Cập nhật lại state với danh sách sản phẩm mới
+                setSales(data.data); // Đặt lại danh sách các sản phẩm
+              }
+            })
+            .catch((error) => {
+              console.error("Lỗi khi lấy danh sách sản phẩm sale:", error);
+            });
+        } else {
+          console.log("API trả về thông báo không thành công: ", data);
+          alert("Có lỗi xảy ra khi cập nhật sản phẩm sale!");
+        }
+      })
+      .catch((error) => {
+        // In lỗi ra console nếu có
+        console.error("Lỗi khi cập nhật sản phẩm sale:", error);
+        alert("Có lỗi xảy ra khi cập nhật sản phẩm sale!");
+      });
+  };
+
+  // Hàm formatDate: chuyển đổi datetime-local thành ngày tháng không thay đổi múi giờ
+  const formatDate = (dateString) => {
+    const date = new Date(dateString); // Chuyển đổi kiểu datetime-local
+    // Đảm bảo luôn nhận đúng kiểu YYYY-MM-DD
+    const year = date.getFullYear();
+    const month = ("0" + (date.getMonth() + 1)).slice(-2); // Tháng bắt đầu từ 0 nên cộng thêm 1
+    const day = ("0" + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
   };
 
   const handleDeleteSale = async (id) => {
@@ -314,13 +432,14 @@ const Listsale = () => {
                               aria-haspopup="true"
                               aria-expanded="false"
                               data-bs-reference="parent"
+                              onClick={() => handleEditButtonClick(sale.id)} // Pass sale.id to the edit handler
                             >
                               <span className="fa-solid fa-pen-to-square fs-9" />
                             </button>
                             <button
                               className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                               type="button"
-                              onClick={() => handleDeleteSale(sale.id)}
+                              onClick={() => handleDeleteSale(sale.id)} // Assume this is for the delete function
                             >
                               <span className="fa-solid fa-trash fs-9" />
                             </button>
@@ -514,12 +633,13 @@ const Listsale = () => {
                           <label className="text-body-highlight fw-bold mb-2">
                             Sản phẩm
                           </label>
-                          <select
-                            className="form-select"
-                            aria-label="Product select"
-                          >
-                            <option value="">Chọn sản phẩm</option>
-                          </select>
+                          {/* Hiển thị tên sản phẩm và set disabled */}
+                          <input
+                            className="form-control"
+                            type="text"
+                            value={selectedProduct?.product_name || ""}
+                            disabled
+                          />
                         </div>
                         <div className="col-md-12">
                           <label className="text-body-highlight fw-bold mb-2">
@@ -531,6 +651,8 @@ const Listsale = () => {
                             min="0"
                             max="100"
                             placeholder="Nhập phần trăm"
+                            value={percentSale}
+                            onChange={(e) => setPercentSale(e.target.value)}
                           />
                         </div>
                       </div>
@@ -541,18 +663,29 @@ const Listsale = () => {
                         <label className="text-body-highlight fw-bold mb-2">
                           Ngày bắt đầu
                         </label>
-                        <input className="form-control" type="datetime-local" />
+                        <input
+                          className="form-control"
+                          type="datetime-local"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                        />
                       </div>
                       <div className="col-md-6">
                         <label className="text-body-highlight fw-bold mb-2">
                           Ngày kết thúc
                         </label>
-                        <input className="form-control" type="datetime-local" />
+                        <input
+                          className="form-control"
+                          type="datetime-local"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
               <div className="modal-footer border-0 pt-0 px-0 pb-0 mt-5">
                 <button
                   className="btn btn-link text-danger px-3 my-0"
@@ -561,7 +694,12 @@ const Listsale = () => {
                 >
                   Hủy bỏ
                 </button>
-                <button className="btn btn-primary my-0">Cập nhật</button>
+                <button
+                  className="btn btn-primary my-0"
+                  onClick={handleUpdateSaleProduct}
+                >
+                  Cập nhật
+                </button>
               </div>
             </div>
           </div>
