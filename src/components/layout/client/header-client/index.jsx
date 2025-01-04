@@ -17,7 +17,7 @@ import defaultAvatar from "../../../../assets/img/team/image-default.png";
 const HeaderClient = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
-  const [categories, setCategories] = useState([]);
+ 
   const [totalProducts, setTotalProducts] = useState(0);
 
   const navigate = useNavigate();
@@ -33,21 +33,6 @@ const HeaderClient = () => {
     }
   }, []);
 
-  // Lấy danh mục từ API
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get(
-          "http://127.0.0.1:8000/api/danh-muc/getAll"
-        );
-        setCategories(response.data); // Cập nhật danh mục
-        console.log("Danh mục:", response.data);
-      } catch (error) {
-        console.error("Error fetching categories:", error); // Xử lý lỗi nếu có
-      }
-    };
-    fetchCategories();
-  }, []);
 
   // Lấy tổng số sản phẩm từ giỏ hàng
   useEffect(() => {
@@ -932,8 +917,7 @@ const HeaderClient = () => {
               data-category-btn="data-category-btn"
               data-bs-toggle="dropdown"
             >
-              <span className="fas fa-bars me-2" />
-              Danh mục
+            
             </button>
             <div className="dropdown-menu border border-translucent py-0 category-dropdown-menu">
               <div
@@ -942,34 +926,7 @@ const HeaderClient = () => {
               >
                 <div className="card-body p-6 pb-3">
                   <div className="row gx-7 gy-5 mb-5">
-                    {categories?.map((category, index) => (
-                      <div key={index} className="col-12 col-sm-6 col-md-4">
-                        <div className="d-flex align-items-center mb-3">
-                          <span
-                            className="text-primary me-2"
-                            data-feather="pocket"
-                            style={{ strokeWidth: 3 }}
-                          />
-                          <h6 className="text-body-highlight mb-0 text-nowrap">
-                            {category.ten_danh_muc}{" "}
-                            {/* Hiển thị tên danh mục chính */}
-                          </h6>
-                        </div>
-                        <div className="ms-n2">
-                          {/* Render danh mục con nếu có */}
-                          {category.danh_muc_cons?.map((item, idx) => (
-                            <a
-                              key={idx}
-                              className="text-body-emphasis d-block mb-1 text-decoration-none bg-body-highlight-hover px-2 py-1 rounded-2"
-                              href="#!"
-                            >
-                              {item.ten_danh_muc_con}{" "}
-                              {/* Hiển thị tên danh mục con */}
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                   
                   </div>
                 </div>
               </div>
