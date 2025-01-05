@@ -17,7 +17,7 @@ import defaultAvatar from "../../../../assets/img/team/image-default.png";
 const HeaderClient = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
- 
+
   const [totalProducts, setTotalProducts] = useState(0);
 
   const navigate = useNavigate();
@@ -67,9 +67,26 @@ const HeaderClient = () => {
       cancelButtonText: "Hủy bỏ",
     }).then((result) => {
       if (result.isConfirmed) {
-        // Xóa mọi dữ liệu trong sessionStorage và localStorage
+
+        // Lấy giá trị cần lưu trữ trước khi xóa
+        const adminId = localStorage.getItem("adminId");
+        const adminName = localStorage.getItem("adminName");
+        const adminAvatar = localStorage.getItem("adminAvatar");
+
+        // Xóa sessionStorage và localStorage
         sessionStorage.clear();
-        localStorage.clear();
+
+        // Xóa tất cả dữ liệu trong localStorage, nhưng giữ lại những giá trị đã lấy
+        Object.keys(localStorage).forEach((key) => {
+          if (key !== "adminId" && key !== "adminName" && key !== "adminAvatar") {
+            localStorage.removeItem(key); // Xóa mọi thứ trừ 3 key trên
+          }
+        });
+
+        // Sau khi xóa, lưu lại các giá trị cần thiết vào localStorage
+        if (adminId) localStorage.setItem("adminId", adminId);
+        if (adminName) localStorage.setItem("adminName", adminName);
+        if (adminAvatar) localStorage.setItem("adminAvatar", adminAvatar);
 
         // Xóa cookie token và các cookie khác (nếu có)
         Object.keys(Cookies.get()).forEach((cookieName) => {
@@ -90,6 +107,7 @@ const HeaderClient = () => {
       }
     });
   };
+
 
   return (
     <>
@@ -917,7 +935,7 @@ const HeaderClient = () => {
               data-category-btn="data-category-btn"
               data-bs-toggle="dropdown"
             >
-            
+
             </button>
             <div className="dropdown-menu border border-translucent py-0 category-dropdown-menu">
               <div
@@ -926,7 +944,7 @@ const HeaderClient = () => {
               >
                 <div className="card-body p-6 pb-3">
                   <div className="row gx-7 gy-5 mb-5">
-                   
+
                   </div>
                 </div>
               </div>
