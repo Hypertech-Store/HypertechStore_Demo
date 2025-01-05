@@ -19,11 +19,12 @@ const PaymentMethod = () => {
     image: null, // Dữ liệu hình ảnh
   });
   const [imagePreview, setImagePreview] = useState("");
+  const [image, setImage] = useState(null); // Use directly an image object
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [methodData, setMethodData] = useState({
     id: null,
-    name: '',
+    name: "",
     image: null,
   });
 
@@ -55,9 +56,11 @@ const PaymentMethod = () => {
     const file = e.target.files[0];
     if (file) {
       // Create a preview URL for the selected file
+      setImage(image); // Đặt tệp vào state
       setImagePreview(URL.createObjectURL(file));
     }
   };
+
   const handleSubmit = async () => {
     const formDataToSend = new FormData();
     formDataToSend.append("ten_phuong_thuc", formData.ten_phuong_thuc);
@@ -133,18 +136,17 @@ const PaymentMethod = () => {
     }
   };
 
-
   const handleUpdate = async (id, updatedData) => {
     const formDataToSend = new FormData();
     formDataToSend.append("ten_phuong_thuc", updatedData.ten_phuong_thuc);
     if (updatedData.image) {
       formDataToSend.append("image", updatedData.image);
     }
-  
+
     try {
       // Hiển thị trạng thái loading
       setLoading(true);
-  
+
       const response = await fetch(
         `http://127.0.0.1:8000/api/phuong-thuc-thanh-toan/${id}`,
         {
@@ -152,11 +154,11 @@ const PaymentMethod = () => {
           body: formDataToSend,
         }
       );
-  
+
       if (response.ok) {
         const updatedMethod = await response.json();
         alert("Cập nhật thành công!");
-  
+
         // Cập nhật danh sách phương thức trong state
         setPaymentMethods((prevMethods) =>
           prevMethods.map((method) =>
@@ -181,21 +183,17 @@ const PaymentMethod = () => {
     fetch(`http://127.0.0.1:8000/api/phuong-thuc-thanh-toan/${id}`)
       .then((response) => response.json())
       .then((data) => {
-
         setMethodData({
           id: data.data.id,
           name: data.data.ten_phuong_thuc, // Thay "ten_phuong_thuc" bằng tên trường đúng
           image: data.data.anh_phuong_thuc, // Thay "image" bằng tên trường đúng
         });
         console.log(methodData);
-
       })
       .catch((error) => {
-        console.error('Error fetching payment method data:', error);
+        console.error("Error fetching payment method data:", error);
       });
   };
-
-
 
   return (
     <div className="content">
@@ -257,7 +255,7 @@ const PaymentMethod = () => {
                 <thead>
                   <tr>
                     <th
-                      className="white-space-nowrap fs-9 align-middle ps-0"
+                      className="white-space-nowrap fs-9 align-middle ps-4"
                       scope="col"
                       style={{ width: "15%" }}
                     >
@@ -287,7 +285,7 @@ const PaymentMethod = () => {
                 <tbody className="list" id="products-table-body">
                   {paymentMethods.map((method, index) => (
                     <tr key={method.id}>
-                      <td>{index + 1}</td>
+                      <td className="ps-4">{index + 1}</td>
                       <td className="product align-middle ps-4">
                         <img
                           src={`http://127.0.0.1:8000/storage/${method.anh_phuong_thuc}`}
@@ -297,10 +295,13 @@ const PaymentMethod = () => {
                             maxHeight: "50px",
                             objectFit: "cover",
                           }}
-                        /></td>
-                      <td className="tags align-middle review pb-2 ps-3">{method.ten_phuong_thuc}</td>
+                        />
+                      </td>
+                      <td className="tags align-middle review pb-2 ps-4">
+                        {method.ten_phuong_thuc}
+                      </td>
 
-                      <td className="align-middle white-space-nowrap">
+                      <td className="align-middle white-space-nowrap ps-4">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
@@ -320,12 +321,10 @@ const PaymentMethod = () => {
                           <span className="fa-solid fa-trash fs-9" />
                         </button>
                       </td>
-
                     </tr>
                   ))}
                 </tbody>
               </table>
-
             </div>
             <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
               <div className="col-auto d-flex">
@@ -463,10 +462,12 @@ const PaymentMethod = () => {
                       type="text"
                       value={formData.ten_phuong_thuc}
                       onChange={(e) =>
-                        setFormData({ ...formData, ten_phuong_thuc: e.target.value })
+                        setFormData({
+                          ...formData,
+                          ten_phuong_thuc: e.target.value,
+                        })
                       }
                     />
-
                   </div>
                 </div>
               </div>
@@ -479,10 +480,7 @@ const PaymentMethod = () => {
               >
                 Hủy bỏ
               </button>
-              <button
-                className="btn btn-primary my-0"
-                onClick={handleSubmit}
-              >
+              <button className="btn btn-primary my-0" onClick={handleSubmit}>
                 Thêm mới
               </button>
             </div>
@@ -524,7 +522,9 @@ const PaymentMethod = () => {
                       className="dropzone dropzone-multiple p-0 mb-5"
                       onDrop={handleDrop}
                       onDragOver={handleDragOver}
-                      onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
+                      onClick={() =>
+                        document.getElementById("fileInput").click()
+                      } // Kích hoạt input khi click
                       id="my-awesome-dropzone"
                       data-dropzone="data-dropzone"
                     >
@@ -546,7 +546,12 @@ const PaymentMethod = () => {
                           >
                             <img
                               className="dz-image"
-                              src={methodData.image ? "http://127.0.0.1:8000/storage/" + methodData.image : imagePreview}
+                              src={
+                                methodData.image
+                                  ? "http://127.0.0.1:8000/storage/" +
+                                    methodData.image
+                                  : imagePreview
+                              }
                               alt="Preview"
                               data-dz-thumbnail="data-dz-thumbnail"
                               style={{
@@ -570,14 +575,22 @@ const PaymentMethod = () => {
                           </div>
                         </div>
                       ) : (
-                        <div className="dz-message text-body-tertiary text-opacity-85" data-dz-message="data-dz-message">
+                        <div
+                          className="dz-message text-body-tertiary text-opacity-85"
+                          data-dz-message="data-dz-message"
+                        >
                           Drag your photo here
                           <span className="text-body-secondary px-1">or</span>
                           <button className="btn btn-link p-0" type="button">
                             Browse from device
                           </button>
                           <br />
-                          <img className="mt-3 me-2" src={icon} width={40} alt="upload icon" />
+                          <img
+                            className="mt-3 me-2"
+                            src={icon}
+                            width={40}
+                            alt="upload icon"
+                          />
                         </div>
                       )}
                     </div>
