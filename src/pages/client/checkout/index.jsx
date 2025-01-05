@@ -420,8 +420,7 @@ const Checkout = () => {
         }
 
         // Redirect đến URL thanh toán VNPAY
-        const callbackUrl = `http://127.0.0.1:8000/api/thanh-toan/vppay/callback?customer_id=${khachHangId}&ma_don_hang=${orderCode}`;
-        window.location.href = `${vnpayData.data}&vnp_ReturnUrl=${callbackUrl}`;
+        window.location.href = vnpayData.data;
         return;
       }
       else {
