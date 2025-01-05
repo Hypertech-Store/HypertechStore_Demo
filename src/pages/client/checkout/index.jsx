@@ -380,6 +380,8 @@ const Checkout = () => {
       })),
     };
 
+    localStorage.setItem("orderData", JSON.stringify(orderData));
+
     // Log dữ liệu orderData trước khi gửi yêu cầu
     console.log("Order Data:", orderData);
 
@@ -429,6 +431,7 @@ const Checkout = () => {
           {
             method: "POST",
             headers: {
+              Accept: "application/json",
               "Content-Type": "application/json",
             },
             body: JSON.stringify(orderData),
@@ -491,6 +494,103 @@ const Checkout = () => {
       }, 3000); // Đợi 3 giây trước khi ẩn spinner
     }
   };
+
+  // Hàm này sẽ được gọi khi trang thanh toán VNPAY nhận được thông tin từ returnUrl
+  const handleVNPAYReturn = () => {
+    // Lấy các tham số từ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const vnp_ResponseCode = urlParams.get('vnp_ResponseCode');
+
+    // Kiểm tra mã phản hồi từ VNPAY
+    if (vnp_ResponseCode === '00') {
+      // Lấy orderData từ localStorage
+      const orderData = JSON.parse(localStorage.getItem("orderData"));
+
+      if (orderData) {
+        // Gửi thông tin đơn hàng vào hệ thống
+        fetch("http://127.0.0.1:8000/api/donhang/orders", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderData),
+        })
+          .then((orderResponse) => {
+            if (!orderResponse.ok) {
+              throw new Error("Gửi đơn hàng thất bại");
+            }
+            return orderResponse.json();
+          })
+          .then((data) => {
+            console.log("Đơn hàng đã được gửi:", data);
+
+            // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
+            const khachHangId = orderData.khach_hang_id;
+            if (khachHangId) {
+              return fetch(
+                `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${khachHangId}`,
+                {
+                  method: "DELETE",
+                }
+              );
+            }
+          })
+          .then((deleteCartResponse) => {
+            if (deleteCartResponse && !deleteCartResponse.ok) {
+              throw new Error("Xóa giỏ hàng thất bại");
+            }
+
+            console.log("Giỏ hàng đã được xóa cho khách hàng:", orderData.khach_hang_id);
+
+            // Đóng spinner modal và hiển thị modal thành công
+            const spinnerModalElement = document.getElementById("paymentSpinnerModal");
+            if (spinnerModalElement) {
+              const spinnerModal = new bootstrap.Modal(spinnerModalElement);
+              spinnerModal.hide(); // Ẩn spinner modal
+            }
+
+            // Mở modal thành công sau 3 giây
+            const successModalElement = document.getElementById("paymentSuccessModal");
+            if (successModalElement) {
+              const successModal = new bootstrap.Modal(successModalElement);
+              setTimeout(() => {
+                successModal.show();
+              }, 3000); // Đợi 3 giây để hiển thị spinner trước khi mở modal thành công
+            } else {
+              console.error("Không tìm thấy modal thành công trong DOM.");
+            }
+          })
+          .catch((error) => {
+            console.error("Lỗi gửi đơn hàng:", error);
+
+            // Đóng modal spinner và hiển thị lỗi
+            const spinnerModalElement = document.getElementById("paymentSpinnerModal");
+            if (spinnerModalElement) {
+              const spinnerModal = new bootstrap.Modal(spinnerModalElement);
+              setTimeout(() => {
+                spinnerModal.hide(); // Ẩn spinner modal
+                alert("Đã có lỗi xảy ra khi gửi đơn hàng, vui lòng thử lại sau.");
+              }, 3000); // Đợi 3 giây trước khi ẩn spinner
+            }
+          })
+          .finally(() => {
+            // Xóa orderData khỏi localStorage sau khi xử lý xong
+            localStorage.removeItem("orderData");
+          });
+      } else {
+        console.error("Không tìm thấy thông tin đơn hàng trong cache.");
+      }
+    } else {
+      console.error("Thanh toán không thành công, mã lỗi:", vnp_ResponseCode);
+      // Xử lý khi thanh toán không thành công
+      alert("Thanh toán thất bại. Vui lòng thử lại.");
+    }
+  };
+
+  // Gọi hàm handleVNPAYReturn khi trang load
+  window.onload = handleVNPAYReturn;
+
 
   return (
     <>
