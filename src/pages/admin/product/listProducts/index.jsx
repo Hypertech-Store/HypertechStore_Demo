@@ -63,7 +63,7 @@ const ListProducts = () => {
     const fetchProducts = async () => {
       try {
         const response = await fetch(
-          `http://127.0.0.1:8000/api/san-pham/allProduct?page=${currentPage}&limit=${productsPerPage}`
+          `http://127.0.0.1:8000/api/san-pham/allProductAdmin?page=${currentPage}&limit=${productsPerPage}`
         );
         const data = await response.json();
         if (data.status === "success" && Array.isArray(data.data.data)) {

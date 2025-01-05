@@ -28,7 +28,7 @@ const Shop = () => {
       setLoading(true); // Hiển thị loader khi bắt đầu gọi API
       try {
         const response = await fetch(
-          `http://127.0.0.1:8000/api/san-pham/allProduct?page=${currentPage}&limit=${productsPerPage}`
+          `http://127.0.0.1:8000/api/san-pham/allProductClient?page=${currentPage}&limit=${productsPerPage}`
         );
         const data = await response.json();
 
