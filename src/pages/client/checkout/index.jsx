@@ -466,6 +466,7 @@ const Checkout = () => {
         }
 
         console.log("Giỏ hàng đã được xóa cho khách hàng:", khachHangId);
+        
       }
 
       // Đóng spinner modal sau khi thanh toán thành công và mở modal thành công
@@ -500,12 +501,12 @@ const Checkout = () => {
     // Lấy các tham số từ URL
     const urlParams = new URLSearchParams(window.location.search);
     const vnp_ResponseCode = urlParams.get('vnp_ResponseCode');
-
+  
     // Kiểm tra mã phản hồi từ VNPAY
     if (vnp_ResponseCode === '00') {
       // Lấy orderData từ localStorage
       const orderData = JSON.parse(localStorage.getItem("orderData"));
-
+  
       if (orderData) {
         // Gửi thông tin đơn hàng vào hệ thống
         fetch("http://127.0.0.1:8000/api/donhang/orders", {
@@ -524,7 +525,7 @@ const Checkout = () => {
           })
           .then((data) => {
             console.log("Đơn hàng đã được gửi:", data);
-
+  
             // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
             const khachHangId = orderData.khach_hang_id;
             if (khachHangId) {
@@ -540,16 +541,39 @@ const Checkout = () => {
             if (deleteCartResponse && !deleteCartResponse.ok) {
               throw new Error("Xóa giỏ hàng thất bại");
             }
-
+  
             console.log("Giỏ hàng đã được xóa cho khách hàng:", orderData.khach_hang_id);
-
+  
+            // Gửi email thông báo thanh toán thành công
+            return fetch("http://127.0.0.1:8000/api/donhang/send-mail", {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                khach_hang_id: orderData.khach_hang_id,
+                order_id: orderData.ma_don_hang,
+                total: orderData.tong_tien,
+                payment_time: new Date().toISOString(),
+              }),
+            });
+          })
+          .then((mailResponse) => {
+            if (mailResponse && !mailResponse.ok) {
+              throw new Error("Gửi email thất bại");
+            }
+  
+            console.log("Email thông báo thanh toán thành công đã được gửi.");
+          })
+          .then(() => {
             // Đóng spinner modal và hiển thị modal thành công
             const spinnerModalElement = document.getElementById("paymentSpinnerModal");
             if (spinnerModalElement) {
               const spinnerModal = new bootstrap.Modal(spinnerModalElement);
               spinnerModal.hide(); // Ẩn spinner modal
             }
-
+  
             // Mở modal thành công sau 3 giây
             const successModalElement = document.getElementById("paymentSuccessModal");
             if (successModalElement) {
@@ -562,15 +586,15 @@ const Checkout = () => {
             }
           })
           .catch((error) => {
-            console.error("Lỗi gửi đơn hàng:", error);
-
+            console.error("Lỗi:", error);
+  
             // Đóng modal spinner và hiển thị lỗi
             const spinnerModalElement = document.getElementById("paymentSpinnerModal");
             if (spinnerModalElement) {
               const spinnerModal = new bootstrap.Modal(spinnerModalElement);
               setTimeout(() => {
                 spinnerModal.hide(); // Ẩn spinner modal
-                alert("Đã có lỗi xảy ra khi gửi đơn hàng, vui lòng thử lại sau.");
+                alert("Đã có lỗi xảy ra, vui lòng thử lại sau.");
               }, 3000); // Đợi 3 giây trước khi ẩn spinner
             }
           })
@@ -587,9 +611,10 @@ const Checkout = () => {
       alert("Thanh toán thất bại. Vui lòng thử lại.");
     }
   };
-
+  
   // Gọi hàm handleVNPAYReturn khi trang load
   window.onload = handleVNPAYReturn;
+  
 
 
   return (
