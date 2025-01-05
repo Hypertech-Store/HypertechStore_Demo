@@ -14,6 +14,7 @@ const Listsale = () => {
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+
   const [saleSanPhamId, setSaleSanPhamId] = useState(null); // State to store saleSanPhamId
   const [sales, setSales] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
