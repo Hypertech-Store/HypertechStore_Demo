@@ -26,6 +26,7 @@ import Orders from "./pages/admin/order";
 import Chat from "./pages/admin/chat";
 import Transport from "./pages/admin/transport";
 import Payment from "./pages/admin/paymentMethod";
+import OrderStatus from "./pages/admin/orderStatus";
 // Client pages
 import HomeClient from "./pages/client/home";
 import Shop from "./pages/client/product";
@@ -75,13 +76,13 @@ const Router = () => {
             <Route path="danh-sach-thong-so" element={<Parameter />} />
             <Route path="lien-ket-thong-so" element={<ParameterLink />} />
             <Route path="danh-sach-khach-hang" element={<ListCustomer />} />
-
             <Route path="danh-sach-quan-tri" element={<ListAdmin />} />
             <Route path="don-hang" element={<Orders />} />
             <Route path="khuyen-mai" element={<Deals />} />
             <Route path="tin-nhan" element={<Chat />} />
             <Route path="hinh-thuc-van-chuyen" element={<Transport />} />
             <Route path="phuong-thuc-thanh-toan" element={<Payment />} />
+            <Route path="trang-thai-don-hang" element={<OrderStatus />} />
           </Route>
         </Route>
 

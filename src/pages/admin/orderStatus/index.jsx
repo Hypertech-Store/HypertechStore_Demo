@@ -1,28 +1,18 @@
+import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link, useLocation } from "react-router-dom";
-
-const TransportMethod = () => {
-  const [methods, setMethods] = useState([]);
-  const [formData, setFormData] = useState({
-    ten_van_chuyen: "",
-    mo_ta: "",
-    gia_van_chuyen: "",
-  });
-  const [editData, setEditData] = useState({
-    ten_van_chuyen: "",
-    gia_van_chuyen: "",
-    mo_ta: "",
-  });
+const OrderStatus = () => {
+  const [status, setStatus] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
-  useEffect(() => {
-    fetchMethods(currentPage);
-  }, [currentPage]);
+  const [name, setName] = useState(""); // For storing name of the status
+  const [description, setDescription] = useState(""); // For storing the description
+  const [editName, setEditName] = useState(""); // Lưu tên trạng thái
+  const [editDescription, setEditDescription] = useState(""); // Lưu mô tả trạng thái
+  const [editingStatusId, setEditingStatusId] = useState(null); // ID của trạng thái đang chỉnh sửa
 
   const breadcrumbTitles = {
-    "admin/hinh-thuc-van-chuyen": "Transport method",
+    "admin/trang-thai-don-hang": "List status",
   };
 
   const location = useLocation();
@@ -32,111 +22,151 @@ const TransportMethod = () => {
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase();
 
-  useEffect(() => {
-    fetchMethods();
-  }, []);
-
-  const fetchMethods = async (page = 1) => {
+  const fetchStatus = async (page = 1) => {
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/hinh-thuc-van-chuyen?page=${page}`
+        `http://localhost:8000/api/trang-thai-don-hang?page=${page}`
       );
-      setMethods(response.data.data);
+      setStatus(response.data.data);
+      console.log(response.data.data);
       setTotalPages(response.data.last_page);
       setCurrentPage(response.data.current_page);
     } catch (error) {
       console.error("Failed to fetch methods", error);
     }
   };
+
+  useEffect(() => {
+    fetchStatus(currentPage);
+  }, [currentPage]);
+
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
 
-  const handleAddMethod = async () => {
+  // Function to handle form submit and add a new status
+  const handleAddStatus = async (e) => {
+    e.preventDefault(); // Prevent the default form submit
+
+    const statusData = {
+      ten_trang_thai: name,
+      mo_ta: description,
+    };
+
     try {
-      if (!formData.ten_van_chuyen || !formData.gia_van_chuyen) {
-        alert("Vui lòng nhập đầy đủ thông tin!");
-        return;
+      const response = await fetch(
+        "http://localhost:8000/api/trang-thai-don-hang",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(statusData),
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        // Handle the success response (e.g. close the modal, reset form fields)
+        alert("Trạng thái đã được thêm thành công.");
+        fetchStatus(currentPage); // Hoặc gọi lại với trang đầu tiên
+        setName(""); // Reset the name field
+        setDescription(""); // Reset the description field
+        // Optionally close the modal
+        const modalCloseButton = document.querySelector(
+          '[data-bs-dismiss="modal"]'
+        );
+        modalCloseButton.click();
+      } else {
+        alert(`Lỗi: ${result.message}`);
       }
-
-      // Kiểm tra nếu gia_van_chuyen là một số hợp lệ
-      if (isNaN(formData.gia_van_chuyen) || formData.gia_van_chuyen >= 0) {
-        alert("Giá vận chuyển phải là một số hợp lệ và lớn hơn 0!");
-        return;
-      }
-
-      await axios.post(
-        "http://127.0.0.1:8000/api/hinh-thuc-van-chuyen",
-        formData
-      );
-
-      alert("Thêm hình thức vận chuyển thành công!");
-      setFormData({ ten_van_chuyen: "", mo_ta: "", gia_van_chuyen: "" });
-      fetchMethods();
     } catch (error) {
-      alert("Thêm hình thức vận chuyển thất bại. Vui lòng thử lại!");
-      console.error("Failed to add method", error);
-    }
-  };
-  const handleEditMethod = async () => {
-    try {
-      await axios.put(
-        `http://127.0.0.1:8000/api/hinh-thuc-van-chuyen/${editData.id}`,
-        editData
-      );
-      alert("Cập nhật phương thức vận chuyển thành công!");
-
-      fetchMethods(); // Tải lại danh sách
-    } catch (error) {
-      alert("Cập nhật phương thức vận chuyển thất bại. Vui lòng thử lại!");
-      console.error("Failed to edit method", error);
-    }
-  };
-
-  const handleDeleteMethod = async (id) => {
-    const confirmDelete = window.confirm(
-      "Bạn có chắc chắn muốn xóa phương thức này không?"
-    );
-    if (!confirmDelete) {
-      return; // Nếu người dùng chọn "Hủy", thoát hàm
-    }
-
-    try {
-      await axios.delete(
-        `http://127.0.0.1:8000/api/hinh-thuc-van-chuyen/${id}`
-      );
-      alert("Xóa hình thức vận chuyển thành công!");
-      fetchMethods(); // Tải lại danh sách
-    } catch (error) {
-      alert("Xóa hình thức vận chuyển thất bại. Vui lòng thử lại!");
-      console.error("Failed to delete method", error);
+      console.error("Error adding status:", error);
+      alert("Đã xảy ra lỗi, vui lòng thử lại.");
     }
   };
 
-  const handleChange = (e, isEdit = false) => {
-    const { name, value } = e.target;
-
-    let updatedValue = value;
-
-    // Kiểm tra và xử lý giá trị của "gia_van_chuyen" (giá vận chuyển)
-    if (name === "gia_van_chuyen") {
-      // Loại bỏ đuôi ".00" nếu giá trị là số nguyên
-      if (!isNaN(updatedValue) && updatedValue.endsWith(".00")) {
-        updatedValue = updatedValue.slice(0, -3); // Cắt bỏ ".00"
+  const handleEditStatus = async (statusId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/trang-thai-don-hang/${statusId}`
+      );
+      if (response.status === 200) {
+        const { ten_trang_thai, mo_ta } = response.data;
+        setEditName(ten_trang_thai);
+        setEditDescription(mo_ta);
+        setEditingStatusId(statusId);
+      } else {
+        alert("Lỗi: Không thể tải dữ liệu trạng thái.");
       }
-
-      // Chuyển giá trị thành số để tránh NaN
-      updatedValue = parseFloat(updatedValue);
-      if (isNaN(updatedValue)) {
-        updatedValue = ""; // Nếu giá trị không hợp lệ, để trống
-      }
+    } catch (error) {
+      console.error("Error fetching status detail:", error);
+      alert("Đã xảy ra lỗi, vui lòng thử lại.");
     }
-    if (isEdit) {
-      setEditData({ ...editData, [name]: value });
-    } else {
-      setFormData({ ...formData, [name]: value });
+  };
+
+  const handleUpdateStatus = async () => {
+    const updatedData = {
+      ten_trang_thai: editName,
+      mo_ta: editDescription,
+    };
+
+    try {
+      const response = await axios.put(
+        `http://localhost:8000/api/trang-thai-don-hang/${editingStatusId}`,
+        updatedData
+      );
+
+      if (response.status === 200) {
+        alert("Trạng thái đã được cập nhật thành công.");
+        fetchStatus(currentPage); // Tải lại danh sách trạng thái
+        // Đóng modal
+        const modalCloseButton = document.querySelector(
+          '[data-bs-dismiss="modal"]'
+        );
+        modalCloseButton.click();
+      } else {
+        alert(`Lỗi: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Đã xảy ra lỗi, vui lòng thử lại.");
+    }
+  };
+
+  const handleDeleteStatus = async (statusId) => {
+    console.log("Xóa trạng thái với ID:", statusId); // Kiểm tra giá trị ID truyền vào
+
+    try {
+      // Xác nhận trước khi xóa
+      if (window.confirm("Bạn chắc chắn muốn xóa trạng thái này?")) {
+        const response = await axios.delete(
+          `http://localhost:8000/api/trang-thai-don-hang/${statusId}`
+        );
+
+        if (response.status === 200 || response.status === 204) {
+          alert("Trạng thái đã được xóa thành công.");
+          fetchStatus(currentPage); // Cập nhật lại danh sách
+        } else if (response.data && response.data.message) {
+          alert(`Lỗi: ${response.data.message}`);
+        } else {
+          alert("Đã xảy ra lỗi không xác định trong quá trình xóa.");
+        }
+      }
+    } catch (error) {
+      // Xử lý khi xảy ra lỗi HTTP hoặc lỗi trong code
+      console.error("Error deleting status:", error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        alert(`Lỗi: ${error.response.data.message}`);
+      } else {
+        alert("Đã xảy ra lỗi, vui lòng thử lại.");
+      }
     }
   };
 
@@ -156,7 +186,7 @@ const TransportMethod = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List transport</h2>
+            <h2 className="mb-0">List status</h2>
           </div>
         </div>
 
@@ -183,13 +213,13 @@ const TransportMethod = () => {
                   className="btn btn-primary"
                   id="addBtn"
                   data-bs-toggle="modal"
-                  data-bs-target="#addMethod"
+                  data-bs-target="#addStatus"
                   aria-haspopup="true"
                   aria-expanded="false"
                   data-bs-reference="parent"
                 >
                   <span className="fas fa-plus me-2" />
-                  Thêm hình thức
+                  Thêm trạng thái
                 </button>
               </div>
             </div>
@@ -200,73 +230,66 @@ const TransportMethod = () => {
                 <thead>
                   <tr>
                     <th
-                      className="white-space-nowrap fs-9 align-middle ps-0"
+                      className="white-space-nowrap fs-9 align-middle ps-5"
                       scope="col"
-                      style={{ width: "15%" }}
+                      style={{ width: "20%" }}
                     >
                       STT
                     </th>
                     <th
-                      className="white-space-nowrap align-middle ps-4"
+                      className="white-space-nowrap align-middle"
                       scope="col"
-                      style={{ width: "30%" }}
+                      style={{ width: "35%" }}
                       data-sort="product"
                     >
-                      TÊN VẬN CHUYỂN
+                      TÊN TRẠNG THÁI
                     </th>
 
                     <th
-                      className="align-middle ps-4"
+                      className="align-middle"
                       scope="col"
-                      style={{ width: "25%" }}
-                    >
-                      GIÁ VẬN CHUYỂN
-                    </th>
-                    <th
-                      className="align-middle ps-4"
-                      scope="col"
-                      style={{ width: "25%" }}
+                      style={{ width: "35%" }}
                     >
                       MÔ TẢ
                     </th>
 
-                    <th className="align-middle" style={{ width: "5%" }}>
+                    <th className="align-middle ps-5" style={{ width: "20%" }}>
                       HÀNH ĐỘNG
                     </th>
                   </tr>
                 </thead>
+
                 <tbody className="list" id="products-table-body">
-                  {methods.map((method, index) => (
-                    <tr key={method.id}>
-                      <td className="product align-middle ps-2">
-                        {(currentPage - 1) * 10 + index + 1}
+                  {status.map((status, index) => (
+                    <tr key={status.id}>
+                      <td className="product align-middle ps-5">
+                        {(currentPage - 1) * 5 + index + 1}
                       </td>
-                      <td className="product align-middle ps-4">
-                        {method.ten_van_chuyen}
+                      <td className="product align-middle">
+                        {status.ten_trang_thai}
                       </td>
-                      <td className="tags align-middle review pb-2 ps-4">
-                        {Number(method.gia_van_chuyen).toLocaleString()} VNĐ
+
+                      <td className="tags align-middle review pb-2">
+                        {status.mo_ta}
                       </td>
-                      <td className="tags align-middle review pb-2 ps-4">
-                        {method.mo_ta}
-                      </td>
-                      <td className="align-middle white-space-nowrap ps-1">
+
+                      <td className="align-middle white-space-nowrap ps-4">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
                           data-bs-toggle="modal"
-                          data-bs-target="#editMethod"
+                          data-bs-target="#editStatus"
                           aria-haspopup="true"
                           aria-expanded="false"
                           data-bs-reference="parent"
-                          onClick={() => setEditData(method)}
+                          onClick={() => handleEditStatus(status.id)}
                         >
                           <span className="fa-solid fa-pen-to-square fs-9" />
                         </button>
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
-                          onClick={() => handleDeleteMethod(method.id)}
+                          onClick={() => handleDeleteStatus(status.id)} // Gọi function với `status.id`
                         >
                           <span className="fa-solid fa-trash fs-9" />
                         </button>
@@ -323,17 +346,17 @@ const TransportMethod = () => {
 
       <div
         className="modal fade"
-        id="addMethod"
+        id="addStatus"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="addMethod"
+        aria-labelledby="addStatus"
         aria-hidden="true"
       >
-        <div className="modal-dialog modal-lg modal-dialog-centered">
+        <div className="modal-dialog modal-l modal-dialog-centered">
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Thêm hình thức vận chuyển</h3>
+              <h3 className="mb-0">Thêm trạng thái</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -348,29 +371,15 @@ const TransportMethod = () => {
                   {/* Biến thể ) */}
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Tên vận chuyển
+                      Tên trạng thái
                     </label>
                     <input
                       className="form-control"
                       type="text"
-                      name="ten_van_chuyen"
-                      value={formData.ten_van_chuyen}
-                      onChange={handleChange}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                     />
                   </div>
-                  <div className="mb-4">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Giá vận chuyển
-                    </label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      name="gia_van_chuyen"
-                      value={formData.gia_van_chuyen}
-                      onChange={handleChange}
-                    />
-                  </div>
-
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
                       Mô tả
@@ -378,10 +387,8 @@ const TransportMethod = () => {
                     <textarea
                       className="form-control"
                       rows="4"
-                      placeholder="Mô tả thông số của sản phẩm"
                       name="mo_ta"
-                      value={formData.mo_ta}
-                      onChange={handleChange}
+                      onChange={(e) => setDescription(e.target.value)}
                     ></textarea>
                   </div>
                 </div>
@@ -397,7 +404,7 @@ const TransportMethod = () => {
               </button>
               <button
                 className="btn btn-primary my-0"
-                onClick={handleAddMethod}
+                onClick={handleAddStatus}
               >
                 Thêm mới
               </button>
@@ -408,17 +415,17 @@ const TransportMethod = () => {
 
       <div
         className="modal fade"
-        id="editMethod"
+        id="editStatus"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="editMethod"
+        aria-labelledby="editStatus"
         aria-hidden="true"
       >
-        <div className="modal-dialog modal-lg modal-dialog-centered">
+        <div className="modal-dialog modal-l modal-dialog-centered">
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Sửa hình thức vận chuyển</h3>
+              <h3 className="mb-0">Sửa trạng thái</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -433,26 +440,14 @@ const TransportMethod = () => {
                   {/* Biến thể ) */}
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Tên vận chuyển
+                      Tên trạng thái
                     </label>
                     <input
                       className="form-control"
                       type="text"
                       name="ten_van_chuyen"
-                      value={editData?.ten_van_chuyen || ""}
-                      onChange={(e) => handleChange(e, true)}
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Giá vận chuyển
-                    </label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      name="gia_van_chuyen"
-                      value={Number(editData?.gia_van_chuyen) || ""}
-                      onChange={(e) => handleChange(e, true)}
+                      value={editName} // Dữ liệu hiện tại của tên trạng thái
+                      onChange={(e) => setEditName(e.target.value)} // Cập nhật giá trị tên
                     />
                   </div>
 
@@ -464,8 +459,8 @@ const TransportMethod = () => {
                       className="form-control"
                       rows="4"
                       name="mo_ta"
-                      value={editData?.mo_ta || ""}
-                      onChange={(e) => handleChange(e, true)}
+                      value={editDescription} // Dữ liệu hiện tại của mô tả trạng thái
+                      onChange={(e) => setEditDescription(e.target.value)} // Cập nhật mô tả
                     ></textarea>
                   </div>
                 </div>
@@ -481,7 +476,7 @@ const TransportMethod = () => {
               </button>
               <button
                 className="btn btn-primary my-0"
-                onClick={handleEditMethod}
+                onClick={handleUpdateStatus}
               >
                 Cập nhật
               </button>
@@ -512,4 +507,4 @@ const TransportMethod = () => {
     </div>
   );
 };
-export default TransportMethod;
+export default OrderStatus;
