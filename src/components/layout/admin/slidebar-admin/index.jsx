@@ -128,7 +128,7 @@ const SlidebarAdmin = () => {
                             data-bs-parent="#e-commerce"
                             id="nv-products"
                           >
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                               <Link
                                 className={`nav-link ${
                                   activeItem === "add-product" ? "active" : ""
@@ -142,8 +142,8 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
-                            </li>
+                            </li> */}
+
                             <li className="nav-item">
                               <Link
                                 className={`nav-link ${
@@ -188,7 +188,7 @@ const SlidebarAdmin = () => {
                             data-bs-parent="#e-commerce"
                             id="nv-category"
                           >
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                               <Link
                                 className={`nav-link ${
                                   activeItem === "add-category" ? "active" : ""
@@ -202,7 +202,7 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                            </li>
+                            </li> */}
                             <li className="nav-item">
                               <Link
                                 className={`nav-link ${
@@ -246,7 +246,7 @@ const SlidebarAdmin = () => {
                             data-bs-parent="#e-commerce"
                             id="nv-subcategory"
                           >
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                               <Link
                                 className={`nav-link ${
                                   activeItem === "add-subcategory"
@@ -262,7 +262,7 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                            </li>
+                            </li> */}
                             <li className="nav-item">
                               <Link
                                 className={`nav-link ${
@@ -553,7 +553,7 @@ const SlidebarAdmin = () => {
                             data-bs-parent="#e-commerce"
                             id="nv-admin"
                           >
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                               <Link
                                 className={`nav-link ${
                                   activeItem === "addAdmin" ? "active" : ""
@@ -567,7 +567,8 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                            </li>
+                            </li> */}
+
                             <li className="nav-item">
                               <Link
                                 className={`nav-link ${

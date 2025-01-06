@@ -1,6 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 const ListProducts = () => {
+  const breadcrumbTitles = {
+    "admin/danh-sach-san-pham": "Danh sách sản phẩm", // Đây là URL không có "/"
+  };
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -140,12 +153,12 @@ const ListProducts = () => {
         <nav className="mb-3" aria-label="breadcrumb">
           <ol className="breadcrumb mb-0">
             <li className="breadcrumb-item">
-              <a href="#!">Page 1</a>
+              <Link to="/admin">Dashboard</Link>
             </li>
-            <li className="breadcrumb-item">
-              <a href="#!">Page 2</a>
+
+            <li className="breadcrumb-item active" aria-current="page">
+              {currentTitle}
             </li>
-            <li className="breadcrumb-item active">Default</li>
           </ol>
         </nav>
         <div className="mb-9">
@@ -154,34 +167,7 @@ const ListProducts = () => {
               <h2 className="mb-0">Danh sách sản phẩm</h2>
             </div>
           </div>
-          <ul className="nav nav-links mb-3 mb-lg-2 mx-n3">
-            <li className="nav-item">
-              <a className="nav-link active" aria-current="page" href="#">
-                <span>All </span>
-                <span className="text-body-tertiary fw-semibold">
-                  ({totalProducts})
-                </span>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                <span>Published </span>
-                <span className="text-body-tertiary fw-semibold">(70348)</span>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                <span>Drafts </span>
-                <span className="text-body-tertiary fw-semibold">(17)</span>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                <span>On discount </span>
-                <span className="text-body-tertiary fw-semibold">(810)</span>
-              </a>
-            </li>
-          </ul>
+
           <div
             id="products"
             data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
@@ -199,105 +185,15 @@ const ListProducts = () => {
                     <span className="fas fa-search search-box-icon" />
                   </form>
                 </div>
-                <div className="scrollbar overflow-hidden-y">
-                  <div className="btn-group position-static" role="group">
-                    <div className="btn-group position-static text-nowrap">
-                      <button
-                        className="btn btn-phoenix-secondary px-7 flex-shrink-0"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        data-boundary="window"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        data-bs-reference="parent"
-                      >
-                        {""}
-                        Category
-                        <span className="fas fa-angle-down ms-2" />
-                      </button>
-                      <ul className="dropdown-menu">
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Action
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Another action
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Something else here
-                          </a>
-                        </li>
-                        <li>
-                          <hr className="dropdown-divider" />
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Separated link
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                    <div className="btn-group position-static text-nowrap">
-                      <button
-                        className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        data-boundary="window"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        data-bs-reference="parent"
-                      >
-                        {""}
-                        Vendor
-                        <span className="fas fa-angle-down ms-2" />
-                      </button>
-                      <ul className="dropdown-menu">
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Action
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Another action
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Something else here
-                          </a>
-                        </li>
-                        <li>
-                          <hr className="dropdown-divider" />
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            Separated link
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                    <button className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0">
-                      More filters
-                    </button>
-                  </div>
-                </div>
+
                 <div className="ms-xxl-auto">
-                  <button className="btn btn-link text-body me-4 px-0">
-                    <span className="fa-solid fa-file-export fs-9 me-2" />
-                    Export
-                  </button>
                   <button
                     className="btn btn-primary"
                     onClick={handleAddProductClick}
                     id="addBtn"
                   >
                     <span className="fas fa-plus me-2" />
-                    Add product
+                    Thêm sản phẩm
                   </button>
                 </div>
               </div>
@@ -321,7 +217,7 @@ const ListProducts = () => {
                   <tbody>
                     {products.map((product, index) => (
                       <tr key={product.id}>
-                        <td>
+                        <td className="ps-2">
                           {index + 1 + (currentPage - 1) * productsPerPage}
                         </td>
                         <td>

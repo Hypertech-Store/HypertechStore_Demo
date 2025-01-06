@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-
+import { Link, useLocation } from "react-router-dom";
 const Order = () => {
   const [orders, setOrders] = useState([]);
   const [totalOrders, setTotalOrders] = useState(0);
@@ -48,175 +48,55 @@ const Order = () => {
     }
   }
 
+  const breadcrumbTitles = {
+    "admin/don-hang": "Danh sách đơn hàng", // Đây là URL không có "/"
+  };
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <a href="#!">Page 1</a>
+            <Link to="/admin">Dashboard</Link>
           </li>
-          <li className="breadcrumb-item">
-            <a href="#!">Page 2</a>
+
+          <li className="breadcrumb-item active" aria-current="page">
+            {currentTitle}
           </li>
-          <li className="breadcrumb-item active">Default</li>
         </ol>
       </nav>
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">Orders</h2>
+            <h2 className="mb-0 mt-3">Danh sách đơn hàng</h2>
+          </div>
+          <div className="col-auto ms-auto mt-3">
+            <div className="search-box">
+              <form className="position-relative">
+                <input
+                  className="form-control search-input search"
+                  type="search"
+                  placeholder="Search orders"
+                  aria-label="Search"
+                />
+                <span className="fas fa-search search-box-icon" />
+              </form>
+            </div>
           </div>
         </div>
-        <ul className="nav nav-links mb-3 mb-lg-2 mx-n3">
-          <li className="nav-item">
-            <a className="nav-link active" aria-current="page" href="#">
-              <span>All </span>
-              <span className="text-body-tertiary fw-semibold">(68817)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Pending payment </span>
-              <span className="text-body-tertiary fw-semibold">(6)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Unfulfilled </span>
-              <span className="text-body-tertiary fw-semibold">(17)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Completed</span>
-              <span className="text-body-tertiary fw-semibold">(6,810)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Refunded</span>
-              <span className="text-body-tertiary fw-semibold">(8)</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              <span>Failed</span>
-              <span className="text-body-tertiary fw-semibold">(2)</span>
-            </a>
-          </li>
-        </ul>
+
         <div
           id="orderTable"
           data-list='{"valueNames":["order","total","customer","payment_status","fulfilment_status","delivery_type","date"],"page":10,"pagination":true}'
         >
-          <div className="mb-4">
-            <div className="row g-3">
-              <div className="col-auto">
-                <div className="search-box">
-                  <form className="position-relative">
-                    <input
-                      className="form-control search-input search"
-                      type="search"
-                      placeholder="Search orders"
-                      aria-label="Search"
-                    />
-                    <span className="fas fa-search search-box-icon" />
-                  </form>
-                </div>
-              </div>
-              <div className="col-auto scrollbar overflow-hidden-y flex-grow-1">
-                <div className="btn-group position-static" role="group">
-                  <div
-                    className="btn-group position-static text-nowrap"
-                    role="group"
-                  >
-                    <button
-                      className="btn btn-phoenix-secondary px-7 flex-shrink-0"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      data-boundary="window"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                      data-bs-reference="parent"
-                    >
-                      Payment status
-                      <span className="fas fa-angle-down ms-2" />
-                    </button>
-                    <ul className="dropdown-menu dropdown-menu-end">
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Action
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Another action
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Something else here
-                        </a>
-                      </li>
-                      <li>
-                        <hr className="dropdown-divider" />
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Separated link
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <div
-                    className="btn-group position-static text-nowrap"
-                    role="group"
-                  >
-                    <button
-                      className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      data-boundary="window"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                      data-bs-reference="parent"
-                    >
-                      Fulfilment status
-                      <span className="fas fa-angle-down ms-2" />
-                    </button>
-                    <ul className="dropdown-menu dropdown-menu-end">
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Action
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Another action
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Something else here
-                        </a>
-                      </li>
-                      <li>
-                        <hr className="dropdown-divider" />
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          Separated link
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <button className="btn btn-sm btn-phoenix-secondary px-7 flex-shrink-0">
-                    More filters
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
           <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis border-top border-bottom border-translucent position-relative top-1">
             <div className="table-responsive scrollbar mx-n1 px-1">
               <table className="table table-sm fs-9 mb-0">
