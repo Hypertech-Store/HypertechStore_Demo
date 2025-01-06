@@ -1,6 +1,19 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
 import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 const AddProducts = () => {
+  const breadcrumbTitles = {
+    "admin/them-san-pham": "Thêm sản phẩm", // Đây là URL không có "/"
+  };
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+
   const navbarTopShape = window.config?.config?.phoenixNavbarTopShape;
   const navbarPosition = window.config?.config?.phoenixNavbarPosition;
 
@@ -324,12 +337,12 @@ const AddProducts = () => {
         <nav className="mb-3" aria-label="breadcrumb">
           <ol className="breadcrumb mb-0">
             <li className="breadcrumb-item">
-              <a href="#!">Page 1</a>
+              <Link to="/admin">Dashboard</Link>
             </li>
-            <li className="breadcrumb-item">
-              <a href="#!">Page 2</a>
+
+            <li className="breadcrumb-item active" aria-current="page">
+              {currentTitle}
             </li>
-            <li className="breadcrumb-item active">Default</li>
           </ol>
         </nav>
         <form onSubmit={handleSubmit} className="mb-9">
@@ -348,26 +361,7 @@ const AddProducts = () => {
           </div>
           <div className="row g-5">
             <div className="col-12 col-xl-8">
-              <h4 className="mb-3">Tiêu đề sản phẩm</h4>
-              <input
-                type="text"
-                name="ten_san_pham"
-                className="form-control"
-                placeholder="Nhập tên sản phẩm"
-                onChange={handleInputChange}
-              />
-              <div className="mb-6 mt-5">
-                <h4 className="mb-3">Mô tả sản phẩm</h4>
-
-                <textarea
-                  name="mo_ta"
-                  className="form-control"
-                  rows="4"
-                  placeholder="Nhập mô tả sản phẩm"
-                  onChange={handleInputChange}
-                />
-              </div>
-              <h4 className="mb-3">Display images</h4>
+              <h4 className="mb-3">Hình ảnh</h4>
               <div
                 className="dropzone dropzone-multiple p-0 mb-5"
                 onDrop={handleDrop}
@@ -417,10 +411,10 @@ const AddProducts = () => {
                     className="dz-message text-body-tertiary text-opacity-85"
                     data-dz-message="data-dz-message"
                   >
-                    Drag your photo here
-                    <span className="text-body-secondary px-1">or</span>
+                    Kéo ảnh của bạn vào đây
+                    <span className="text-body-secondary px-1">hoặc</span>
                     <button className="btn btn-link p-0" type="button">
-                      Browse from device
+                      Duyệt từ thiết bị
                     </button>
                     <br />
                     <img
@@ -432,25 +426,47 @@ const AddProducts = () => {
                   </div>
                 )}
               </div>
-
-              <h4 className="mb-3">Giá sản phẩm</h4>
+              <h4 className="mb-3">Tên sản phẩm</h4>
               <input
-                type="number"
-                name="gia"
+                type="text"
+                name="ten_san_pham"
                 className="form-control"
-                placeholder="Nhập giá sản phẩm"
+                placeholder="Nhập tên sản phẩm"
                 onChange={handleInputChange}
               />
+              <div className="mb-6 mt-5">
+                <h4 className="mb-3">Mô tả sản phẩm</h4>
 
+                <textarea
+                  name="mo_ta"
+                  className="form-control"
+                  rows="4"
+                  placeholder="Nhập mô tả sản phẩm"
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="mb-6 mt-5">
+                <h4 className="mb-3">Giá thông thường</h4>
+                <input
+                  type="text"
+                  name="gia"
+                  className="form-control"
+                  placeholder="Nhập giá sản phẩm"
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="mb-6 mt-5">
+                <h4 className="mb-3 text-body-highlight">Số lượng</h4>
 
-              <h4 className="mb-3 mt-3">Số lượng tồn kho</h4>
-              <input
-                type="number"
-                name="so_luong_ton_kho"
-                className="form-control"
-                placeholder="Nhập số lượng tồn kho"
-                onChange={handleInputChange}
-              />
+                <input
+                  type="number"
+                  name="so_luong_ton_kho"
+                  className="form-control"
+                  placeholder="Nhập số lượng tồn kho"
+                  onChange={handleInputChange}
+                />
+              </div>
+
             </div>
 
             <div className="col-12 col-xl-4">
@@ -468,7 +484,7 @@ const AddProducts = () => {
                                 Danh mục
                               </h5>
                               <a className="fw-bold fs-9" href="them-danh-muc">
-                                Thêm mới danh mục
+                                Thêm danh mục
                               </a>
                             </div>
                             <select
@@ -499,7 +515,7 @@ const AddProducts = () => {
                                 className="fw-bold fs-9"
                                 href="them-danh-muc-con"
                               >
-                                Thêm mới danh mục con
+                                Thêm danh mục con
                               </a>
                             </div>
                             <select
@@ -527,7 +543,7 @@ const AddProducts = () => {
                 <div className="col-12 col-xl-12">
                   <div className="card">
                     <div className="card-body">
-                      <h4 className="card-title mb-4">Variants</h4>
+                      <h4 className="card-title mb-4">Biến thể</h4>
                       <div className="row g-3">
                         {options.map((option, index) => {
                           const selectedAttribute = attributes.find(
@@ -542,7 +558,7 @@ const AddProducts = () => {
                               <div className="border-bottom border-translucent border-dashed border-sm-0 border-bottom-xl pb-4">
                                 <div className="d-flex flex-wrap mb-2">
                                   <h5 className="text-body-highlight me-2">
-                                    Option {index + 1}
+                                    Lựa chọn {index + 1}
                                   </h5>
                                   <a
                                     className="fw-bold fs-9"
@@ -553,7 +569,7 @@ const AddProducts = () => {
                                       )
                                     }
                                   >
-                                    Remove
+                                    Xóa
                                   </a>
                                 </div>
                                 <select
@@ -611,7 +627,7 @@ const AddProducts = () => {
                         type="button"
                         onClick={addOption}
                       >
-                        Add another option
+                        Thêm lựa chọn
                       </button>
                     </div>
                   </div>

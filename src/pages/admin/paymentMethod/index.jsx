@@ -15,6 +15,7 @@ const PaymentMethod = () => {
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+    
   const [formData, setFormData] = useState({
     image: null, // Dữ liệu hình ảnh
   });

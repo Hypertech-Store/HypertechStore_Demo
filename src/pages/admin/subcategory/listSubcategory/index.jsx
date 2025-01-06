@@ -1,9 +1,12 @@
+/* eslint-disable no-unused-vars */
 // import products from "../../../../assets/img/products/1.png";
 import { useState, useEffect } from "react";
 import axios from "axios";
-
-const link = "http://127.0.0.1:8000/storage/";
+import { useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 const ListSubcategory = () => {
+  const navigate = useNavigate();
+  const link = "http://127.0.0.1:8000/storage/";
   const [subCategories, setSubCategories] = useState([]);
   const [subCategoryDetails, setSubCategoryDetails] = useState({
     ten_danh_muc_con: "",
@@ -14,10 +17,23 @@ const ListSubcategory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0); // Total number of items
   const [totalPages, setTotalPages] = useState(1);
+  // eslint-disable-next-line no-unused-vars
   const [subCategorysPerPage, setSubCategorysPerPage] = useState(10);
   const [categories, setCategories] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
   const [imgSubCate, setImgSubCate] = useState(null);
+
+  const breadcrumbTitles = {
+    "admin/danh-sach-danh-muc-con": "Danh sách danh mục con", // Đây là URL không có "/"
+  };
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
 
   useEffect(() => {
     return () => {
@@ -198,6 +214,9 @@ const ListSubcategory = () => {
       alert("Không thể xóa danh mục con.");
     }
   };
+  const handleAddSubClick = () => {
+    navigate("/admin/them-danh-muc-con"); // Navigate to the 'thêm-san-pham' page
+  };
 
   return (
     <>
@@ -205,48 +224,21 @@ const ListSubcategory = () => {
         <nav className="mb-3" aria-label="breadcrumb">
           <ol className="breadcrumb mb-0">
             <li className="breadcrumb-item">
-              <a href="#!">Page 1</a>
+              <Link to="/admin">Dashboard</Link>
             </li>
-            <li className="breadcrumb-item">
-              <a href="#!">Page 2</a>
+
+            <li className="breadcrumb-item active" aria-current="page">
+              {currentTitle}
             </li>
-            <li className="breadcrumb-item active">Default</li>
           </ol>
         </nav>
         <div className="mb-9">
           <div className="row g-3 mb-4">
             <div className="col-auto">
-              <h2 className="mb-0">SubCategory</h2>
+              <h2 className="mb-0">Danh mục con</h2>
             </div>
           </div>
-          <ul className="nav nav-links mb-3 mb-lg-2 mx-n3">
-            <li className="nav-item">
-              <a className="nav-link active" aria-current="page" href="#">
-                <span>All </span>
-                <span className="text-body-tertiary fw-semibold">
-                  ({totalItems})
-                </span>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                <span>Published </span>
-                <span className="text-body-tertiary fw-semibold">(70348)</span>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                <span>Drafts </span>
-                <span className="text-body-tertiary fw-semibold">(17)</span>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                <span>On discount </span>
-                <span className="text-body-tertiary fw-semibold">(810)</span>
-              </a>
-            </li>
-          </ul>
+
           <div
             id="products"
             data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
@@ -266,9 +258,13 @@ const ListSubcategory = () => {
                 </div>
 
                 <div className="ms-xxl-auto">
-                  <button className="btn btn-primary" id="addBtn">
+                  <button
+                    className="btn btn-primary"
+                    id="addBtn"
+                    onClick={handleAddSubClick}
+                  >
                     <span className="fas fa-plus me-2" />
-                    Add Subcategory
+                    Thêm danh mục con
                   </button>
                 </div>
               </div>
@@ -289,7 +285,7 @@ const ListSubcategory = () => {
                   <tbody className="list" id="products-table-body">
                     {subCategories.map((subCategory, index) => (
                       <tr key={subCategory.id}>
-                        <td>
+                        <td className="ps-2">
                           {(currentPage - 1) * subCategorysPerPage + index + 1}
                         </td>
                         <td className="tags align-middle review pb-2 ps-3">

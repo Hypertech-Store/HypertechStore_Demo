@@ -128,7 +128,7 @@ const SlidebarAdmin = () => {
                             data-bs-parent="#e-commerce"
                             id="nv-products"
                           >
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                               <Link
                                 className={`nav-link ${
                                   activeItem === "add-product" ? "active" : ""
@@ -142,8 +142,8 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                              {/* more inner pages*/}
-                            </li>
+                            </li> */}
+
                             <li className="nav-item">
                               <Link
                                 className={`nav-link ${
@@ -188,7 +188,7 @@ const SlidebarAdmin = () => {
                             data-bs-parent="#e-commerce"
                             id="nv-category"
                           >
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                               <Link
                                 className={`nav-link ${
                                   activeItem === "add-category" ? "active" : ""
@@ -202,7 +202,7 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                            </li>
+                            </li> */}
                             <li className="nav-item">
                               <Link
                                 className={`nav-link ${
@@ -246,7 +246,7 @@ const SlidebarAdmin = () => {
                             data-bs-parent="#e-commerce"
                             id="nv-subcategory"
                           >
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                               <Link
                                 className={`nav-link ${
                                   activeItem === "add-subcategory"
@@ -262,7 +262,7 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                            </li>
+                            </li> */}
                             <li className="nav-item">
                               <Link
                                 className={`nav-link ${
@@ -553,7 +553,7 @@ const SlidebarAdmin = () => {
                             data-bs-parent="#e-commerce"
                             id="nv-admin"
                           >
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                               <Link
                                 className={`nav-link ${
                                   activeItem === "addAdmin" ? "active" : ""
@@ -567,7 +567,8 @@ const SlidebarAdmin = () => {
                                   </span>
                                 </div>
                               </Link>
-                            </li>
+                            </li> */}
+
                             <li className="nav-item">
                               <Link
                                 className={`nav-link ${
@@ -824,6 +825,40 @@ const SlidebarAdmin = () => {
                       </span>
                       <span className="nav-link-text-wrapper">
                         <span className="nav-link-text">Payment</span>
+                      </span>
+                    </div>
+                  </Link>
+                </div>
+
+                <div className="nav-item-wrapper">
+                  <Link
+                    className={`nav-link label-1 ${
+                      activeItem === "status" ? "active" : ""
+                    }`}
+                    to="trang-thai-don-hang"
+                    role="button"
+                    data-bs-toggle
+                    aria-expanded="false"
+                    onClick={() => handleClick("status")}
+                  >
+                    <div className="d-flex align-items-center">
+                      <span className="nav-link-icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          width={16}
+                          height={16}
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="css-i6dzq1"
+                        >
+                          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg>
+                      </span>
+                      <span className="nav-link-text-wrapper">
+                        <span className="nav-link-text">Orders status</span>
                       </span>
                     </div>
                   </Link>
