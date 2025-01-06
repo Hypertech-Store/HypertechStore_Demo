@@ -1,18 +1,103 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [thongKe, setThongKe] = useState(null);
+  const [thongKeDonHang7Ngay, setThongKeDonHang7Ngay] = useState(null);
+  const [thongKeKhachHangMoi7Ngay, setThongKeKhachHangMoi7Ngay] = useState(null);
+  const [danhGia, setDanhGia] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [loading, setLoading] = useState(true); // Thêm trạng thái loading
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [status, setStatus] = useState(null); // Để lưu trạng thái của đánh giá
+
+  const handleUpdateStatus = async (review, newStatus) => {
+    try {
+      console.log(newStatus);
+
+      const response = await axios.put(`http://127.0.0.1:8000/api/danh-gia/${review.id}`, {
+        trang_thai: newStatus, // Cập nhật trạng thái mới
+      });
+
+      console.log(response);
+      setStatus(newStatus); // Cập nhật lại trạng thái trong state
+      console.log(response.data.message); // In thông báo phản hồi từ API
+      // Cập nhật danh gia local sau khi thay đổi trạng thái
+      const updatedDanhGia = danhGia.map(item =>
+        item.id === review.id ? { ...item, trang_thai: newStatus } : item
+      );
+
+      setDanhGia(updatedDanhGia);
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
+
   useEffect(() => {
     const adminId = localStorage.getItem("adminId");
     if (adminId === null) {
-      // Nếu userId không tồn tại (chưa đăng nhập), không làm gì
       console.log("User is not logged in.");
       navigate("/login");
     } else {
-      // Nếu userId tồn tại (đã đăng nhập), điều hướng đến trang admin
       navigate("/admin");
     }
   }, [navigate]);
+
+  // Hàm gọi API chung
+  const fetchData = async (url, setState) => {
+    try {
+      const response = await axios.get(url);
+      setState(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  // Lấy dữ liệu thống kê
+  useEffect(() => {
+    setLoading(true); // Khi bắt đầu gọi API, set loading = true
+    fetchData("http://127.0.0.1:8000/api/thong-ke", setThongKe);
+    fetchData("http://127.0.0.1:8000/api/thong-ke-don-hang-7-ngay", setThongKeDonHang7Ngay);
+    fetchData("http://127.0.0.1:8000/api/thong-ke-khach-hang-moi-7-ngay", setThongKeKhachHangMoi7Ngay);
+  }, []);
+
+  // Lấy dữ liệu đánh giá
+  useEffect(() => {
+    const fetchDanhGia = async (page) => {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/api/danh-gia?page=${page}`);
+        const { data, current_page, last_page } = response.data.data;
+
+        setDanhGia(data);
+        setCurrentPage(current_page);
+        setLastPage(last_page);
+        setTotalProducts(response.data.data.total);
+        
+        setLoading(false); // Khi hoàn thành gọi API, set loading = false
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      }
+    };
+
+    fetchDanhGia(currentPage);
+  }, [currentPage]);
+
+  const totalPages = Math.ceil(totalProducts / 10);
+  
+
+  // Xử lý thay đổi trang
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= lastPage) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>; // Hiển thị loading khi đang tải dữ liệu
+  }
 
   return (
     <>
@@ -48,7 +133,7 @@ const Dashboard = () => {
                       />
                     </span>
                     <div className="ms-3">
-                      <h4 className="mb-0">57 đơn hàng mới</h4>
+                      <h4 className="mb-0">{thongKe?.tong_hang_moi} đơn hàng mới</h4>
                       <p className="text-body-secondary fs-9 mb-0">
                         Đang chờ xử lý
                       </p>
@@ -75,7 +160,7 @@ const Dashboard = () => {
                       />
                     </span>
                     <div className="ms-3">
-                      <h4 className="mb-0">5 đơn hàng</h4>
+                      <h4 className="mb-0">{thongKe?.tong_don_hang_dang_giu} đơn hàng</h4>
                       <p className="text-body-secondary fs-9 mb-0">Đang giữ</p>
                     </div>
                   </div>
@@ -100,7 +185,7 @@ const Dashboard = () => {
                       />
                     </span>
                     <div className="ms-3">
-                      <h4 className="mb-0">15 sản phẩm</h4>
+                      <h4 className="mb-0">{thongKe?.tong_san_pham_ton_kho_bang_0} sản phẩm</h4>
                       <p className="text-body-secondary fs-9 mb-0">Hết hàng</p>
                     </div>
                   </div>
@@ -140,12 +225,12 @@ const Dashboard = () => {
                           <h5 className="mb-1">
                             Tổng số đơn hàng
                             <span className="badge badge-phoenix badge-phoenix-warning rounded-pill fs-9 ms-2">
-                              <span className="badge-label">-6.8%</span>
+                              <span className="badge-label">{(thongKeDonHang7Ngay?.ti_le_chenh_lech)?.toFixed(1)}%</span>
                             </span>
                           </h5>
                           <h6 className="text-body-tertiary">7 ngày qua</h6>
                         </div>
-                        <h4>16,247</h4>
+                        <h4>{thongKeDonHang7Ngay?.tong_don_hang}</h4>
                       </div>
                       <div className="d-flex justify-content-center px-4 py-6">
                         <div
@@ -159,14 +244,14 @@ const Dashboard = () => {
                           <h6 className="text-body fw-semibold flex-1 mb-0">
                             Hoàn thành
                           </h6>
-                          <h6 className="text-body fw-semibold mb-0">52%</h6>
+                          <h6 className="text-body fw-semibold mb-0">{(thongKeDonHang7Ngay?.ti_le_hoan_thanh)?.toFixed(1)}%</h6>
                         </div>
                         <div className="d-flex align-items-center">
                           <div className="bullet-item bg-primary-subtle me-2" />
                           <h6 className="text-body fw-semibold flex-1 mb-0">
-                            Đang chờ thanh toán
+                            Chưa hoàn thành
                           </h6>
-                          <h6 className="text-body fw-semibold mb-0">48%</h6>
+                          <h6 className="text-body fw-semibold mb-0">{(thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh)?.toFixed(1)}%</h6>
                         </div>
                       </div>
                     </div>
@@ -181,12 +266,12 @@ const Dashboard = () => {
                             Khách hàng mới
                             <span className="badge badge-phoenix badge-phoenix-warning rounded-pill fs-9 ms-2">
                               {""}
-                              <span className="badge-label">+26.5%</span>
+                              <span className="badge-label">{(thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech)?.toFixed(1)}%</span>
                             </span>
                           </h5>
                           <h6 className="text-body-tertiary">7 ngày qua</h6>
                         </div>
-                        <h4>356</h4>
+                        <h4>{(thongKeKhachHangMoi7Ngay?.tong_khach_hang)}</h4>
                       </div>
                       <div className="pb-0 pt-4">
                         <div
@@ -299,291 +384,135 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="list" id="table-latest-review-body">
-                  <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                    <td className="fs-9 align-middle ps-0">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"iPhone 13 pro max-Pacific Blue-128GB storage","productImage":"/products/60x60/2.png","customer":{"name":"Ashley Garrett","avatar":"/team/40x40/59.webp"},"rating":3,"review":"The order was delivered ahead of schedule. To give us additional time, you should leave the packaging sealed with plastic.","status":{"title":"Approved","badge":"success","icon":"check"},"time":"Just now"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="align-middle product white-space-nowrap py-0">
-                      <a
-                        className="d-block rounded-2 border border-translucent"
-                        href="apps/e-commerce/landing/product-details.html"
-                      >
+                  {danhGia.map((review, index) => (
+                    <tr key={review.id}>
+                      <td>{index + 1}</td>
+                      <td className="align-middle product white-space-nowrap py-0">
                         <img
-                          src="assets/img/products/60x60/2.png"
-                          alt
-                          width={53}
+                          src={`http://127.0.0.1:8000/storage/${review.san_pham.duong_dan_anh}`}
+                          width={50}
                         />
-                      </a>
-                    </td>
-                    <td className="align-middle product white-space-nowrap">
-                      <a
-                        className="fw-semibold"
-                        href="apps/e-commerce/landing/product-details.html"
-                      >
-                        iPhone 13 pro max-Pacific Blue-128GB storage
-                      </a>
-                    </td>
-                    <td className="align-middle customer white-space-nowrap">
-                      <a
-                        className="d-flex align-items-center text-body"
-                        href="apps/e-commerce/landing/profile.html"
-                      >
-                        <div className="avatar avatar-l">
-                          <img
-                            className="rounded-circle"
-                            src="assets/img/team/40x40/59.webp"
-                            alt
-                          />
-                        </div>
-                        <h6 className="mb-0 ms-3 text-body">Ashley Garrett</h6>
-                      </a>
-                    </td>
-                    <td className="align-middle rating white-space-nowrap fs-10">
-                      <span className="fa fa-star text-warning" />
-                      <span className="fa fa-star text-warning" />
-                      <span className="fa fa-star text-warning" />
-                      <span
-                        className="fa-regular fa-star text-warning-light"
-                        data-bs-theme="light"
-                      />
-                      <span
-                        className="fa-regular fa-star text-warning-light"
-                        data-bs-theme="light"
-                      />
-                    </td>
-                    <td
-                      className="align-middle review"
-                      style={{ minWidth: 350 }}
-                    >
-                      <p className="fs-9 fw-semibold text-body-highlight mb-0">
-                        The order was delivered ahead of schedule. To give us
-                        additional time, you should leave the packaging sealed
-                        with plastic.
-                      </p>
-                    </td>
-                    <td className="align-middle text-start ps-5 status">
-                      <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                        <span className="badge-label">Approved</span>
-                        <span
-                          className="ms-1"
-                          data-feather="check"
-                          style={{ height: "12.8px", width: "12.8px" }}
-                        />
-                      </span>
-                    </td>
-                    <td className="align-middle text-end time white-space-nowrap">
-                      <div className="hover-hide">
-                        <h6 className="text-body-highlight mb-0">Just now</h6>
-                      </div>
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0">
-                      <div className="position-relative">
-                        <div className="hover-actions">
-                          <button className="btn btn-sm btn-phoenix-secondary me-1 fs-10">
-                            <span className="fas fa-check" />
-                          </button>
-                          <button className="btn btn-sm btn-phoenix-secondary fs-10">
-                            <span className="fas fa-trash" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="align-middle product white-space-nowrap">
+                        {review.san_pham.ten_san_pham}
+                      </td>
+                      <td className="align-middle customer white-space-nowrap">
+                        <img src={`http://127.0.0.1:8000/storage/${review.khach_hang.hinh_anh}`} width={50} />
+                        {review.khach_hang.ho_ten}
+                      </td>
+                      <td className="align-middle rating white-space-nowrap fs-10">
+                        {Array.from({ length: review.danh_gia }).map((_, idx) => (
+                          <span key={idx} className="fa fa-star text-warning" />
+                        ))}</td>
+                      <td><p className="fs-9 fw-semibold text-body-highlight mb-0">{review.binh_luan}</p></td>
+                      <td className="align-middle text-start ps-5 status">
+                        {review.trang_thai === 1 ? (
+                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
+                            Đã duyệt
+                            <span
+                              className="ms-1"
+                              data-feather="check"
+                              style={{ height: "12.8px", width: "12.8px" }}
+                            />
+                          </span>
+                        ) : review.trang_thai === 0 ? (
+                          <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
+                            <span className="badge-label">Chưa duyệt</span>
+                            <span
+                              className="ms-1"
+                              data-feather="clock"
+                              style={{ height: "12.8px", width: "12.8px" }}
+                            />
+                          </span>
+                        ) : review.trang_thai === 2 ? (
+                          <span className="badge badge-phoenix fs-10 badge-phoenix-secondary">
+                            Đã hủy
+                            <span
+                              className="ms-1"
+                              data-feather="x"
+                              style={{ height: "12.8px", width: "12.8px" }}
+                            />
+                          </span>
+                        ) : null}
 
-                  <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                    <td className="fs-9 align-middle ps-0">
-                      <div className="form-check mb-0 fs-8">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          data-bulk-select-row='{"product":"Nintendo Switch with Neon Blue and Neon Red Joy‑Con - HAC-001(-01)","productImage":"/products/60x60/13.png","customer":{"name":"Michael Jenkins","avatar":"/team/40x40/9.webp"},"rating":5,"review":"I had a bit of a hard time at first but after I contacted the team they were able to help me set up the theme. It&apos;s really good and I highly recommend it to everyone.","status":{"title":"Pending","badge":"warning","icon":"clock"},"time":"Nov 04, 12:00 PM"}'
-                        />
-                      </div>
-                    </td>
-                    <td className="align-middle product white-space-nowrap py-0">
-                      <a
-                        className="d-block rounded-2 border border-translucent"
-                        href="apps/e-commerce/landing/product-details.html"
-                      >
-                        <img
-                          src="assets/img/products/60x60/13.png"
-                          alt
-                          width={53}
-                        />
-                      </a>
-                    </td>
-                    <td className="align-middle product white-space-nowrap">
-                      <a
-                        className="fw-semibold"
-                        href="apps/e-commerce/landing/product-details.html"
-                      >
-                        Nintendo Switch with Neon Blue and Neon Red Jo...
-                      </a>
-                    </td>
-                    <td className="align-middle customer white-space-nowrap">
-                      <a
-                        className="d-flex align-items-center text-body"
-                        href="apps/e-commerce/landing/profile.html"
-                      >
-                        <div className="avatar avatar-l">
-                          <img
-                            className="rounded-circle"
-                            src="assets/img/team/40x40/9.webp"
-                            alt
-                          />
+                      </td>
+                      <td className="align-middle text-end time white-space-nowrap">
+                        <div className="hover-hide">
+                          <h6 className="text-body-highlight mb-0">
+                            {new Date(review.created_at).toLocaleString()}
+                          </h6>
                         </div>
-                        <h6 className="mb-0 ms-3 text-body">Michael Jenkins</h6>
-                      </a>
-                    </td>
-                    <td className="align-middle rating white-space-nowrap fs-10">
-                      <span className="fa fa-star text-warning" />
-                      <span className="fa fa-star text-warning" />
-                      <span className="fa fa-star text-warning" />
-                      <span className="fa fa-star text-warning" />
-                      <span className="fa fa-star text-warning" />
-                    </td>
-                    <td
-                      className="align-middle review"
-                      style={{ minWidth: 350 }}
-                    >
-                      <p className="fs-9 fw-semibold text-body-highlight mb-0">
-                        I had a bit of a hard time at first but after I
-                        contacted the team they were able to help me set up the
-                        theme. It's really good and I ...
-                        <a href="#!">See more</a>
-                      </p>
-                    </td>
-                    <td className="align-middle text-start ps-5 status">
-                      <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
-                        <span className="badge-label">Pending</span>
-                        <span
-                          className="ms-1"
-                          data-feather="clock"
-                          style={{ height: "12.8px", width: "12.8px" }}
-                        />
-                      </span>
-                    </td>
-                    <td className="align-middle text-end time white-space-nowrap">
-                      <div className="hover-hide">
-                        <h6 className="text-body-highlight mb-0">
-                          Nov 04, 12:00 PM
-                        </h6>
-                      </div>
-                    </td>
-                    <td className="align-middle white-space-nowrap text-end pe-0">
-                      <div className="position-relative">
-                        <div className="hover-actions">
-                          <button className="btn btn-sm btn-phoenix-secondary me-1 fs-10">
+                      </td>
+                      <td className="align-middle white-space-nowrap text-end pe-0">
+                        <div>
+                          <button
+                            className="btn btn-sm btn-phoenix-secondary me-1 fs-10"
+                            onClick={() => handleUpdateStatus(review, 1)}
+                          >
                             <span className="fas fa-check" />
                           </button>
-                          <button className="btn btn-sm btn-phoenix-secondary fs-10">
+                          <button
+                            className="btn btn-sm btn-phoenix-secondary fs-10"
+                            onClick={() => handleUpdateStatus(review, 2)}
+                          >
                             <span className="fas fa-trash" />
                           </button>
                         </div>
-                      </div>
-                      <div className="btn-reveal-trigger position-static">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          data-boundary="window"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                        >
-                          <span className="fas fa-ellipsis-h fs-10" />
-                        </button>
-                        <div className="dropdown-menu dropdown-menu-end py-2">
-                          <a className="dropdown-item" href="#!">
-                            View
-                          </a>
-                          <a className="dropdown-item" href="#!">
-                            Export
-                          </a>
-                          <div className="dropdown-divider" />
-                          <a className="dropdown-item text-danger" href="#!">
-                            Remove
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-            <div className="row align-items-center py-1">
-              <div className="pagination d-none" />
-              <div className="col d-flex fs-9">
-                <p
-                  className="mb-0 d-none d-sm-block me-3 fw-semibold text-body"
-                  data-list-info="data-list-info"
-                />
-                <a className="fw-semibold" href="#!" data-list-view="*">
-                  View all
-                  <span
-                    className="fas fa-angle-right ms-1"
-                    data-fa-transform="down-1"
-                  />
-                </a>
-                <a
-                  className="fw-semibold d-none"
-                  href="#!"
-                  data-list-view="less"
-                >
-                  View Less
-                </a>
+            <div>
+              <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
+                {/* Hiển thị số trang */}
+                <div className="col-auto d-flex">
+                  <p className="mb-0 me-3 fw-semibold text-body">
+                    Trang {currentPage} / {totalPages}
+                  </p>
+                </div>
+
+                {/* Điều hướng phân trang */}
+                <div className="col-auto d-flex">
+                  {/* Nút Previous */}
+                  <button
+                    className="page-link"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <span className="fas fa-chevron-left" />
+                  </button>
+
+                  {/* Danh sách các trang */}
+                  <ul className="pagination mb-0">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                      <li
+                        key={index}
+                        className={`page-item ${currentPage === index + 1 ? "active" : ""
+                          }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => goToPage(index + 1)}
+                        >
+                          {index + 1}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Nút Next */}
+                  <button
+                    className="page-link pe-0"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <span className="fas fa-chevron-right" />
+                  </button>
+                </div>
               </div>
-              <div className="col-auto d-flex">
-                <button
-                  className="btn btn-link px-1 me-1"
-                  type="button"
-                  title="Previous"
-                  data-list-pagination="prev"
-                >
-                  <span className="fas fa-chevron-left me-2" />
-                  Previous
-                </button>
-                <button
-                  className="btn btn-link px-1 ms-1"
-                  type="button"
-                  title="Next"
-                  data-list-pagination="next"
-                >
-                  Next
-                  <span className="fas fa-chevron-right ms-2" />
-                </button>
-              </div>
+
             </div>
           </div>
         </div>
