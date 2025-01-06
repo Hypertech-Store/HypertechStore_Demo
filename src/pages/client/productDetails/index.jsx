@@ -19,6 +19,7 @@ const ProductDetails = () => {
   const queryParams = new URLSearchParams(search);
   const navigate = useNavigate();
   const productId = queryParams.get("id");
+  const khachHangIdFromStorage = localStorage.getItem("userId");
   const [productData, setProductData] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [variantPrice, setVariantPrice] = useState(0); // lưu giá biến thể
@@ -35,15 +36,132 @@ const ProductDetails = () => {
   const [colorVariants, setColorVariants] = useState([]);
   const [otherAttributes, setOtherAttributes] = useState([]);
   const [danhGias, setDanhGias] = useState([]);
-
+  const [daMua, setDaMua] = useState(false); // Lưu trạng thái đã mua hay chưa
 
   // eslint-disable-next-line no-unused-vars
   const [isAttributesComplete, setIsAttributesComplete] = useState(false);
-
   const baseUrl = "http://127.0.0.1:8000/storage/";
-
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
   const [totalPages, setTotalPages] = useState(1); // Tổng số trang
+
+
+
+  const [formData, setFormData] = useState({
+    rating: 0, // Điểm đánh giá
+    reviewText: "", // Nội dung đánh giá
+    images: [], // Mảng hình ảnh tải lên
+  });
+
+  const handleStarClick = (index) => {
+    setFormData({ ...formData, rating: index + 1 });
+  };
+
+  // Hiển thị sao đã chọn
+  const renderStars = () => {
+    let stars = [];
+    for (let i = 0; i < 5; i++) {
+      stars.push(
+        <span 
+          key={i}
+          onClick={() => handleStarClick(i)}
+          style={{
+            fontSize: 32,
+            cursor: 'pointer',
+            color: i < formData.rating ? '#FFD700' : '#D3D3D3', // Màu vàng cho sao đã chọn
+          }}
+        >
+          &#9733; {/* Biểu tượng sao */}
+        </span>
+      );
+    }
+    return stars;
+  };
+
+  
+  // Xử lý thay đổi khi người dùng chọn tệp
+  const handleFileChange = (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      setFormData({
+        ...formData,
+        images: [...formData.images, ...Array.from(files)],
+      });
+      console.log("Selected files:", files);
+    }
+  };
+
+  // Xử lý sự kiện kéo thả tệp vào khu vực dropzone
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      setFormData({
+        ...formData,
+        images: [...formData.images, ...Array.from(files)],
+      });
+      console.log("Dropped files:", files);
+    }
+  };
+
+  // Xử lý sự kiện kéo tệp qua khu vực dropzone
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // Xử lý xóa hình ảnh
+  const handleRemoveImage = (index) => {
+    setFormData({
+      ...formData,
+      images: formData.images.filter((_, i) => i !== index),
+    });
+  };
+
+  // Gửi yêu cầu đánh giá lên API
+  const handleSubmitReview = async () => {
+    const { rating, reviewText, images } = formData;
+
+    const formDataToSubmit = new FormData();
+    formDataToSubmit.append('san_pham_id', productId);
+    formDataToSubmit.append('khach_hang_id', khachHangIdFromStorage);
+    formDataToSubmit.append('danh_gia', rating);
+    formDataToSubmit.append('binh_luan', reviewText);
+
+    // Gửi từng hình ảnh lên server
+    images.forEach((image) => {
+      formDataToSubmit.append('image[]', image);
+    });
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/danh-gia', {
+        method: 'POST',
+        body: formDataToSubmit,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Review submitted successfully!');
+      } else {
+        alert('Error submitting review: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Error submitting review');
+    }
+  };
+
+  // Đánh giá sao
+  const handleRatingClick = (ratingValue) => {
+    setFormData({
+      ...formData,
+      rating: ratingValue,
+    });
+  };
+
+
   useEffect(() => {
     // Hàm để gọi API
     const fetchDanhGias = async () => {
@@ -53,6 +171,8 @@ const ProductDetails = () => {
           throw new Error("Lỗi khi lấy dữ liệu");
         }
         const data = await response.json();
+        console.log(data);
+
         setDanhGias(data); // Lưu dữ liệu vào state
         setTotalPages(Math.ceil(data?.summary.tong_danh_gia / 5)); // Làm tròn lên để tính số trang
         console.log("Dữ liệu nhận từ API:", data);
@@ -63,6 +183,40 @@ const ProductDetails = () => {
 
     fetchDanhGias();
   }, [currentPage]); // Gọi lại mỗi khi trang thay đổi
+
+
+  useEffect(() => {
+    // Kiểm tra xem khách hàng đã mua sản phẩm chưa
+    const kiemTraMuaSanPham = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/san-pham/kiem-tra-mua-san-pham/${productId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            khach_hang_id: khachHangIdFromStorage, // Gửi ID khách hàng từ FE
+          }),
+        });
+
+        const data = await response.json();
+
+        console.log(data);
+
+        if (data.da_mua === false) {
+          setDaMua(false);
+          console.log(daMua);
+
+        } else {
+          setDaMua(true); // Khách hàng chưa mua sản phẩm
+        }
+      } catch (error) {
+        console.error("Lỗi khi kiểm tra sản phẩm đã mua:", error);
+      }
+    };
+
+    kiemTraMuaSanPham();
+  }, [productId, khachHangIdFromStorage]);
 
 
   useEffect(() => {
@@ -975,113 +1129,158 @@ const ProductDetails = () => {
                               </p>
                             </div>
                           </div>
-                          <div className="col-auto">
-                            <button
-                              className="btn btn-primary rounded-pill"
-                              data-bs-toggle="modal"
-                              data-bs-target="#reviewModal"
-                            >
-                              Rate this product
-                            </button>
-                            <div
-                              className="modal fade"
-                              id="reviewModal"
-                              tabIndex={-1}
-                              aria-hidden="true"
-                            >
-                              <div className="modal-dialog modal-dialog-centered">
-                                <div className="modal-content p-4">
-                                  <div className="d-flex flex-between-center mb-2">
-                                    <h5 className="modal-title fs-8 mb-0">
-                                      Your rating
-                                    </h5>
-                                    <button className="btn p-0 fs-10">
-                                      Clear
-                                    </button>
-                                  </div>
-                                  <div
-                                    className="mb-3 star-rating"
-                                    data-rater='{"starSize":32,"step":0.5}'
-                                    style={{
-                                      width: 160,
-                                      height: 32,
-                                      backgroundSize: 32,
-                                    }}
-                                  >
-                                    <div
-                                      className="star-value"
-                                      style={{ backgroundSize: 32, width: 0 }}
-                                    />
-                                  </div>
-                                  <div className="mb-3">
-                                    <h5 className="text-body-highlight mb-3">
-                                      Your review
-                                    </h5>
-                                    <textarea
-                                      className="form-control"
-                                      id="reviewTextarea"
-                                      rows={5}
-                                      placeholder="Write your review"
-                                      defaultValue={" "}
-                                    />
-                                  </div>
-                                  <div
-                                    className="dropzone dropzone-multiple p-0 mb-3 dz-clickable"
-                                    id="my-awesome-dropzone"
-                                    data-dropzone
-                                  >
-                                    <div className="dz-preview d-flex flex-wrap" />
-                                    <div
-                                      className="dz-message text-body-tertiary text-opacity-85 fw-bold fs-9 p-4"
-                                      data-dz-message
+
+                          {daMua ? (
+                            <div className="col-auto">
+                              <button
+                                className="btn btn-primary rounded-pill"
+                                data-bs-toggle="modal"
+                                data-bs-target="#reviewModal"
+                              >
+                                Rate this product
+                              </button>
+
+                              <div
+                                className="modal fade"
+                                id="reviewModal"
+                                tabIndex={-1}
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog modal-dialog-centered">
+                                  <div className="modal-content p-4">
+                                    <div className="d-flex flex-between-center mb-2">
+                                      <h5 className="modal-title fs-8 mb-0">Your rating</h5>
+                                      <button className="btn p-0 fs-10">Clear</button>
+                                    </div>
+                                    {/* <div
+                                      className="mb-3 star-rating"
+                                      data-rater='{"starSize":32,"step":0.5}'
+                                      style={{
+                                        width: 160,
+                                        height: 32,
+                                        backgroundSize: 32,
+                                      }}
                                     >
-                                      {" "}
-                                      Drag your photo here{" "}
-                                      <span className="text-body-secondary">
-                                        or{" "}
-                                      </span>
-                                      <button className="btn btn-link p-0">
-                                        Browse from device{" "}
+                                      <div
+                                        className="star-value"
+                                        style={{ backgroundSize: 32, width: `${(formData.rating / 5) * 100}%` }}
+                                        onClick={() => setFormData({ ...formData, rating: 5 })}
+                                      />
+                                    </div> */}
+
+                                    <div className="mb-3 star-rating" style={{ display: 'flex', gap: '10px' }}>
+                                      {renderStars()} {/* Hiển thị sao */}
+                                    </div>
+
+                                    <div className="mb-3">
+                                      <h5 className="text-body-highlight mb-3">Your review</h5>
+                                      <textarea
+                                        className="form-control"
+                                        id="reviewTextarea"
+                                        rows={5}
+                                        placeholder="Write your review"
+                                        value={formData.reviewText}
+                                        onChange={(e) => setFormData({ ...formData, reviewText: e.target.value })}
+                                      />
+                                    </div>
+                                    <div
+                                      className="dropzone dropzone-multiple p-0 mb-5"
+                                      onDrop={handleDrop}
+                                      onDragOver={handleDragOver}
+                                      onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
+                                      id="my-awesome-dropzone"
+                                      data-dropzone="data-dropzone"
+                                    >
+                                      <div className="fallback">
+                                        <input
+                                          id="fileInput"
+                                          type="file"
+                                          style={{ display: "none" }} // Ẩn input
+                                          onChange={handleFileChange}
+                                          multiple="multiple" // Cho phép chọn nhiều file
+                                        />
+                                      </div>
+
+                                      {formData.images && formData.images.length > 0 ? (
+                                        <div className="dz-preview d-flex flex-wrap">
+                                          {formData.images.map((image, index) => (
+                                            <div
+                                              key={index}
+                                              className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2"
+                                              style={{ height: 120, width: 120 }}
+                                            >
+                                              <img
+                                                className="dz-image"
+                                                src={URL.createObjectURL(image)}
+                                                alt="Preview"
+                                                data-dz-thumbnail="data-dz-thumbnail"
+                                                style={{
+                                                  maxWidth: "100%",
+                                                  maxHeight: "100%",
+                                                  objectFit: "contain",
+                                                }}
+                                              />
+                                              <a
+                                                className="dz-remove text-body-quaternary"
+                                                href="#!"
+                                                data-dz-remove="data-dz-remove"
+                                                onClick={() => handleRemoveImage(index)}
+                                              >
+                                                <span data-feather="x" />
+                                              </a>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <div
+                                          className="dz-message text-body-tertiary text-opacity-85"
+                                          data-dz-message="data-dz-message"
+                                        >
+                                          Drag your photo here
+                                          <span className="text-body-secondary px-1">or</span>
+                                          <button className="btn btn-link p-0" type="button">
+                                            Browse from device
+                                          </button>
+                                          <br />
+                                          <img
+                                            className="mt-3 me-2"
+                                            src={icon}
+                                            width={40}
+                                            alt="upload icon"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="d-sm-flex flex-between-center">
+                                      <div className="form-check flex-1">
+                                        <input
+                                          className="form-check-input"
+                                          id="reviewAnonymously"
+                                          type="checkbox"
+                                          defaultChecked
+                                        />
+                                        <label className="form-check-label mb-0 text-body-emphasis fw-semibold" htmlFor="reviewAnonymously">
+                                          Review anonymously
+                                        </label>
+                                      </div>
+                                      <button className="btn ps-0" data-bs-dismiss="modal">
+                                        Close
                                       </button>
-                                      <br />
-                                      <img
-                                        className="mt-3 me-2"
-                                        src={icon}
-                                        width={24}
-                                        alt
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="d-sm-flex flex-between-center">
-                                    <div className="form-check flex-1">
-                                      <input
-                                        className="form-check-input"
-                                        id="reviewAnonymously"
-                                        type="checkbox"
-                                        defaultValue
-                                        defaultChecked
-                                      />
-                                      <label
-                                        className="form-check-label mb-0 text-body-emphasis fw-semibold"
-                                        htmlFor="reviewAnonymously"
+                                      <button
+                                        className="btn btn-primary rounded-pill"
+                                        onClick={handleSubmitReview}
                                       >
-                                        Review anonymously
-                                      </label>
+                                        Submit
+                                      </button>
                                     </div>
-                                    <button
-                                      className="btn ps-0"
-                                      data-bs-dismiss="modal"
-                                    >
-                                      Close
-                                    </button>
-                                    <button className="btn btn-primary rounded-pill">
-                                      Submit
-                                    </button>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
+                          ) : (
+                            null
+                          )}
+
                         </div>
                         <div>
                           {danhGias?.data?.data.map((danhGia, index) => (

@@ -164,10 +164,10 @@ const AddProducts = () => {
       prev.map((option, i) =>
         i === index
           ? {
-              ...option,
-              attributeId,
-              selectedValues: [],
-            }
+            ...option,
+            attributeId,
+            selectedValues: [],
+          }
           : option
       )
     );
@@ -178,11 +178,11 @@ const AddProducts = () => {
       prev.map((option, index) =>
         index === optionIndex
           ? {
-              ...option,
-              selectedValues: option.selectedValues.includes(valueId)
-                ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
-                : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
-            }
+            ...option,
+            selectedValues: option.selectedValues.includes(valueId)
+              ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
+              : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
+          }
           : option
       )
     );
@@ -433,497 +433,26 @@ const AddProducts = () => {
                 )}
               </div>
 
-              <h4 className="mb-3">Inventory</h4>
-              <div className="row g-0 border-top border-bottom">
-                <div className="col-sm-4">
-                  <div
-                    className="nav flex-sm-column border-bottom border-bottom-sm-0 border-end-sm fs-9 vertical-tab h-100 justify-content-between"
-                    role="tablist"
-                    aria-orientation="vertical"
-                  >
-                    <a
-                      className="nav-link border-end border-end-sm-0 border-bottom-sm text-center text-sm-start cursor-pointer outline-none d-sm-flex align-items-sm-center active"
-                      id="pricingTab"
-                      data-bs-toggle="tab"
-                      data-bs-target="#pricingTabContent"
-                      role="tab"
-                      aria-controls="pricingTabContent"
-                      aria-selected="true"
-                    >
-                      {""}
-                      <span
-                        className="me-sm-2 fs-4 nav-icons"
-                        data-feather="tag"
-                      />
-                      <span className="d-none d-sm-inline">Pricing</span>
-                    </a>
-                    <a
-                      className="nav-link border-end border-end-sm-0 border-bottom-sm text-center text-sm-start cursor-pointer outline-none d-sm-flex align-items-sm-center"
-                      id="restockTab"
-                      data-bs-toggle="tab"
-                      data-bs-target="#restockTabContent"
-                      role="tab"
-                      aria-controls="restockTabContent"
-                      aria-selected="false"
-                    >
-                      {""}
-                      <span
-                        className="me-sm-2 fs-4 nav-icons"
-                        data-feather="package"
-                      />
-                      <span className="d-none d-sm-inline">Restock</span>
-                    </a>
-                    <a
-                      className="nav-link border-end border-end-sm-0 border-bottom-sm text-center text-sm-start cursor-pointer outline-none d-sm-flex align-items-sm-center"
-                      id="shippingTab"
-                      data-bs-toggle="tab"
-                      data-bs-target="#shippingTabContent"
-                      role="tab"
-                      aria-controls="shippingTabContent"
-                      aria-selected="false"
-                    >
-                      {""}
-                      <span
-                        className="me-sm-2 fs-4 nav-icons"
-                        data-feather="truck"
-                      />
-                      <span className="d-none d-sm-inline">Shipping</span>
-                    </a>
-                    <a
-                      className="nav-link border-end border-end-sm-0 border-bottom-sm text-center text-sm-start cursor-pointer outline-none d-sm-flex align-items-sm-center"
-                      id="productsTab"
-                      data-bs-toggle="tab"
-                      data-bs-target="#productsTabContent"
-                      role="tab"
-                      aria-controls="productsTabContent"
-                      aria-selected="false"
-                    >
-                      {""}
-                      <span
-                        className="me-sm-2 fs-4 nav-icons"
-                        data-feather="globe"
-                      />
-                      <span className="d-none d-sm-inline">
-                        Global Delivery
-                      </span>
-                    </a>
-                    <a
-                      className="nav-link border-end border-end-sm-0 border-bottom-sm text-center text-sm-start cursor-pointer outline-none d-sm-flex align-items-sm-center"
-                      id="attributesTab"
-                      data-bs-toggle="tab"
-                      data-bs-target="#attributesTabContent"
-                      role="tab"
-                      aria-controls="attributesTabContent"
-                      aria-selected="false"
-                    >
-                      {""}
-                      <span
-                        className="me-sm-2 fs-4 nav-icons"
-                        data-feather="sliders"
-                      />
-                      <span className="d-none d-sm-inline">Attributes</span>
-                    </a>
-                    <a
-                      className="nav-link text-center text-sm-start cursor-pointer outline-none d-sm-flex align-items-sm-center"
-                      id="advancedTab"
-                      data-bs-toggle="tab"
-                      data-bs-target="#advancedTabContent"
-                      role="tab"
-                      aria-controls="advancedTabContent"
-                      aria-selected="false"
-                    >
-                      {""}
-                      <span
-                        className="me-sm-2 fs-4 nav-icons"
-                        data-feather="lock"
-                      />
-                      <span className="d-none d-sm-inline">Advanced</span>
-                    </a>
-                  </div>
-                </div>
-                <div className="col-sm-8">
-                  <div className="tab-content py-3 ps-sm-4 h-100">
-                    <div
-                      className="tab-pane fade show active"
-                      id="pricingTabContent"
-                      role="tabpanel"
-                    >
-                      <h4 className="mb-3 d-sm-none">Pricing</h4>
-                      <div className="row g-3">
-                        <div className="col-12 col-lg-6">
-                          <h5 className="mb-2 text-body-highlight">
-                            Regular price
-                          </h5>
-                          <input
-                            type="number"
-                            name="gia"
-                            className="form-control"
-                            placeholder="Nhập giá sản phẩm"
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        <div className="col-12 col-lg-6">
-                          <h5 className="mb-2 text-body-highlight">
-                            Sale price
-                          </h5>
-                          <input
-                            className="form-control"
-                            type="text"
-                            placeholder="$$$"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="tab-pane fade h-100"
-                      id="restockTabContent"
-                      role="tabpanel"
-                      aria-labelledby="restockTab"
-                    >
-                      <div className="d-flex flex-column h-100">
-                        <h5 className="mb-3 text-body-highlight">
-                          Add to Stock
-                        </h5>
-                        <div className="row g-3 flex-1 mb-4">
-                          <div className="col-sm-7">
-                            <input
-                              type="number"
-                              name="so_luong_ton_kho"
-                              className="form-control"
-                              placeholder="Nhập số lượng tồn kho"
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                          <div className="col-sm">
-                            <button className="btn btn-primary" type="button">
-                              <span className="fa-solid fa-check me-1 fs-10" />
-                              Confirm
-                            </button>
-                          </div>
-                        </div>
-                        <table>
-                          <thead>
-                            <tr>
-                              <th style={{ width: 200 }} />
-                              <th />
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td className="text-body-highlight fw-bold py-1">
-                                Product in stock now:
-                              </td>
-                              <td className="text-body-tertiary fw-semibold py-1">
-                                $1,090
-                                <button className="btn p-0" type="button">
-                                  <span
-                                    className="fa-solid fa-rotate text-body ms-1"
-                                    style={{ "--phoenix-text-opacity": ".6" }}
-                                  />
-                                </button>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="text-body-highlight fw-bold py-1">
-                                Product in transit:
-                              </td>
-                              <td className="text-body-tertiary fw-semibold py-1">
-                                5000
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="text-body-highlight fw-bold py-1">
-                                Last time restocked:
-                              </td>
-                              <td className="text-body-tertiary fw-semibold py-1">
-                                30th June, 2021
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="text-body-highlight fw-bold py-1">
-                                Total stock over lifetime:
-                              </td>
-                              <td className="text-body-tertiary fw-semibold py-1">
-                                20,000
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                    <div
-                      className="tab-pane fade h-100"
-                      id="shippingTabContent"
-                      role="tabpanel"
-                      aria-labelledby="shippingTab"
-                    >
-                      <div className="d-flex flex-column h-100">
-                        <h5 className="mb-3 text-body-highlight">
-                          Shipping Type
-                        </h5>
-                        <div className="flex-1">
-                          <div className="mb-4">
-                            <div className="form-check mb-1">
-                              <input
-                                className="form-check-input"
-                                type="radio"
-                                name="shippingRadio"
-                                id="fullfilledBySeller"
-                              />
-                              <label
-                                className="form-check-label fs-8 text-body"
-                                htmlFor="fullfilledBySeller"
-                              >
-                                Fullfilled by Seller
-                              </label>
-                            </div>
-                            <div className="ps-4">
-                              <p className="text-body-secondary fs-9 mb-0">
-                                You’ll be responsible for product delivery.{""}
-                                <br />
-                                Any damage or delay during shipping may cost you
-                                a Damage fee.
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mb-4">
-                            <div className="form-check mb-1">
-                              <input
-                                className="form-check-input"
-                                type="radio"
-                                name="shippingRadio"
-                                id="fullfilledByPhoenix"
-                                defaultChecked="checked"
-                              />
-                              <label
-                                className="form-check-label fs-8 text-body d-flex align-items-center"
-                                htmlFor="fullfilledByPhoenix"
-                              >
-                                Fullfilled by Phoenix{""}
-                                <span className="badge badge-phoenix badge-phoenix-warning fs-10 ms-2">
-                                  Recommended
-                                </span>
-                              </label>
-                            </div>
-                            <div className="ps-4">
-                              <p className="text-body-secondary fs-9 mb-0">
-                                Your product, Our responsibility.
-                                <br />
-                                For a measly fee, we will handle the delivery
-                                process for you.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="fs-9 fw-semibold mb-0">
-                          See our{""}
-                          <a className="fw-bold" href="#!">
-                            Delivery terms and conditions{""}
-                          </a>
-                          for details.
-                        </p>
-                      </div>
-                    </div>
-                    <div
-                      className="tab-pane fade"
-                      id="productsTabContent"
-                      role="tabpanel"
-                      aria-labelledby="productsTab"
-                    >
-                      <h5 className="mb-3 text-body-highlight">
-                        Global Delivery
-                      </h5>
-                      <div className="mb-3">
-                        <div className="form-check">
-                          <input
-                            className="form-check-input"
-                            type="radio"
-                            name="deliveryRadio"
-                            id="worldwideDelivery"
-                          />
-                          <label
-                            className="form-check-label fs-8 text-body"
-                            htmlFor="worldwideDelivery"
-                          >
-                            Worldwide delivery
-                          </label>
-                        </div>
-                        <div className="ps-4">
-                          <p className="fs-9 mb-0 text-body-secondary">
-                            Only available with Shipping method:{""}
-                            <a href="#!">Fullfilled by Phoenix</a>
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mb-3">
-                        <div className="form-check">
-                          <input
-                            className="form-check-input"
-                            type="radio"
-                            name="deliveryRadio"
-                            defaultChecked="checked"
-                            id="selectedCountry"
-                          />
-                          <label
-                            className="form-check-label fs-8 text-body"
-                            htmlFor="selectedCountry"
-                          >
-                            Selected Countries
-                          </label>
-                        </div>
-                        <div className="ps-4" style={{ maxWidth: 350 }}>
-                          <select
-                            className="form-select ps-4"
-                            id="organizerMultiple"
-                            data-choices="data-choices"
-                            multiple="multiple"
-                            data-options='{"removeItemButton":true,"placeholder":true}'
-                          >
-                            <option value>Type Country name</option>
-                            <option>United States of America</option>
-                            <option>United Kingdom</option>
-                            <option>Canada</option>
-                            <option>Mexico</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="form-check">
-                          <input
-                            className="form-check-input"
-                            type="radio"
-                            name="deliveryRadio"
-                            id="localDelivery"
-                          />
-                          <label
-                            className="form-check-label fs-8 text-body"
-                            htmlFor="localDelivery"
-                          >
-                            Local delivery
-                          </label>
-                        </div>
-                        <p className="fs-9 ms-4 mb-0 text-body-secondary">
-                          Deliver to your country of residence{""}
-                          <a href="#!">Change profile address </a>
-                        </p>
-                      </div>
-                    </div>
-                    <div
-                      className="tab-pane fade"
-                      id="attributesTabContent"
-                      role="tabpanel"
-                      aria-labelledby="attributesTab"
-                    >
-                      <h5 className="mb-3 text-body-highlight">Attributes</h5>
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          id="fragileCheck"
-                          type="checkbox"
-                        />
-                        <label
-                          className="form-check-label text-body fs-8"
-                          htmlFor="fragileCheck"
-                        >
-                          Fragile Product
-                        </label>
-                      </div>
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          id="biodegradableCheck"
-                          type="checkbox"
-                        />
-                        <label
-                          className="form-check-label text-body fs-8"
-                          htmlFor="biodegradableCheck"
-                        >
-                          Biodegradable
-                        </label>
-                      </div>
-                      <div className="mb-3">
-                        <div className="form-check">
-                          <input
-                            className="form-check-input"
-                            id="frozenCheck"
-                            type="checkbox"
-                            defaultChecked="checked"
-                          />
-                          <label
-                            className="form-check-label text-body fs-8"
-                            htmlFor="frozenCheck"
-                          >
-                            Frozen Product
-                          </label>
-                          <input
-                            className="form-control"
-                            type="text"
-                            placeholder="Max. allowed Temperature"
-                            style={{ maxWidth: 350 }}
-                          />
-                        </div>
-                      </div>
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          id="productCheck"
-                          type="checkbox"
-                          defaultChecked="checked"
-                        />
-                        <label
-                          className="form-check-label text-body fs-8"
-                          htmlFor="productCheck"
-                        >
-                          Expiry Date of Product
-                        </label>
-                        <input
-                          className="form-control inventory-attributes datetimepicker"
-                          id="inventory"
-                          type="text"
-                          style={{ maxWidth: 350 }}
-                          placeholder="d/m/y"
-                          data-options='{"disableMobile":true}'
-                        />
-                      </div>
-                    </div>
-                    <div
-                      className="tab-pane fade"
-                      id="advancedTabContent"
-                      role="tabpanel"
-                      aria-labelledby="advancedTab"
-                    >
-                      <h5 className="mb-3 text-body-highlight">Advanced</h5>
-                      <div className="row g-3">
-                        <div className="col-12 col-lg-6">
-                          <h5 className="mb-2 text-body-highlight">
-                            Product ID Type
-                          </h5>
-                          <select
-                            className="form-select"
-                            aria-label="form-select-lg example"
-                          >
-                            <option selected="selected">ISBN</option>
-                            <option value={1}>UPC</option>
-                            <option value={2}>EAN</option>
-                            <option value={3}>JAN</option>
-                          </select>
-                        </div>
-                        <div className="col-12 col-lg-6">
-                          <h5 className="mb-2 text-body-highlight">
-                            Product ID
-                          </h5>
-                          <input
-                            className="form-control"
-                            type="text"
-                            placeholder="ISBN Number"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <h4 className="mb-3">Giá sản phẩm</h4>
+              <input
+                type="number"
+                name="gia"
+                className="form-control"
+                placeholder="Nhập giá sản phẩm"
+                onChange={handleInputChange}
+              />
+
+
+              <h4 className="mb-3 mt-3">Số lượng tồn kho</h4>
+              <input
+                type="number"
+                name="so_luong_ton_kho"
+                className="form-control"
+                placeholder="Nhập số lượng tồn kho"
+                onChange={handleInputChange}
+              />
             </div>
+
             <div className="col-12 col-xl-4">
               <div className="row g-2">
                 <div className="col-12 col-xl-12">
@@ -1090,7 +619,7 @@ const AddProducts = () => {
               </div>
             </div>
           </div>
-        </form>
+        </form >
         <footer className="footer position-absolute">
           <div className="row g-0 justify-content-between align-items-center h-100">
             <div className="col-12 col-sm-auto text-center">
@@ -1110,7 +639,7 @@ const AddProducts = () => {
             </div>
           </div>
         </footer>
-      </div>
+      </div >
     </>
   );
 };
