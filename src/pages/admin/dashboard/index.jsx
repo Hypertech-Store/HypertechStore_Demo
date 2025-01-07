@@ -16,6 +16,7 @@ const Dashboard = () => {
 
   const [year, setYear] = useState(null); // Year starts as null
 
+  // eslint-disable-next-line no-unused-vars
   const [monthOptions, setMonthOptions] = useState([]);
   const [yearOptions, setYearOptions] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -478,137 +479,133 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
-                
               </div>
-              <div className="row">
-                  <div className="col-6">
-                    {errorMessage ? (
-                      <div className="alert alert-warning text-center mt-4">
-                        {errorMessage}
-                      </div>
-                    ) : productChartOptions && month && year ? (
-                      <div className="d-flex justify-content-center mt-4">
-                        <ReactECharts
-                          option={productChartOptions}
-                          style={{ minHeight: 750, width: "100%" }}
-                        />
-                      </div>
-                    ) : null}
 
-                  </div>
-                  <div className="col-6">
-                    <div className="row g-3">
-                      <div className="col-12 col-md-12">
-                        <div className="card h-100">
-                          <div className="card-body">
-                            <div className="d-flex justify-content-between">
-                              <div>
-                                <h5 className="mb-1">
-                                  Tổng số đơn hàng
-                                  <span className="badge badge-phoenix badge-phoenix-warning rounded-pill fs-9 ms-2">
-                                    <span className="badge-label">
-                                      {thongKeDonHang7Ngay?.ti_le_chenh_lech?.toFixed(
-                                        1
-                                      )}{" "}
-                                      %
-                                    </span>
-                                  </span>
-                                </h5>
-                                <h6 className="text-body-tertiary">7 ngày qua</h6>
-                              </div>
-                              <h4>{thongKeDonHang7Ngay?.tong_don_hang}</h4>
-                            </div>
-                            <div className="d-flex justify-content-center px-4 py-6">
-                              {ordersChartOptions ? (
-                                <ReactECharts
-                                  option={ordersChartOptions}
-                                  style={{ height: 350, width: "100%" }}
-                                />
-                              ) : (
-                                <div>Loading...</div>
-                              )}
-                            </div>
-                            <div className="mt-2">
-                              <div className="d-flex align-items-center mb-2">
-                                <div className="bullet-item bg-primary me-2" />
-                                <h6 className="text-body fw-semibold flex-1 mb-0">
-                                  Hoàn thành
-                                </h6>
-                                <h6 className="text-body fw-semibold mb-0">
-                                  {thongKeDonHang7Ngay?.ti_le_hoan_thanh % 1 === 0
-                                    ? `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
+              {errorMessage ? (
+                <div className="alert alert-warning text-center mt-4">
+                  {errorMessage}
+                </div>
+              ) : productChartOptions && month && year ? (
+                <div className="d-flex justify-content-center mt-4">
+                  <ReactECharts
+                    option={productChartOptions}
+                    style={{ minHeight: 750, width: "100%" }}
+                  />
+                </div>
+              ) : null}
+            </div>
+            <div className="col-12 col-xxl-6">
+              <div className="row g-3">
+                <div className="col-12 col-md-12">
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <div className="d-flex justify-content-between">
+                        <div>
+                          <h5 className="mb-1">
+                            Tổng số đơn hàng
+                            <span className="badge badge-phoenix badge-phoenix-warning rounded-pill fs-9 ms-2">
+                              <span className="badge-label">
+                                {thongKeDonHang7Ngay?.ti_le_chenh_lech % 1 === 0
+                                  ? `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
                                       0
                                     )}%`
-                                    : `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
+                                  : `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
                                       1
                                     )}%`}
-                                </h6>
-                              </div>
-                              <div className="d-flex align-items-center">
-                                <div className="bullet-item bg-primary-subtle me-2" />
-                                <h6 className="text-body fw-semibold flex-1 mb-0">
-                                  Chưa hoàn thành
-                                </h6>
-                                <h6 className="text-body fw-semibold mb-0">
-                                  {thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh % 1 ===
-                                    0
-                                    ? `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
-                                      0
-                                    )}%`
-                                    : `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
-                                      1
-                                    )}%`}
-                                </h6>
-                              </div>
-                            </div>
-                          </div>
+                              </span>
+                            </span>
+                          </h5>
+                          <h6 className="text-body-tertiary">7 ngày qua</h6>
                         </div>
+                        <h4>{thongKeDonHang7Ngay?.tong_don_hang}</h4>
                       </div>
-                      <div className="col-12 col-md-12">
-                        <div className="card h-100">
-                          <div className="card-body">
-                            <div className="d-flex justify-content-between">
-                              <div>
-                                <h5 className="mb-1">
-                                  Khách hàng mới
-                                  <span className="badge badge-phoenix badge-phoenix-warning rounded-pill fs-9 ms-2">
-                                    {""}
-                                    <span className="badge-label">
-                                      {thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech %
-                                        1 ===
-                                        0
-                                        ? `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
-                                          0
-                                        )}%`
-                                        : `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
-                                          1
-                                        )}%`}
-                                    </span>
-                                  </span>
-                                </h5>
-                                <h6 className="text-body-tertiary">7 ngày qua</h6>
-                              </div>
-                              <h4>{thongKeKhachHangMoi7Ngay?.tong_khach_hang}</h4>
-                            </div>
-                            <div className="d-flex justify-content-center px-4 py-6">
-                              {customerChartOptions ? (
-                                <ReactECharts
-                                  option={customerChartOptions}
-                                  style={{ height: 300, width: "100%" }}
-                                />
-                              ) : (
-                                <div>Loading...</div>
-                              )}
-                            </div>
-                          </div>
+                      <div className="d-flex justify-content-center px-4 py-6">
+                        {ordersChartOptions ? (
+                          <ReactECharts
+                            option={ordersChartOptions}
+                            style={{ height: 350, width: "100%" }}
+                          />
+                        ) : (
+                          <div>Loading...</div>
+                        )}
+                      </div>
+                      <div className="mt-2">
+                        <div className="d-flex align-items-center mb-2">
+                          <div className="bullet-item bg-primary me-2" />
+                          <h6 className="text-body fw-semibold flex-1 mb-0">
+                            Hoàn thành
+                          </h6>
+                          <h6 className="text-body fw-semibold mb-0">
+                            {thongKeDonHang7Ngay?.ti_le_hoan_thanh % 1 === 0
+                              ? `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
+                                  0
+                                )}%`
+                              : `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
+                                  1
+                                )}%`}
+                          </h6>
+                        </div>
+                        <div className="d-flex align-items-center">
+                          <div className="bullet-item bg-primary-subtle me-2" />
+                          <h6 className="text-body fw-semibold flex-1 mb-0">
+                            Chưa hoàn thành
+                          </h6>
+                          <h6 className="text-body fw-semibold mb-0">
+                            {thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh % 1 ===
+                            0
+                              ? `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
+                                  0
+                                )}%`
+                              : `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
+                                  1
+                                )}%`}
+                          </h6>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-
+                <div className="col-12 col-md-12">
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <div className="d-flex justify-content-between">
+                        <div>
+                          <h5 className="mb-1">
+                            Khách hàng mới
+                            <span className="badge badge-phoenix badge-phoenix-warning rounded-pill fs-9 ms-2">
+                              {""}
+                              <span className="badge-label">
+                                {thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech %
+                                  1 ===
+                                0
+                                  ? `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
+                                      0
+                                    )}%`
+                                  : `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
+                                      1
+                                    )}%`}
+                              </span>
+                            </span>
+                          </h5>
+                          <h6 className="text-body-tertiary">7 ngày qua</h6>
+                        </div>
+                        <h4>{thongKeKhachHangMoi7Ngay?.tong_khach_hang}</h4>
+                      </div>
+                      <div className="d-flex justify-content-center px-4 py-6">
+                        {customerChartOptions ? (
+                          <ReactECharts
+                            option={customerChartOptions}
+                            style={{ height: 300, width: "100%" }}
+                          />
+                        ) : (
+                          <div>Loading...</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-
           </div>
         </div>
         <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis pt-7 border-y">
@@ -820,8 +817,9 @@ const Dashboard = () => {
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
                         key={index}
-                        className={`page-item ${currentPage === index + 1 ? "active" : ""
-                          }`}
+                        className={`page-item ${
+                          currentPage === index + 1 ? "active" : ""
+                        }`}
                       >
                         <button
                           className="page-link"
