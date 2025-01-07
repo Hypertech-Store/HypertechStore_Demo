@@ -117,14 +117,6 @@ const EditProducts = () => {
   console.log(productId); // Kiểm tra productId
 
   const [productData, setProductData] = useState(null);
-  const [ngayKetThucSale, setNgayKetThucSale] = useState(null);
-  const [images, setImages] = useState([]);
-  const [colorAttribute, setColorAttribute] = useState("");
-  const [colorName, setColorName] = useState("");
-  const [dungLuongOptions, setDungLuongOptions] = useState([]);
-  const [otherAttributes, setOtherAttributes] = useState([]);
-  const [dungLuongName, setDungLuongName] = useState("");
-  const [colorVariants, setColorVariants] = useState([]);
 
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
@@ -142,51 +134,6 @@ const EditProducts = () => {
         const data = await response.json();
         console.log("Product data:", data);
         setProductData(data);
-
-        setNgayKetThucSale(data.sale?.ngay_ket_thuc_sale || null);
-
-        if (data.hinh_anh_bien_the_san_pham) {
-          const imageLinks = data.hinh_anh_bien_the_san_pham.flatMap((item) =>
-            item.hinh_anh.map(
-              (image) => `${baseUrl}${image.duong_dan_hinh_anh}`
-            )
-          );
-          setImages(imageLinks);
-        }
-
-        // Xử lý thuộc tính "Màu sắc"
-        const colorAttributeData = data.gia_tri_thuoc_tinh?.find(
-          (item) => item.thuoc_tinh_san_pham?.ten_thuoc_tinh === "Màu sắc"
-        );
-        setColorAttribute(
-          colorAttributeData?.thuoc_tinh_san_pham?.ten_thuoc_tinh || "Màu sắc"
-        );
-        setColorName(colorAttributeData?.gia_tri || "Chưa chọn màu");
-
-        // Hiển thị các biến thể màu sắc (nếu có)
-        if (data.hinh_anh_bien_the_san_pham) {
-          const colorVariantsData = data.hinh_anh_bien_the_san_pham.flatMap(
-            (item) =>
-              item.hinh_anh.map((image) => ({
-                colorName: image.ten_gia_tri,
-                imageUrl: `${baseUrl}${image.duong_dan_hinh_anh}`,
-              }))
-          );
-          setColorVariants(colorVariantsData);
-        }
-
-        // Xử lý thuộc tính "Dung lượng"
-        const capacityAttributeData = data.grouped_attributes?.["Dung lượng"];
-        if (capacityAttributeData) {
-          setDungLuongOptions(capacityAttributeData.ten_gia_tri || []);
-          setDungLuongName("Dung lượng");
-        }
-
-        // Xử lý các thuộc tính khác (không phải Màu sắc và Dung lượng)
-        const otherAttributesData = Object.keys(
-          data.grouped_attributes || {}
-        ).filter((key) => key !== "Màu sắc" && key !== "Dung lượng");
-        setOtherAttributes(otherAttributesData);
 
         if (data.sanPham?.danh_muc_id) {
           fetchSubCategories(data.sanPham.danh_muc_id); // Pass categoryId
@@ -417,7 +364,13 @@ const EditProducts = () => {
                                 Thêm danh mục
                               </a>
                             </div>
-                            <select className="form-select mb-3" aria-label="Danh mục">
+                            <select className="form-select mb-3" aria-label="Danh mục"
+                            onChange={(e) => {
+                              const categoryId = e.target.value;
+                              setFormData({ ...formData, danh_muc_id: categoryId, danh_muc_con_id: "" }); // Reset subcategory when category changes
+                              fetchSubCategories(categoryId); // Fetch subcategories for the selected category
+                            }}
+                            >
                               <option value="">Chọn danh mục...</option>
                               {categories.length > 0 &&
                                 categories.map((category) => (
@@ -449,7 +402,12 @@ const EditProducts = () => {
                               </a>
                             </div>
                       
-                            <select className="form-select mb-3" aria-label="Danh mục">
+                            <select className="form-select mb-3" aria-label="Danh mục"
+                            onChange={(e) => {
+                              const subCategoryId = e.target.value;
+                              setFormData({ ...formData, danh_muc_con_id: subCategoryId }); // Update formData for subcategory
+                            }}
+                            >
                             <option value="">Chọn danh mục con...</option>
                               {subCategories.length > 0 &&
                                 subCategories.map((category) => (
