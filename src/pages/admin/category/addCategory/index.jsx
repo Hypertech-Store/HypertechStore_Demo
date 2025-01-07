@@ -1,10 +1,20 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 const AddCategory = () => {
   const [tenDanhMuc, setTenDanhMuc] = useState("");
   const [moTa, setMoTa] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  const breadcrumbTitles = {
+    "admin/them-danh-muc": "Thêm danh mục", // Đây là URL không có "/"
+  };
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); 
+
   const navigate = useNavigate(); // Khởi tạo useNavigate để điều hướng
 
   const handleSubmit = async (e) => {
@@ -18,7 +28,7 @@ const AddCategory = () => {
         setLoading(false);
         return; // Dừng lại nếu dữ liệu không hợp lệ
       }
-    
+
       const response = await fetch("http://127.0.0.1:8000/api/danh-muc/", {
         method: "POST",
         headers: {
@@ -51,21 +61,18 @@ const AddCategory = () => {
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <a href="#">Page 1</a>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
-          <li className="breadcrumb-item">
-            <a href="#">Page 2</a>
+
+          <li className="breadcrumb-item active" aria-current="page">
+            {currentTitle}
           </li>
-          <li className="breadcrumb-item active">Default</li>
         </ol>
       </nav>
       <form onSubmit={handleSubmit}>
         <div className="row g-3 flex-between-end mb-5">
           <div className="col-auto">
             <h2 className="mb-2">Thêm danh mục</h2>
-            <h5 className="text-body-tertiary fw-semibold">
-              Orders placed across your store
-            </h5>
           </div>
           <div className="col-auto">
             <button
@@ -83,7 +90,7 @@ const AddCategory = () => {
             <input
               className="form-control mb-5"
               type="text"
-              placeholder="Write title here..."
+              placeholder="Nhập tên danh mục"
               value={tenDanhMuc}
               onChange={(e) => setTenDanhMuc(e.target.value)}
               required
@@ -93,7 +100,7 @@ const AddCategory = () => {
               <textarea
                 className="form-control"
                 id="floatingTextarea2"
-                placeholder="Leave a comment here"
+                placeholder="Nhập mô tả"
                 style={{ height: 100 }}
                 value={moTa}
                 onChange={(e) => setMoTa(e.target.value)}

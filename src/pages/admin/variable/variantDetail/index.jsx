@@ -6,7 +6,7 @@ import axios from "axios";
 
 const ListValue = () => {
   const breadcrumbTitles = {
-    "admin/chi-tiet-bien-the": "Variant detail", // Đây là URL không có "/"
+    "admin/chi-tiet-bien-the": "Danh sách biến thể", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -23,36 +23,40 @@ const ListValue = () => {
 
   const [imagePreview, setImagePreview] = useState(""); // Hình ảnh xem trước
   const [data, setData] = useState([]);
-  const [pagination, setPagination] = useState({});
   const [variantId, setVariantId] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0); // Total number of items
+  const [totalPages, setTotalPages] = useState(1);
+  const [bienThePerPage, setBienThe] = useState(10);
 
-  // Hàm gọi API để lấy dữ liệu
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/get-bien-the-paginate")
-      .then((response) => response.json())
-      .then((data) => {
-        setData(data.data);
-        setPagination(data.pagination); // Lưu thông tin phân trang
-      })
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
-
+  
   // console.log(data);
 
-  const handlePageChange = (page) => {
-    // Kiểm tra nếu trang không hợp lệ
-    if (page < 1 || page > pagination.last_page) return;
+  useEffect(() => {
+    // Fetch data for the current page
+    axios
+      .get(
+        `http://127.0.0.1:8000/api/get-bien-the-paginate?page=${currentPage}&limit=${bienThePerPage}`
+      )
+      .then((response) => {
+        console.log(response);
+        
+        setData(response.data.data); 
+        setTotalItems(response.data.total); 
+        setTotalPages(response.data.last_page); 
+        console.log(totalPages);
 
-    // Gọi API để lấy dữ liệu trang mới
-    fetch(`http://127.0.0.1:8000/api/get-bien-the-paginate?page=${page}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setData(data.data); // Lưu dữ liệu vào state
-        setPagination(data.pagination); // Lưu thông tin phân trang
       })
-      .catch((error) => console.error("Error fetching data:", error));
-  };
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, [currentPage]);
 
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
   // Hàm xử lý khi ảnh được thả vào khu vực dropzone
   const handleDrop = (e) => {
     e.preventDefault();
@@ -85,7 +89,7 @@ const ListValue = () => {
     setFormData({
       image:
         "http://127.0.0.1:8000/storage/" +
-          bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || "",
+        bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || "",
       gia: bienThe.bienTheSanPham.gia,
       so_luong_kho: bienThe.bienTheSanPham.so_luong_kho,
       san_pham_id: bienThe.bienTheSanPham.san_pham_id,
@@ -94,22 +98,13 @@ const ListValue = () => {
     // Set the image preview if there is an image
     setImagePreview(
       "http://127.0.0.1:8000/storage/" +
-        bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || ""
+      bienThe.hinhAnhSanPham[0]?.duong_dan_hinh_anh || ""
     );
   };
 
-  const refreshVariants = async () => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/get-bien-the-paginate');
-      const data = await response.json();
-      setData(data.data);
-      setPagination(data.pagination);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
+  const handleUpdateVariant = async (event) => {
+    event.preventDefault(); // Ngừng hành vi mặc định của form
 
-  const handleUpdateVariant = async () => {
     try {
       if (!variantId) {
         alert('Không tìm thấy ID biến thể để cập nhật!');
@@ -122,16 +117,17 @@ const ListValue = () => {
       }
 
       const formDataToSend = new FormData();
-
       formDataToSend.append('san_pham_id', formData.san_pham_id);
+
       if (formData.image) {
         formDataToSend.append('image', formData.image);
       }
+
       formDataToSend.append('gia', formData.gia);
       formDataToSend.append('so_luong_kho', formData.so_luong_kho);
       formDataToSend.append('_method', 'PUT');
 
-
+      // Gửi yêu cầu cập nhật bằng axios
       const response = await axios.post(
         `http://127.0.0.1:8000/api/bien-the-san-pham/${variantId}`,
         formDataToSend,
@@ -147,7 +143,24 @@ const ListValue = () => {
       if (updatedData && updatedData.id) {
         setImagePreview(updatedData.image || "");
         alert('Cập nhật biến thể thành công!');
-        await refreshVariants(); 
+
+        
+
+        axios
+          .get(
+            `http://127.0.0.1:8000/api/get-bien-the-paginate?page=${currentPage}&limit=${bienThePerPage}`
+          )
+          .then((response) => {
+            setData(response.data.data);
+            setTotalItems(response.data.total);
+            setTotalPages(response.data.last_page);
+          })
+          .catch((error) => {
+            console.error("Error fetching data:", error);
+          });
+
+
+        // Đóng modal sau khi cập nhật
         const modalElement = document.getElementById('updateCustomer');
         const modalInstance = bootstrap.Modal.getInstance(modalElement);
         if (modalInstance) modalInstance.hide();
@@ -161,6 +174,7 @@ const ListValue = () => {
       alert('Cập nhật thất bại! Chi tiết: ' + errorMessage);
     }
   };
+
 
 
   const handleRemoveImage = () => {
@@ -205,7 +219,7 @@ const ListValue = () => {
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <Link to="/admin">Dashboard</Link>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
 
           <li className="breadcrumb-item active" aria-current="page">
@@ -216,7 +230,7 @@ const ListValue = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0 mt-3">List variant detail</h2>
+            <h2 className="mb-0 mt-3">Danh sách biến thể</h2>
           </div>
           <div className="col-auto ms-auto mt-3">
             <div className="search-box">
@@ -224,7 +238,7 @@ const ListValue = () => {
                 <input
                   className="form-control search-input search"
                   type="search"
-                  placeholder="Search customers"
+                  placeholder="Tìm kiếm biến thể"
                   aria-label="Search"
                 />
                 <span className="fas fa-search search-box-icon" />
@@ -245,11 +259,11 @@ const ListValue = () => {
                     <th
                       className="white-space-nowrap fs-9 align-middle ps-0"
                       scope="col"
-                      style={{ width: "10%" }}
+                      style={{ width: "5%" }}
                     >
                       STT
                     </th>
-                    <th className="align-middle" style={{ width: "20%" }}>
+                    <th className="align-middle" style={{ width: "15%" }}>
                       SẢN PHẨM
                     </th>
                     <th className="align-middle" style={{ width: "20%" }}>
@@ -293,13 +307,13 @@ const ListValue = () => {
                   ) : (
                     data.map((item, index) => (
                       <tr key={item.bienTheSanPham.id}>
-                        <td>
-                          {(pagination.current_page - 1) * 10 + index + 1}
-                        </td>
+                        <td className="align-middle">
+                          {(currentPage - 1) * 10 + index + 1}
+                        </td >
                         <td>{item.bienTheSanPham.san_pham.ten_san_pham}</td>
                         <td className="tags align-middle review pb-2 ps-3">
                           {item.hinhAnhSanPham &&
-                          Array.isArray(item.hinhAnhSanPham) ? (
+                            Array.isArray(item.hinhAnhSanPham) ? (
                             item.hinhAnhSanPham.map((link, index) => (
                               <img
                                 key={index} // Dùng index hoặc một thuộc tính duy nhất từ đối tượng link như ID
@@ -364,7 +378,7 @@ const ListValue = () => {
               {/* Hiển thị số trang */}
               <div className="col-auto d-flex">
                 <p className="mb-0 me-3 fw-semibold text-body">
-                  Trang {pagination.current_page} / {pagination.last_page}
+                  Trang {currentPage} / {totalPages}
                 </p>
               </div>
 
@@ -373,24 +387,23 @@ const ListValue = () => {
                 {/* Nút Previous */}
                 <button
                   className="page-link"
-                  onClick={() => handlePageChange(pagination.current_page - 1)}
-                  disabled={pagination.current_page === 1}
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
                 >
                   <span className="fas fa-chevron-left" />
                 </button>
 
                 {/* Danh sách các trang */}
                 <ul className="pagination mb-0">
-                  {Array.from({ length: pagination.last_page }, (_, index) => (
+                  {Array.from({ length: totalPages }, (_, index) => (
                     <li
                       key={index + 1}
-                      className={`page-item ${
-                        pagination.current_page === index + 1 ? "active" : ""
-                      }`}
+                      className={`page-item ${currentPage === index + 1 ? "active" : ""
+                        }`}
                     >
                       <button
                         className="page-link"
-                        onClick={() => handlePageChange(index + 1)}
+                        onClick={() => goToPage(index + 1)}
                       >
                         {index + 1}
                       </button>
@@ -401,8 +414,8 @@ const ListValue = () => {
                 {/* Nút Next */}
                 <button
                   className="page-link pe-0"
-                  onClick={() => handlePageChange(pagination.current_page + 1)}
-                  disabled={pagination.current_page === pagination.last_page}
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
                 >
                   <span className="fas fa-chevron-right" />
                 </button>
@@ -498,7 +511,7 @@ const ListValue = () => {
                             <img
                               className="dz-image"
                               src={formData.image} // Hiển thị ảnh từ formData nếu không có imgPreview
-                              alt="Preview"
+                              alt="Ảnh biến thể"
                               data-dz-thumbnail="data-dz-thumbnail"
                               style={{
                                 maxWidth: "100%",

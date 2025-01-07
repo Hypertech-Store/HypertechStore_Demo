@@ -15,10 +15,9 @@ const ListSubcategory = () => {
   });
   const [subCategoryId, setSubCategoryId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0); // Total number of items
   const [totalPages, setTotalPages] = useState(1);
-  // eslint-disable-next-line no-unused-vars
   const [subCategorysPerPage, setSubCategorysPerPage] = useState(10);
+  
   const [categories, setCategories] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
   const [imgSubCate, setImgSubCate] = useState(null);
@@ -43,7 +42,6 @@ const ListSubcategory = () => {
     };
   }, [previewImage]);
 
-  console.log(previewImage);
 
   useEffect(() => {
     // Fetch data for the current page
@@ -53,7 +51,6 @@ const ListSubcategory = () => {
       )
       .then((response) => {
         setSubCategories(response.data.data); // Dữ liệu của trang hiện tại
-        setTotalItems(response.data.total); // Total number of items (could be `total` in the response)
         setTotalPages(response.data.last_page); // Tổng số trang
       })
       .catch((error) => {
@@ -110,6 +107,15 @@ const ListSubcategory = () => {
   // Handle category selection in the table
   const updateSubCategory = async () => {
     try {
+      if (!subCategoryDetails.danh_muc_id) {
+        alert("Vui lòng chọn danh mục cha.");
+        return;
+      }
+
+      if (!subCategoryDetails.ten_danh_muc_con) {
+        alert("Vui lòng nhập tên danh mục con.");
+        return;
+      }
       // Kiểm tra dữ liệu subCategoryDetails
       console.log("subCategoryDetails:", subCategoryDetails);
 
@@ -128,7 +134,6 @@ const ListSubcategory = () => {
         );
       }
 
-      // Kiểm tra và thêm hình ảnh vào formData nếu có
       if (subCategoryDetails.image) {
         formData.append("image", subCategoryDetails.image);
       }
@@ -140,6 +145,8 @@ const ListSubcategory = () => {
       formData.append("_method", "PUT");
 
       console.log("Form data trước khi gửi:", formData);
+
+      console.log(subCategoryId);
 
       // Gửi dữ liệu đến API
       const response = await axios.post(
@@ -156,18 +163,18 @@ const ListSubcategory = () => {
       if (response.status === 200) {
         alert("Cập nhật danh mục con thành công!");
 
-        setSubCategories((prev) =>
-          prev.map((cat) =>
-            cat.id === subCategoryId
-              ? {
-                  ...cat,
-                  ten_danh_muc_con: subCategoryDetails.ten_danh_muc_con,
-                  img: subCategoryDetails.image, // Cập nhật hình ảnh mới
-                  danh_muc_id: subCategoryDetails.danh_muc_id,
-                }
-              : cat
+        axios
+          .get(
+            `http://127.0.0.1:8000/api/danh-muc-con?page=${currentPage}&limit=${subCategorysPerPage}`
           )
-        );
+          .then((response) => {
+            setSubCategories(response.data.data);
+            setTotalItems(response.data.total);
+            setTotalPages(response.data.last_page);
+          })
+          .catch((error) => {
+            console.error("Error fetching data:", error);
+          });
 
         const modal = document.getElementById("updateCustomer");
         if (modal) {
@@ -224,7 +231,7 @@ const ListSubcategory = () => {
         <nav className="mb-3" aria-label="breadcrumb">
           <ol className="breadcrumb mb-0">
             <li className="breadcrumb-item">
-              <Link to="/admin">Dashboard</Link>
+              <Link to="/admin">Bảng điều khiển</Link>
             </li>
 
             <li className="breadcrumb-item active" aria-current="page">
@@ -250,18 +257,18 @@ const ListSubcategory = () => {
                     <input
                       className="form-control search-input search"
                       type="search"
-                      placeholder="Search products"
+                      placeholder="Tìm kiếm danh mục"
                       aria-label="Search"
                     />
                     <span className="fas fa-search search-box-icon" />
                   </form>
                 </div>
 
-                <div className="ms-xxl-auto">
+                <div className="ms-xxl-auto ms-auto">
                   <button
                     className="btn btn-primary"
-                    id="addBtn"
                     onClick={handleAddSubClick}
+                    id="addBtn"
                   >
                     <span className="fas fa-plus me-2" />
                     Thêm danh mục con
@@ -274,12 +281,47 @@ const ListSubcategory = () => {
                 <table className="table fs-9 mb-0">
                   <thead>
                     <tr>
-                      <th style={{ width: "5%" }}>STT</th>
-                      <th style={{ width: "30%" }}>Tên danh mục</th>
-                      <th style={{ width: "35%" }}>Tên danh mục con</th>
-                      <th style={{ width: "20%" }}>Hình ảnh danh mục con</th>
-                      <th style={{ width: "10%" }}>Ngày tạo</th>
-                      <th></th>
+                      <th
+                        className="white-space-nowrap fs-9 align-middle ps-0"
+                        scope="col"
+                        style={{ width: "10%" }}
+                      >
+                        STT
+                      </th>
+                      <th
+                        className="white-space-nowrap align-middle ps-4"
+                        scope="col"
+                        style={{ width: "20%" }}
+                        data-sort="product"
+                      >
+                        DANH MỤC
+                      </th>
+                      <th
+                        className="white-space-nowrap align-middle ps-4"
+                        scope="col"
+                        style={{ width: "20%" }}
+                        data-sort="product"
+                      >
+                        DANH MỤC CON
+                      </th>
+                      <th
+                        className="align-middle ps-3"
+                        scope="col"
+                        style={{ width: "15%" }}
+                      >
+                        HÌNH ẢNH
+                      </th>
+
+                      <th
+                        className="align-middle ps-4"
+                        scope="col"
+                        style={{ width: "25%" }}
+                      >
+                        NGÀY TẠO
+                      </th>
+                      <th className="align-middle ps-4" style={{ width: "30%" }}>
+                        HÀNH ĐỘNG
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="list" id="products-table-body">
@@ -306,7 +348,7 @@ const ListSubcategory = () => {
                           />
                         </td>
                         <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
-                          {formatDate(subCategory.created_at)}
+                          {new Date(subCategory.created_at).toLocaleString()}
                         </td>
 
                         <td className="align-middle white-space-nowrap">
@@ -362,9 +404,8 @@ const ListSubcategory = () => {
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
                         key={index + 1}
-                        className={`page-item ${
-                          currentPage === index + 1 ? "active" : ""
-                        }`}
+                        className={`page-item ${currentPage === index + 1 ? "active" : ""
+                          }`}
                       >
                         <button
                           className="page-link"
@@ -402,7 +443,7 @@ const ListSubcategory = () => {
           <div className="modal-dialog modal-l modal-dialog-centered">
             <div className="modal-content bg-body-highlight p-6">
               <div className="modal-header justify-content-between border-0 p-0 mb-2">
-                <h3 className="mb-0">Edit Category</h3>
+                <h3 className="mb-0">Sửa danh mục con</h3>
                 <button
                   className="btn btn-sm btn-phoenix-secondary"
                   data-bs-dismiss="modal"
@@ -418,8 +459,9 @@ const ListSubcategory = () => {
                       <label className="text-body-highlight fw-bold mb-2">
                         Danh mục
                       </label>
+
                       <select
-                        className="form-control"
+                        className="form-select"
                         value={subCategoryDetails.danh_muc_id} // Gán giá trị cho select dựa trên danh_muc_id
                         onChange={(e) =>
                           setSubCategoryDetails({
@@ -428,7 +470,9 @@ const ListSubcategory = () => {
                           })
                         }
                       >
-                        <option value="">Chọn danh mục</option>
+                        <option value="" disabled>
+                          Chọn danh mục
+                        </option>
                         {categories.map((category) => (
                           <option
                             key={category.id}
@@ -471,7 +515,7 @@ const ListSubcategory = () => {
                         onChange={handleFileChange} // Call the file change handler
                       />
                       {previewImage ||
-                      (imgSubCate && imgSubCate.trim() !== "") ? (
+                        (imgSubCate && imgSubCate.trim() !== "") ? (
                         <img
                           src={previewImage || `${link}${imgSubCate}`}
                           alt="imgSubCate"

@@ -6,7 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 const listCategory = () => {
   const navigate = useNavigate();
   const breadcrumbTitles = {
-    "admin/danh-sach-danh-muc": "List category", // Đây là URL không có "/"
+    "admin/danh-sach-danh-muc": "Danh sách danh mục", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -32,13 +32,13 @@ const listCategory = () => {
         `http://127.0.0.1:8000/api/danh-muc?page=${currentPage}&limit=${CategorysPerPage}`
       )
       .then((response) => {
-        setCategories(response.data.data); 
-        setTotalPages(response.data.last_page); 
+        setCategories(response.data.data);
+        setTotalPages(response.data.last_page);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
-  }, [currentPage, CategorysPerPage]); 
+  }, [currentPage, CategorysPerPage]);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -47,21 +47,25 @@ const listCategory = () => {
   };
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A"; 
+    if (!dateStr) return "N/A";
     const date = new Date(dateStr);
     const options = {
       day: "numeric",
-      month: "short", 
-      year: "numeric", 
-      hour: "2-digit", 
-      minute: "2-digit", 
-      hour12: true, 
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     };
 
     return date.toLocaleString("en-US", options);
   };
 
   const updateCategory = async () => {
+    if (!categoryDetails.name || !categoryDetails.description) {
+      alert("Vui lòng nhập đầy đủ tên danh mục và mô tả.");
+      return;
+    }
     try {
       const response = await axios.put(
         `http://127.0.0.1:8000/api/danh-muc/${categoryId}`,
@@ -76,10 +80,10 @@ const listCategory = () => {
           prev.map((cat) =>
             cat.id === categoryId
               ? {
-                  ...cat,
-                  ten_danh_muc: categoryDetails.name,
-                  mo_ta: categoryDetails.description,
-                }
+                ...cat,
+                ten_danh_muc: categoryDetails.name,
+                mo_ta: categoryDetails.description,
+              }
               : cat
           )
         );
@@ -105,7 +109,7 @@ const listCategory = () => {
       const response = await axios.delete(
         `http://127.0.0.1:8000/api/danh-muc/${id}`
       );
-      
+
       if (response.status === 200) {
         alert("Xóa danh mục thành công!");
         // Loại bỏ danh mục khỏi danh sách
@@ -124,7 +128,7 @@ const listCategory = () => {
       description: category.mo_ta,
     });
   };
-  
+
   const handleAddCategoryClick = () => {
     navigate("/admin/them-danh-muc"); // Navigate to the 'them-danh-muc' page
   };
@@ -134,7 +138,7 @@ const listCategory = () => {
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <Link to="/admin">Dashboard</Link>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
 
           <li className="breadcrumb-item active" aria-current="page">
@@ -145,7 +149,7 @@ const listCategory = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List category</h2>
+            <h2 className="mb-0">Danh sách danh mục</h2>
           </div>
         </div>
 
@@ -160,7 +164,7 @@ const listCategory = () => {
                   <input
                     className="form-control search-input search"
                     type="search"
-                    placeholder="Search products"
+                    placeholder="Tìm kiếm danh mục"
                     aria-label="Search"
                   />
                   <span className="fas fa-search search-box-icon" />
@@ -174,7 +178,7 @@ const listCategory = () => {
                   id="addBtn"
                 >
                   <span className="fas fa-plus me-2" />
-                  Add category
+                  Thêm danh mục
                 </button>
               </div>
             </div>
@@ -194,17 +198,17 @@ const listCategory = () => {
                     <th
                       className="white-space-nowrap align-middle ps-4"
                       scope="col"
-                      style={{ width: "30%" }}
+                      style={{ width: "25%" }}
                       data-sort="product"
                     >
-                      CATEGORY NAME
+                      TÊN DANH MỤC
                     </th>
                     <th
                       className="align-middle ps-3"
                       scope="col"
-                      style={{ width: "25%" }}
+                      style={{ width: "20%" }}
                     >
-                      DESCRIPTION
+                      MÔ TẢ
                     </th>
 
                     <th
@@ -212,10 +216,10 @@ const listCategory = () => {
                       scope="col"
                       style={{ width: "25%" }}
                     >
-                      PUBLISHED ON
+                      NGÀY TẠO
                     </th>
-                    <th className="align-middle ps-4" style={{ width: "5%" }}>
-                      ACTION
+                    <th className="align-middle ps-4" style={{ width: "20%" }}>
+                      HÀNH ĐỘNG
                     </th>
                   </tr>
                 </thead>
@@ -233,7 +237,7 @@ const listCategory = () => {
                       </td>
 
                       <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
-                        {formatDate(category.created_at)}
+                        {new Date(category.created_at).toLocaleString()}
                       </td>
 
                       <td className="align-middle white-space-nowrap">
@@ -296,9 +300,8 @@ const listCategory = () => {
                   ))}
                 </ul>
                 <button
-                  className={`page-link ${
-                    currentPage === totalPages ? "disabled" : ""
-                  }`}
+                  className={`page-link ${currentPage === totalPages ? "disabled" : ""
+                    }`}
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
@@ -321,7 +324,7 @@ const listCategory = () => {
         <div className="modal-dialog modal-l modal-dialog-centered">
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Edit Category</h3>
+              <h3 className="mb-0">Sửa danh mục</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -335,7 +338,7 @@ const listCategory = () => {
                 <div className="col-lg-12">
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Category Name
+                      Tên danh mục
                     </label>
                     <input
                       className="form-control"
@@ -351,7 +354,7 @@ const listCategory = () => {
                   </div>
                   <div className="mb-4">
                     <label className="text-body-highlight fw-bold mb-2">
-                      Description
+                      Mô tả
                     </label>
                     <input
                       className="form-control"
@@ -374,10 +377,10 @@ const listCategory = () => {
                 data-bs-dismiss="modal"
                 aria-label="Close"
               >
-                Cancel
+                Hủy
               </button>
               <button className="btn btn-primary my-0" onClick={updateCategory}>
-                Update
+                Cập nhật
               </button>
             </div>
           </div>

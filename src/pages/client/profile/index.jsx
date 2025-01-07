@@ -176,6 +176,7 @@ function Profile() {
           email: data?.data?.email,
           dien_thoai: data?.data?.dien_thoai,
           dia_chi: data?.data?.dia_chi,
+          ngay_sinh: data?.data?.ngay_sinh
         };
 
         localStorage.setItem("userInfo", JSON.stringify(updatedUser));
@@ -197,21 +198,25 @@ function Profile() {
   //   Handle form data change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    // Xử lý ngày sinh
-    if (name === "ngay" || name === "thang" || name === "nam") {
-      setFormData((prevData) => ({
+  
+    setFormData((prevData) => {
+      const updatedData = {
         ...prevData,
-        [name]: value,
-        ngay_sinh: `${prevData.nam}-${prevData.thang}-${prevData.ngay}`, // Cập nhật trường ngày sinh
-      }));
-    } else {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    }
+        [name]: value, // Chỉ cập nhật trường đang thay đổi
+      };
+  
+      // Chỉ cập nhật `ngay_sinh` nếu có đủ `ngay`, `thang`, `nam`
+      if (updatedData.nam && updatedData.thang && updatedData.ngay) {
+        updatedData.ngay_sinh = `${updatedData.nam}-${updatedData.thang}-${updatedData.ngay}`;
+      } else {
+        updatedData.ngay_sinh = prevData.ngay_sinh; // Giữ nguyên nếu thiếu thông tin
+      }
+  
+      return updatedData;
+    });
   };
+  
+  
 
   const years = Array.from({ length: 2025 - 1990 + 1 }, (v, i) => 1990 + i);
 

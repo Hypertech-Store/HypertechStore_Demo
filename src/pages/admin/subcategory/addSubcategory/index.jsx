@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import icon from "../../../../assets/img/icons/image-icon.png";
-
+import { Link, useNavigate } from "react-router-dom";
 const addSubcategory = () => {
   const [categories, setCategories] = useState([]);
   const [subcategoryName, setSubcategoryName] = useState("");
@@ -9,7 +9,14 @@ const addSubcategory = () => {
   const [subcategoryImage, setSubcategoryImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [avatar, setAvatar] = useState(null);
-  
+  const navigate = useNavigate();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+  const breadcrumbTitles = {
+    "admin/them-danh-muc-con": "Thêm danh mục con", // Đây là URL không có "/"
+  };
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase();
   // Fetch danh mục
   useEffect(() => {
     const fetchCategories = async () => {
@@ -24,7 +31,37 @@ const addSubcategory = () => {
     fetchCategories();
   }, []);
 
-  // Xử lý submit
+  // Xử lý thay đổi ảnh
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSubcategoryImage(file);
+      setPreviewImage(URL.createObjectURL(file));
+    } else {
+      setSubcategoryImage(null);
+      setPreviewImage(null);
+    }
+  };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setSubcategoryImage(file);
+      setPreviewImage(URL.createObjectURL(file));
+    } else {
+      setSubcategoryImage(null);
+      setPreviewImage(null);
+    }
+  };
+  const handleFileChange = (e) => {
+    handleImageChange(e); // Sử dụng lại hàm `handleImageChange`
+  };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedCategory || !subcategoryName || !subcategoryImage) {
@@ -37,8 +74,6 @@ const addSubcategory = () => {
     formData.append("ten_danh_muc_con", subcategoryName);
     formData.append("image", subcategoryImage);
 
-    console.log(formData);
-
     try {
       await axios.post("http://127.0.0.1:8000/api/danh-muc-con", formData, {
         headers: {
@@ -46,20 +81,13 @@ const addSubcategory = () => {
         },
       });
       alert("Thêm danh mục con thành công!");
+      navigate("/admin/danh-sach-danh-muc-con");
     } catch (error) {
       console.error("Error adding subcategory:", error);
       alert("Thêm danh mục con thất bại!");
     }
   };
 
-  // Xử lý thay đổi ảnh
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSubcategoryImage(file);
-      setPreviewImage(URL.createObjectURL(file));
-    }
-  };
 
 
   return (
@@ -67,37 +95,22 @@ const addSubcategory = () => {
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <a href="#!">Page 1</a>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
-          <li className="breadcrumb-item">
-            <a href="#!">Page 2</a>
+
+          <li className="breadcrumb-item active" aria-current="page">
+            {currentTitle}
           </li>
-          <li className="breadcrumb-item active">Default</li>
         </ol>
       </nav>
       <form className="mb-9" onSubmit={handleSubmit}>
         <div className="row g-3 flex-between-end mb-5">
           <div className="col-auto">
             <h2 className="mb-2">Thêm mới danh mục con</h2>
-            <h5 className="text-body-tertiary fw-semibold">
-              Orders placed across your store
-            </h5>
           </div>
           <div className="col-auto">
-            <button
-              className="btn btn-phoenix-secondary me-2 mb-2 mb-sm-0"
-              type="button"
-            >
-              Discard
-            </button>
-            <button
-              className="btn btn-phoenix-primary me-2 mb-2 mb-sm-0"
-              type="button"
-            >
-              Save draft
-            </button>
             <button className="btn btn-primary mb-2 mb-sm-0" type="submit">
-              Publish subcategory
+              Tạo danh mục con
             </button>
           </div>
         </div>
@@ -107,7 +120,7 @@ const addSubcategory = () => {
             <input
               className="form-control mb-5"
               type="text"
-              placeholder="Write title here..."
+              placeholder="Nhập tên danh mục con"
               value={subcategoryName}
               onChange={(e) => setSubcategoryName(e.target.value)}
             />
@@ -115,47 +128,48 @@ const addSubcategory = () => {
             <h4 className="mb-3">Ảnh danh mục con</h4>
             <div
               className="dropzone dropzone-multiple p-0 mb-5"
-              id="my-awesome-dropzone"
-              data-dropzone="data-dropzone"
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onClick={() => document.getElementById("fileInput").click()}
             >
               <input
-                name="file"
+                id="fileInput"
                 type="file"
-                onChange={handleImageChange}
-                className="form-control"
+                style={{ display: "none" }}
+                onChange={handleImageChange} // Dùng handleImageChange trực tiếp
+                multiple={false}
               />
 
               {previewImage ? (
                 <div className="dz-preview d-flex flex-wrap">
                   <div
-                    className="border border-translucent bg-body-emphasis rounded-3 d-flex flex-center position-relative me-2 mb-2"
-                    style={{ height: 80, width: 80 }}
+                    className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2"
+                    style={{ height: 120, width: 120 }}
                   >
                     <img
                       className="dz-image"
                       src={previewImage}
                       alt="Preview"
-                      style={{ objectFit: "cover", height: "100%", width: "100%" }}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        objectFit: "contain",
+                      }}
                     />
-
+                    
                   </div>
                 </div>
               ) : (
-                <div
-                  className="dz-message text-body-tertiary text-opacity-85"
-                  data-dz-message="data-dz-message"
-                >
-                  Drag your photo here
-                  <span className="text-body-secondary px-1">or</span>
+                <div className="dz-message text-body-tertiary text-opacity-85">
+                  Kéo ảnh của bạn vào đây
+                  <span className="text-body-secondary px-1">hoặc</span>
                   <button className="btn btn-link p-0" type="button">
-                    Browse from device
+                    Duyệt từ thiết bị
                   </button>
-                  <br />
-                  <img className="mt-3 me-2" src={icon} width={40} alt="icon" />
                 </div>
               )}
-
             </div>
+
 
           </div>
           <div className="col-12 col-xl-5" style={{ width: "35%" }}>
@@ -163,7 +177,7 @@ const addSubcategory = () => {
               <div className="col-12 col-xl-12">
                 <div className="card mb-3">
                   <div className="card-body">
-                    <h4 className="card-title mb-4">Organize</h4>
+                    <h4 className="card-title mb-4">Chi tiết</h4>
                     <div className="row gx-3">
                       <div className="col-12 col-sm-6 col-xl-12">
                         <div className="mb-4">
@@ -176,7 +190,7 @@ const addSubcategory = () => {
                             </a>
                           </div>
                           <select
-                            className="form-select mb-3"
+                            className="form-select"
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
                           >

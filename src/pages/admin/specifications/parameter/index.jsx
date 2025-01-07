@@ -4,7 +4,7 @@ import axios from "axios";
 
 const ListParameter = () => {
   const breadcrumbTitles = {
-    "admin/danh-sach-thong-so": "List Parameter", // Đây là URL không có "/"
+    "admin/danh-sach-thong-so": "Danh sách thông số", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -249,7 +249,7 @@ const ListParameter = () => {
       <nav aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <Link to="/admin">Dashboard</Link>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
           <li className="breadcrumb-item active" aria-current="page">
             {currentTitle}
@@ -259,7 +259,7 @@ const ListParameter = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List Parameter</h2>
+            <h2 className="mb-0">Danh sách thông số</h2>
           </div>
         </div>
 
@@ -274,7 +274,7 @@ const ListParameter = () => {
                   <input
                     className="form-control search-input search"
                     type="search"
-                    placeholder="Search products"
+                    placeholder="Tìm kiếm thông số"
                     aria-label="Search"
                   />
                   <span className="fas fa-search search-box-icon" />

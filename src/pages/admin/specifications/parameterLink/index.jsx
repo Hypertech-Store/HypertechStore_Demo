@@ -18,7 +18,7 @@ const ParameterLink = () => {
   const [filteredSpecifications, setFilteredSpecifications] = useState([]);
 
   const breadcrumbTitles = {
-    "admin/lien-ket-thong-so": "Parameter link", // Đây là URL không có "/"
+    "admin/lien-ket-thong-so": "Liên kết thông số", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -438,7 +438,7 @@ const ParameterLink = () => {
       <nav aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <Link to="/admin">Dashboard</Link>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
           <li className="breadcrumb-item active" aria-current="page">
             {currentTitle}
@@ -448,7 +448,7 @@ const ParameterLink = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List parameter link</h2>
+            <h2 className="mb-0">Danh sách liên kết thông số</h2>
           </div>
         </div>
 
@@ -463,7 +463,7 @@ const ParameterLink = () => {
                   <input
                     className="form-control search-input search"
                     type="search"
-                    placeholder="Search products"
+                    placeholder="Tìm kiếm"
                     aria-label="Search"
                   />
                   <span className="fas fa-search search-box-icon" />

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 const ListValue = () => {
   const breadcrumbTitles = {
-    "admin/gia-tri-thuoc-tinh": "List value", // Đây là URL không có "/"
+    "admin/gia-tri-thuoc-tinh": "Danh sách giá trị thuộc tính", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -124,13 +124,13 @@ const ListValue = () => {
           data: [...prevAttributes.data, newAttribute],
         }));
 
-        alert("Thêm giá trị thành công!");
+        alert("Thêm giá trị thuộc tính thành công!");
 
         // Reset các trường
         setSelectedAttribute("");
         setAttributeValue("");
       } else {
-        alert("Thêm giá trị thất bại. Kiểm tra lại.");
+        alert("Thêm giá trị thuộc tính thất bại. Kiểm tra lại.");
       }
     } catch (error) {
       // Kiểm tra lỗi chi tiết nếu có từ response của API
@@ -282,7 +282,7 @@ const ListValue = () => {
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <Link to="/admin">Dashboard</Link>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
 
           <li className="breadcrumb-item active" aria-current="page">
@@ -293,7 +293,7 @@ const ListValue = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List Attribute Value</h2>
+            <h2 className="mb-0">Danh sách giá trị thuộc tính</h2>
           </div>
         </div>
 
@@ -308,7 +308,7 @@ const ListValue = () => {
                   <input
                     className="form-control search-input search"
                     type="search"
-                    placeholder="Search products"
+                    placeholder="Tìm kiếm giá trị thuộc tính"
                     aria-label="Search"
                   />
                   <span className="fas fa-search search-box-icon" />
@@ -326,7 +326,7 @@ const ListValue = () => {
                   data-bs-reference="parent"
                 >
                   <span className="fas fa-plus me-2" />
-                  Thêm giá trị
+                  Thêm giá trị thuộc tính
                 </button>
               </div>
             </div>
@@ -476,7 +476,7 @@ const ListValue = () => {
         >
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Thêm giá trị</h3>
+              <h3 className="mb-0">Thêm giá trị thuộc tính</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -559,7 +559,7 @@ const ListValue = () => {
         >
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Sửa thuộc tính</h3>
+              <h3 className="mb-0">Sửa giá trị thuộc tính</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
