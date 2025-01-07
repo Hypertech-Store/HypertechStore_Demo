@@ -12,7 +12,7 @@ const OrderStatus = () => {
   const [editingStatusId, setEditingStatusId] = useState(null); // ID của trạng thái đang chỉnh sửa
 
   const breadcrumbTitles = {
-    "admin/trang-thai-don-hang": "List status",
+    "admin/trang-thai-don-hang": "Danh sách trạng thái đơn hàng",
   };
 
   const location = useLocation();
@@ -186,7 +186,7 @@ const OrderStatus = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List status</h2>
+            <h2 className="mb-0">Danh sách trạng thái đơn hàng</h2>
           </div>
         </div>
 

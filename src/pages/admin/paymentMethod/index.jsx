@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 
 const PaymentMethod = () => {
   const breadcrumbTitles = {
-    "admin/phuong-thuc-thanh-toan": "Payment Method", // Đây là URL không có "/"
+    "admin/phuong-thuc-thanh-toan": "Phương thức thanh toán", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();

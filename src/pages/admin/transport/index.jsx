@@ -22,7 +22,7 @@ const TransportMethod = () => {
   }, [currentPage]);
 
   const breadcrumbTitles = {
-    "admin/hinh-thuc-van-chuyen": "Transport method",
+    "admin/hinh-thuc-van-chuyen": "Hình thức vận chuyển",
   };
 
   const location = useLocation();
@@ -156,7 +156,7 @@ const TransportMethod = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List transport</h2>
+            <h2 className="mb-0">Danh sách hình thức vận chuyển</h2>
           </div>
         </div>
 
