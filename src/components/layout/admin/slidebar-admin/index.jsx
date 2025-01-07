@@ -322,7 +322,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    Thuộc tính 
+                                    Thuộc tính
                                   </span>
                                 </div>
                               </Link>
@@ -468,7 +468,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    Liên kết thông số 
+                                    Liên kết thông số
                                   </span>
                                 </div>
                               </Link>
@@ -541,9 +541,7 @@ const SlidebarAdmin = () => {
                             <div className="dropdown-indicator-icon-wrapper">
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
-                            <span className="nav-link-text">
-                              Admin
-                            </span>
+                            <span className="nav-link-text">Admin</span>
                           </div>
                         </a>
                         {/* more inner pages*/}
@@ -781,7 +779,9 @@ const SlidebarAdmin = () => {
                         </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
-                        <span className="nav-link-text">Hình thức vận chuyển</span>
+                        <span className="nav-link-text">
+                          Hình thức vận chuyển
+                        </span>
                       </span>
                     </div>
                   </Link>
@@ -824,7 +824,9 @@ const SlidebarAdmin = () => {
                         </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
-                        <span className="nav-link-text">Phương thức thanh toán</span>
+                        <span className="nav-link-text">
+                          Phương thức thanh toán
+                        </span>
                       </span>
                     </div>
                   </Link>
@@ -858,7 +860,9 @@ const SlidebarAdmin = () => {
                         </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
-                        <span className="nav-link-text">Trạng thái đơn hàng</span>
+                        <span className="nav-link-text">
+                          Trạng thái đơn hàng
+                        </span>
                       </span>
                     </div>
                   </Link>
@@ -951,14 +955,6 @@ const SlidebarAdmin = () => {
                     </ul>
                   </div>
                 </div>
-                {/* parent pages*/}
-
-              </li>
-              <li className="nav-item">
-                {/* label*/}
-                <p className="navbar-vertical-label">Pages</p>
-                <hr className="navbar-vertical-line" />
-                {/* parent pages*/}
                 <div className="nav-item-wrapper">
                   <Link
                     className={`nav-link label-1 ${
@@ -994,8 +990,7 @@ const SlidebarAdmin = () => {
                     </div>
                   </Link>
                 </div>
-
-
+                {/* parent pages*/}
               </li>
             </ul>
           </div>
@@ -1004,9 +999,7 @@ const SlidebarAdmin = () => {
           <button className="btn navbar-vertical-toggle border-0 fw-semibold w-100 white-space-nowrap d-flex align-items-center">
             <span className="uil uil-left-arrow-to-left fs-8" />
             <span className="uil uil-arrow-from-right fs-8" />
-            <span className="navbar-vertical-footer-text ms-2">
-              Thu gọn
-            </span>
+            <span className="navbar-vertical-footer-text ms-2">Thu gọn</span>
           </button>
         </div>
       </nav>

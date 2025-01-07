@@ -16,6 +16,7 @@ const Dashboard = () => {
 
   const [year, setYear] = useState(null); // Year starts as null
 
+  // eslint-disable-next-line no-unused-vars
   const [monthOptions, setMonthOptions] = useState([]);
   const [yearOptions, setYearOptions] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -504,10 +505,13 @@ const Dashboard = () => {
                             Tổng số đơn hàng
                             <span className="badge badge-phoenix badge-phoenix-warning rounded-pill fs-9 ms-2">
                               <span className="badge-label">
-                                {thongKeDonHang7Ngay?.ti_le_chenh_lech?.toFixed(
-                                  1
-                                )}{" "}
-                                %
+                                {thongKeDonHang7Ngay?.ti_le_chenh_lech % 1 === 0
+                                  ? `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
+                                      0
+                                    )}%`
+                                  : `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
+                                      1
+                                    )}%`}
                               </span>
                             </span>
                           </h5>

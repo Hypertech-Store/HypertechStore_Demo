@@ -15,80 +15,116 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Kiểm tra nếu người dùng đã đăng nhập
-  // useEffect(() => {
-  //   const adminId = localStorage.getItem("adminId");
-  //   if (adminId === null) {
-  //     // Nếu userId không tồn tại (chưa đăng nhập), không làm gì
-  //     console.log("User is not logged in.");
-  //   } else {
-  //     // Nếu userId tồn tại (đã đăng nhập), điều hướng đến trang admin
-  //     navigate("/admin");
-  //   }
-  // }, [navigate]);
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    // Gán giá trị mặc định nếu email và mật khẩu trống
+    const defaultEmail = "admin@gmail.com";
+    const defaultPassword = "123456";
+
+    const loginEmail = email || defaultEmail;
+    const loginPassword = password || defaultPassword;
+
+    const defaultAvatar = "quan_tri_viens/avatarj.jpg";
+
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/quan-tri-viens/login",
-        {
-          email: email,
-          mat_khau: password,
+      // Kiểm tra tài khoản mặc định trước
+      if (loginEmail === defaultEmail && loginPassword === defaultPassword) {
+        const mockUser = {
+          id: 1,
+          ten_dang_nhap: "Admin User",
+          role: 1, // 1 là quản trị viên
+          anh_nguoi_dung: defaultAvatar, // Ảnh mặc định
+          trang_thai: 1, // Trạng thái hoạt động
+        };
+
+        // Kiểm tra trạng thái tài khoản mặc định
+        if (mockUser.trang_thai === 0) {
+          toast.error(
+            "Tài khoản của bạn đang bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.",
+            {
+              position: "top-right",
+              autoClose: 3000,
+              hideProgressBar: true,
+            }
+          );
+          setLoading(false);
+          return;
         }
-      );
 
-      console.log("API Response:", response.data);
+        // Lưu thông tin người dùng vào localStorage
+        localStorage.setItem("customRole", mockUser.role);
+        localStorage.setItem("adminId", mockUser.id);
+        localStorage.setItem("adminName", mockUser.ten_dang_nhap);
+        localStorage.setItem("adminAvatar", mockUser.anh_nguoi_dung);
 
-      const { quantrivien, message } = response.data;
-
-      if (quantrivien.role === 0 || quantrivien.role === 1) {
-        localStorage.setItem("customRole", quantrivien.role);
-        localStorage.setItem("adminId", quantrivien.id);
-        localStorage.setItem("adminName", quantrivien.ten_dang_nhap);
-        localStorage.setItem(
-          "adminAvatar",
-          quantrivien.anh_nguoi_dung || "default-avatar.png"
-        );
-
-        console.log(localStorage.getItem("adminId"));
-
-        toast.success(message, {
+        toast.success("Đăng nhập thành công!", {
           position: "top-right",
           autoClose: 2000,
           hideProgressBar: true,
         });
 
-        setTimeout(() => {
-          setLoading(false);
-        }, 5000);
         navigate("/admin");
       } else {
-        toast.error(
-          "Quyền truy cập bị từ chối. Chỉ quản trị viên và nhân viên mới được phép.",
+        // Nếu không phải tài khoản mặc định, tiếp tục gọi API
+        const response = await axios.post(
+          "http://127.0.0.1:8000/api/quan-tri-viens/login",
           {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: true,
+            email: loginEmail,
+            mat_khau: loginPassword,
           }
         );
+
+        const { quantrivien, message } = response.data;
+
+        if (quantrivien.trang_thai === 0) {
+          toast.error(
+            "Tài khoản của bạn đang bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.",
+            {
+              position: "top-right",
+              autoClose: 3000,
+              hideProgressBar: true,
+            }
+          );
+          setLoading(false);
+          return;
+        }
+
+        if (quantrivien.role === 0 || quantrivien.role === 1) {
+          localStorage.setItem("customRole", quantrivien.role);
+          localStorage.setItem("adminId", quantrivien.id);
+          localStorage.setItem("adminName", quantrivien.ten_dang_nhap);
+          localStorage.setItem(
+            "adminAvatar",
+            quantrivien.anh_nguoi_dung || defaultAvatar
+          );
+
+          toast.success(message, {
+            position: "top-right",
+            autoClose: 2000,
+            hideProgressBar: true,
+          });
+
+          navigate("/admin");
+        } else {
+          toast.error(
+            "Quyền truy cập bị từ chối. Chỉ quản trị viên và nhân viên mới được phép.",
+            {
+              position: "top-right",
+              autoClose: 3000,
+              hideProgressBar: true,
+            }
+          );
+        }
       }
     } catch (error) {
       console.error("Error during login:", error);
-      if (error.response && error.response.data) {
-        toast.error(error.response.data.message || "Đăng nhập thất bại.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: true,
-        });
-      } else {
-        toast.error("Đã xảy ra lỗi. Vui lòng thử lại.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: true,
-        });
-      }
+      toast.error("Đăng nhập thất bại. Vui lòng thử lại.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+      });
     } finally {
       setLoading(false);
     }
