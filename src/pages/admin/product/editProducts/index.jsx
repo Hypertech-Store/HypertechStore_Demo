@@ -1,6 +1,7 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
 import { Link, useLocation } from "react-router-dom";
-const AddProducts = () => {
+import { useEffect, useState } from "react";
+const editProducts = () => {
   const breadcrumbTitles = {
     "admin/sua-san-pham": "Sửa sản phẩm", // Đây là URL không có "/"
   };
@@ -106,6 +107,90 @@ const AddProducts = () => {
   if (navbarVerticalStyle === "darker") {
     navbarVertical?.setAttribute("data-navbar-appearance", "darker");
   }
+
+  //xử lý edit
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
+  const productId = queryParams.get("id");
+  const [productData, setProductData] = useState(null);
+  const [ngayKetThucSale, setNgayKetThucSale] = useState(null);
+  const [images, setImages] = useState([]);
+  const [colorAttribute, setColorAttribute] = useState("");
+  const [colorName, setColorName] = useState("");
+  const [dungLuongOptions, setDungLuongOptions] = useState([]);
+  const [otherAttributes, setOtherAttributes] = useState([]);
+  const [dungLuongName, setDungLuongName] = useState(""); 
+  const [colorVariants, setColorVariants] = useState([]);
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/san-pham/detail/${productId}`
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Product data:", data);
+        setProductData(data);
+
+        setNgayKetThucSale(data.sale?.ngay_ket_thuc_sale || null);
+
+        if (data.hinh_anh_bien_the_san_pham) {
+          const imageLinks = data.hinh_anh_bien_the_san_pham.flatMap((item) =>
+            item.hinh_anh.map(
+              (image) => `${baseUrl}${image.duong_dan_hinh_anh}`
+            )
+          );
+          setImages(imageLinks);
+        }
+
+        // Xử lý thuộc tính "Màu sắc"
+        const colorAttributeData = data.gia_tri_thuoc_tinh?.find(
+          (item) => item.thuoc_tinh_san_pham?.ten_thuoc_tinh === "Màu sắc"
+        );
+        setColorAttribute(
+          colorAttributeData?.thuoc_tinh_san_pham?.ten_thuoc_tinh || "Màu sắc"
+        );
+        setColorName(colorAttributeData?.gia_tri || "Chưa chọn màu");
+
+        // Hiển thị các biến thể màu sắc (nếu có)
+        if (data.hinh_anh_bien_the_san_pham) {
+          const colorVariantsData = data.hinh_anh_bien_the_san_pham.flatMap(
+            (item) =>
+              item.hinh_anh.map((image) => ({
+                colorName: image.ten_gia_tri,
+                imageUrl: `${baseUrl}${image.duong_dan_hinh_anh}`,
+              }))
+          );
+          setColorVariants(colorVariantsData);
+        }
+
+        // Xử lý thuộc tính "Dung lượng"
+        const capacityAttributeData = data.grouped_attributes?.["Dung lượng"];
+        if (capacityAttributeData) {
+          setDungLuongOptions(capacityAttributeData.ten_gia_tri || []);
+          setDungLuongName("Dung lượng");
+        }
+
+        // Xử lý các thuộc tính khác (không phải Màu sắc và Dung lượng)
+        const otherAttributesData = Object.keys(
+          data.grouped_attributes || {}
+        ).filter((key) => key !== "Màu sắc" && key !== "Dung lượng");
+        setOtherAttributes(otherAttributesData);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+
+    if (productId) {
+      fetchProductData();
+    }
+  }, [productId]);
+
+
   return (
     <>
       <div className="content">
@@ -322,4 +407,4 @@ const AddProducts = () => {
     </>
   );
 };
-export default AddProducts;
+export default editProducts;
