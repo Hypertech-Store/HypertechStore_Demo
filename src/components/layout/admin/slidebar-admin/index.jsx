@@ -48,7 +48,7 @@ const SlidebarAdmin = () => {
                         </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
-                        <span className="nav-link-text">Dashboard</span>
+                        <span className="nav-link-text">Bảng điều khiển</span>
                       </span>
                     </div>
                   </a>
@@ -56,7 +56,7 @@ const SlidebarAdmin = () => {
               </li>
               <li className="nav-item">
                 {/* label*/}
-                <p className="navbar-vertical-label">Apps</p>
+                <p className="navbar-vertical-label">Ứng dụng</p>
                 <hr className="navbar-vertical-line" />
                 {/* parent pages*/}
                 <div className="nav-item-wrapper">
@@ -90,7 +90,7 @@ const SlidebarAdmin = () => {
                           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                         </svg>
                       </span>
-                      <span className="nav-link-text">E-commerce</span>
+                      <span className="nav-link-text">Thương mại điện tử</span>
                     </div>
                   </a>
                   <div className="parent-wrapper label-1">
@@ -118,7 +118,7 @@ const SlidebarAdmin = () => {
                             <div className="dropdown-indicator-icon-wrapper">
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
-                            <span className="nav-link-text">Products</span>
+                            <span className="nav-link-text">Sản phẩm</span>
                           </div>
                         </a>
                         {/* more inner pages*/}
@@ -154,7 +154,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    List Products
+                                    Danh sách sản phẩm
                                   </span>
                                 </div>
                               </Link>
@@ -179,7 +179,7 @@ const SlidebarAdmin = () => {
                             <div className="dropdown-indicator-icon-wrapper">
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
-                            <span className="nav-link-text">Category</span>
+                            <span className="nav-link-text">Danh mục</span>
                           </div>
                         </a>
                         <div className="parent-wrapper">
@@ -213,7 +213,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    List category
+                                    Danh sách danh mục
                                   </span>
                                 </div>
                               </Link>
@@ -237,7 +237,7 @@ const SlidebarAdmin = () => {
                             <div className="dropdown-indicator-icon-wrapper">
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
-                            <span className="nav-link-text">SubCategory</span>
+                            <span className="nav-link-text">Danh mục con</span>
                           </div>
                         </a>
                         <div className="parent-wrapper">
@@ -275,7 +275,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    List subcategory
+                                    Danh sách danh mục con
                                   </span>
                                 </div>
                               </Link>
@@ -300,7 +300,7 @@ const SlidebarAdmin = () => {
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
                             <span className="nav-link-text">
-                              Product variable
+                              Biến thể sản phẩm
                             </span>
                           </div>
                         </a>
@@ -322,7 +322,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    Attribute name
+                                    Thuộc tính 
                                   </span>
                                 </div>
                               </Link>
@@ -339,7 +339,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    Attribute value
+                                    Giá trị thuộc tính
                                   </span>
                                 </div>
                               </Link>
@@ -356,7 +356,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    Variation details
+                                    Biến thể
                                   </span>
                                 </div>
                               </Link>
@@ -380,7 +380,7 @@ const SlidebarAdmin = () => {
                             <div className="dropdown-indicator-icon-wrapper">
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
-                            <span className="nav-link-text">Product Sale</span>
+                            <span className="nav-link-text">Sale sản phẩm</span>
                           </div>
                         </a>
                         <div className="parent-wrapper">
@@ -399,7 +399,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    List Sale
+                                    Danh sách sale
                                   </span>
                                 </div>
                               </Link>
@@ -425,7 +425,7 @@ const SlidebarAdmin = () => {
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
                             <span className="nav-link-text">
-                              Specifications
+                              Thông số sản phẩm
                             </span>
                           </div>
                         </a>
@@ -445,7 +445,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    Parameter
+                                    Thông số
                                   </span>
                                 </div>
                               </Link>
@@ -468,7 +468,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    Parameter link
+                                    Liên kết thông số 
                                   </span>
                                 </div>
                               </Link>
@@ -514,7 +514,7 @@ const SlidebarAdmin = () => {
                           <circle cx={12} cy={7} r={4} />
                         </svg>
                       </span>
-                      <span className="nav-link-text">Accounts</span>
+                      <span className="nav-link-text">Người dùng</span>
                     </div>
                   </a>
                   <div className="parent-wrapper label-1">
@@ -524,7 +524,7 @@ const SlidebarAdmin = () => {
                       id="account"
                     >
                       <li className="collapsed-nav-item-title d-none">
-                        Accounts
+                        Người dùng
                       </li>
                       <li className="nav-item">
                         <a
@@ -542,7 +542,7 @@ const SlidebarAdmin = () => {
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
                             <span className="nav-link-text">
-                              Administrators
+                              Admin
                             </span>
                           </div>
                         </a>
@@ -579,7 +579,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    List admin
+                                    Danh sách admin
                                   </span>
                                 </div>
                               </Link>
@@ -602,7 +602,7 @@ const SlidebarAdmin = () => {
                             <div className="dropdown-indicator-icon-wrapper">
                               <span className="fas fa-caret-right dropdown-indicator-icon" />
                             </div>
-                            <span className="nav-link-text">Customer</span>
+                            <span className="nav-link-text">Khách hàng</span>
                           </div>
                         </a>
                         {/* more inner pages*/}
@@ -622,7 +622,7 @@ const SlidebarAdmin = () => {
                               >
                                 <div className="d-flex align-items-center">
                                   <span className="nav-link-text">
-                                    List customer
+                                    Danh sách khách hàng
                                   </span>
                                 </div>
                               </Link>
@@ -668,7 +668,7 @@ const SlidebarAdmin = () => {
                             <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
                           </svg>
                         </span>
-                        <span className="nav-link-text">Deals</span>
+                        <span className="nav-link-text">Khuyến mãi</span>
                       </div>
                     </Link>
                   </div>
@@ -707,7 +707,7 @@ const SlidebarAdmin = () => {
                             <line x1={12} y1="22.08" x2={12} y2={12} />
                           </svg>
                         </span>
-                        <span className="nav-link-text">Orders</span>
+                        <span className="nav-link-text">Đơn hàng</span>
                       </div>
                     </Link>
                   </div>
@@ -781,7 +781,7 @@ const SlidebarAdmin = () => {
                         </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
-                        <span className="nav-link-text">Shipping</span>
+                        <span className="nav-link-text">Hình thức vận chuyển</span>
                       </span>
                     </div>
                   </Link>
@@ -824,7 +824,7 @@ const SlidebarAdmin = () => {
                         </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
-                        <span className="nav-link-text">Payment</span>
+                        <span className="nav-link-text">Phương thức thanh toán</span>
                       </span>
                     </div>
                   </Link>
@@ -858,7 +858,7 @@ const SlidebarAdmin = () => {
                         </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
-                        <span className="nav-link-text">Orders status</span>
+                        <span className="nav-link-text">Trạng thái đơn hàng</span>
                       </span>
                     </div>
                   </Link>
@@ -952,82 +952,7 @@ const SlidebarAdmin = () => {
                   </div>
                 </div>
                 {/* parent pages*/}
-                <div className="nav-item-wrapper">
-                  <Link
-                    className={`nav-link dropdown-indicator label-1 ${
-                      activeItem === "events" ? "active" : ""
-                    }`}
-                    to="#nv-events"
-                    role="button"
-                    data-bs-toggle="collapse"
-                    aria-expanded="false"
-                    aria-controls="nv-events"
-                    onClick={() => handleClick("events")} // Xử lý khi nhấp vào mục "Events"
-                  >
-                    <div className="d-flex align-items-center">
-                      <div className="dropdown-indicator-icon-wrapper">
-                        <span className="fas fa-caret-right dropdown-indicator-icon" />
-                      </div>
-                      <span className="nav-link-icon">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16px"
-                          height="16px"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="feather feather-bookmark"
-                        >
-                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                        </svg>
-                      </span>
-                      <span className="nav-link-text">Events</span>
-                    </div>
-                  </Link>
 
-                  <div className="parent-wrapper label-1">
-                    <ul
-                      className="nav collapse parent"
-                      data-bs-parent="#navbarVerticalCollapse"
-                      id="nv-events"
-                    >
-                      <li className="collapsed-nav-item-title d-none">
-                        Events
-                      </li>
-                      <li className="nav-item">
-                        <Link
-                          className={`nav-link ${
-                            activeItem === "create-event" ? "active" : ""
-                          }`}
-                          to="apps/events/create-an-event.html"
-                          onClick={() => handleClick("create-event")} // Cập nhật active khi nhấp vào "Create an event"
-                        >
-                          <div className="d-flex align-items-center">
-                            <span className="nav-link-text">
-                              Create an event
-                            </span>
-                          </div>
-                        </Link>
-                      </li>
-                      <li className="nav-item">
-                        <Link
-                          className={`nav-link ${
-                            activeItem === "event-detail" ? "active" : ""
-                          }`}
-                          to="apps/events/event-detail.html"
-                          onClick={() => handleClick("event-detail")} // Cập nhật active khi nhấp vào "Event detail"
-                        >
-                          <div className="d-flex align-items-center">
-                            <span className="nav-link-text">Event detail</span>
-                          </div>
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
               </li>
               <li className="nav-item">
                 {/* label*/}
@@ -1070,389 +995,7 @@ const SlidebarAdmin = () => {
                   </Link>
                 </div>
 
-                {/* parent pages*/}
-                <div className="nav-item-wrapper">
-                  <a
-                    className="nav-link dropdown-indicator label-1"
-                    href="#nv-authentication"
-                    role="button"
-                    data-bs-toggle="collapse"
-                    aria-expanded="false"
-                    aria-controls="nv-authentication"
-                  >
-                    <div className="d-flex align-items-center">
-                      <div className="dropdown-indicator-icon-wrapper">
-                        <span className="fas fa-caret-right dropdown-indicator-icon" />
-                      </div>
-                      <span className="nav-link-icon">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16px"
-                          height="16px"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="feather feather-lock"
-                        >
-                          <rect
-                            x={3}
-                            y={11}
-                            width={18}
-                            height={11}
-                            rx={2}
-                            ry={2}
-                          />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                      </span>
-                      <span className="nav-link-text">Authentication</span>
-                    </div>
-                  </a>
-                  <div className="parent-wrapper label-1">
-                    <ul
-                      className="nav collapse parent"
-                      data-bs-parent="#navbarVerticalCollapse"
-                      id="nv-authentication"
-                    >
-                      <li className="collapsed-nav-item-title d-none">
-                        Authentication
-                      </li>
-                      <li className="nav-item">
-                        <a
-                          className="nav-link dropdown-indicator"
-                          href="#nv-simple"
-                          data-bs-toggle="collapse"
-                          aria-expanded="false"
-                          aria-controls="nv-simple"
-                        >
-                          <div className="d-flex align-items-center">
-                            <div className="dropdown-indicator-icon-wrapper">
-                              <span className="fas fa-caret-right dropdown-indicator-icon" />
-                            </div>
-                            <span className="nav-link-text">Simple</span>
-                          </div>
-                        </a>
-                        {/* more inner pages*/}
-                        <div className="parent-wrapper">
-                          <ul
-                            className="nav collapse parent"
-                            data-bs-parent="#authentication"
-                            id="nv-simple"
-                          >
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/simple/sign-in.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">Sign in</span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/simple/sign-up.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">Sign up</span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/simple/sign-out.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Sign out
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/simple/forgot-password.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Forgot password
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/simple/reset-password.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Reset password
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/simple/lock-screen.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Lock screen
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/simple/2FA.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">2FA</span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                          </ul>
-                        </div>
-                      </li>
-                      <li className="nav-item">
-                        <a
-                          className="nav-link dropdown-indicator"
-                          href="#nv-split"
-                          data-bs-toggle="collapse"
-                          aria-expanded="false"
-                          aria-controls="nv-split"
-                        >
-                          <div className="d-flex align-items-center">
-                            <div className="dropdown-indicator-icon-wrapper">
-                              <span className="fas fa-caret-right dropdown-indicator-icon" />
-                            </div>
-                            <span className="nav-link-text">Split</span>
-                          </div>
-                        </a>
-                        {/* more inner pages*/}
-                        <div className="parent-wrapper">
-                          <ul
-                            className="nav collapse parent"
-                            data-bs-parent="#authentication"
-                            id="nv-split"
-                          >
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/split/sign-in.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">Sign in</span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/split/sign-up.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">Sign up</span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/split/sign-out.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Sign out
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/split/forgot-password.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Forgot password
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/split/reset-password.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Reset password
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/split/lock-screen.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Lock screen
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/split/2FA.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">2FA</span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                          </ul>
-                        </div>
-                      </li>
-                      <li className="nav-item">
-                        <a
-                          className="nav-link dropdown-indicator"
-                          href="#nv-Card"
-                          data-bs-toggle="collapse"
-                          aria-expanded="false"
-                          aria-controls="nv-Card"
-                        >
-                          <div className="d-flex align-items-center">
-                            <div className="dropdown-indicator-icon-wrapper">
-                              <span className="fas fa-caret-right dropdown-indicator-icon" />
-                            </div>
-                            <span className="nav-link-text">Card</span>
-                          </div>
-                        </a>
-                        {/* more inner pages*/}
-                        <div className="parent-wrapper">
-                          <ul
-                            className="nav collapse parent"
-                            data-bs-parent="#authentication"
-                            id="nv-Card"
-                          >
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/card/sign-in.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">Sign in</span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/card/sign-up.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">Sign up</span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/card/sign-out.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Sign out
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/card/forgot-password.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Forgot password
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/card/reset-password.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Reset password
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/card/lock-screen.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Lock screen
-                                  </span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                            <li className="nav-item">
-                              <a
-                                className="nav-link"
-                                href="pages/authentication/card/2FA.html"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">2FA</span>
-                                </div>
-                              </a>
-                              {/* more inner pages*/}
-                            </li>
-                          </ul>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+
               </li>
             </ul>
           </div>
@@ -1462,7 +1005,7 @@ const SlidebarAdmin = () => {
             <span className="uil uil-left-arrow-to-left fs-8" />
             <span className="uil uil-arrow-from-right fs-8" />
             <span className="navbar-vertical-footer-text ms-2">
-              Collapsed View
+              Thu gọn
             </span>
           </button>
         </div>

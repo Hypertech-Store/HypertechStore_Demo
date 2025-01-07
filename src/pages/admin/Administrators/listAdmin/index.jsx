@@ -5,7 +5,7 @@ import axios from "axios";
 import icon from "../../../../assets/img/icons/image-icon.png";
 const listAdmin = () => {
   const breadcrumbTitles = {
-    "admin/danh-sach-quan-tri": "List admin", // Đây là URL không có "/"
+    "admin/danh-sach-quan-tri": "Danh sách admin", // Đây là URL không có "/"
   };
 
   const location = useLocation();
@@ -16,11 +16,7 @@ const listAdmin = () => {
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
   const [adminId, setAdminId] = useState(null);
   const [quanTriViens, setQuanTriViens] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const link = "http://127.0.0.1:8000/storage/";
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [matKhau, setMatKhau] = useState("");
@@ -31,44 +27,35 @@ const listAdmin = () => {
   const [role, setRole] = useState("");
   const [trangThai, setTrangThai] = useState("");
   const [diaChi, setDiaChi] = useState("");
-  const [imagePreview, setImagePreview] = useState(null);
-  const [image, setImage] = useState(null); // If you allow image updates
+  const [imagePreview, setImagePreview] = useState("");
+  const [image, setImage] = useState(""); // If you allow image updates
 
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    last_page: 1,
-    per_page: 10,
-  });
 
-  // Hàm lấy dữ liệu từ API
-  const fetchQuanTriViens = async (page = 1) => {
-    setLoading(true);
-    setError(null); // Reset lỗi khi bắt đầu tải
-    try {
-      const response = await axios.get(
-        `http://127.0.0.1:8000/api/quan-tri-viens/getAll?page=${page}&per_page=${pagination.per_page}`
-      );
-      const { data, current_page, last_page } = response.data;
-      setQuanTriViens(data);
-      setCurrentPage(current_page);
-      setTotalPages(last_page);
-    } catch (err) {
-      setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
-      console.error("Error fetching data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [adminPerPage, setAdminPerPage] = useState(10);
 
   useEffect(() => {
-    fetchQuanTriViens();
-  }, []);
+    // Fetch data for the current page
+    axios
+      .get(
+        `http://127.0.0.1:8000/api/quan-tri-viens/getAll?page=${currentPage}&limit=${adminPerPage}`
+      )
+      .then((response) => {
+        setQuanTriViens(response.data.data); // Dữ liệu của trang hiện tại
+        setTotalPages(response.data.last_page); // Tổng số trang
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, [currentPage]);
 
-  const handlePageChange = (page) => {
-    if (page > 0 && page <= totalPages) {
-      fetchQuanTriViens(page);
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
   };
+
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -96,17 +83,75 @@ const listAdmin = () => {
     }
   };
 
+  const validateTenDangNhap = () => {
+    if (!tenDangNhap) {
+      alert("Vui lòng nhập tên đăng nhập!");
+      return false;
+    }
+    return true;
+  };
+
+  const validateMatKhau = () => {
+    if (!matKhau) {
+      alert("Vui lòng nhập mật khẩu!");
+      return false;
+    }
+    return true;
+  };
+
+  const validateHoTen = () => {
+    if (!hoTen) {
+      alert("Vui lòng nhập họ tên!");
+      return false;
+    }
+    return true;
+  };
+
+  const validateEmail = () => {
+    if (!email) {
+      alert("Vui lòng nhập email!");
+      return false;
+    }
+    return true;
+  };
+
+  const validateRole = () => {
+    if (!role) {
+      alert("Vui lòng chọn vai trò!");
+      return false;
+    }
+    return true;
+  };
+
+  const validateTrangThai = () => {
+    if (!trangThai) {
+      alert("Vui lòng chọn trạng thái!");
+      return false;
+    }
+    return true;
+  };
+
+
   const handleSubmit = async () => {
+    if (!validateTenDangNhap()) return;
+    if (!validateMatKhau()) return;
+    if (!validateHoTen()) return;
+    if (!validateEmail()) return;
+    if (!validateRole()) return;
+    if (!validateTrangThai()) return;
+
     const formData = new FormData();
-    formData.append("ten_dang_nhap", tenDangNhap);
-    formData.append("mat_khau", matKhau);
-    formData.append("ho_ten", hoTen);
-    formData.append("email", email);
-    formData.append("role", role); // Role will be populated correctly from the state
-    formData.append("trang_thai", trangThai); // Trang Thai will be populated correctly from the state
-    formData.append("image", image);
-    formData.append("dia_chi", diaChi);
-    formData.append("so_dien_thoai", soDienThoai);
+
+    // Chỉ thêm vào formData nếu trường hợp không phải là null
+    formData.append("ten_dang_nhap", tenDangNhap || "");
+    formData.append("mat_khau", matKhau || "");
+    formData.append("ho_ten", hoTen || "");
+    formData.append("email", email || "");
+    formData.append("role", role || ""); // Role có thể là "" nếu không được chọn
+    formData.append("trang_thai", trangThai || ""); // Trang Thai có thể là "" nếu không được chọn
+    formData.append("image", image || "");
+    formData.append("dia_chi", diaChi || "");
+    formData.append("so_dien_thoai", soDienThoai || "");
 
     console.log("Form Data Sent:", {
       ten_dang_nhap: tenDangNhap,
@@ -115,7 +160,7 @@ const listAdmin = () => {
       email: email,
       role: role,
       trang_thai: trangThai,
-      image: image,
+      image: image || "",
       dia_chi: diaChi,
       so_dien_thoai: soDienThoai,
     });
@@ -128,6 +173,8 @@ const listAdmin = () => {
           body: formData,
         }
       );
+      console.log(response);
+
 
       const data = await response.json();
       if (response.ok) {
@@ -160,6 +207,7 @@ const listAdmin = () => {
     }
   };
 
+
   const handleEditClick = async (id) => {
     console.log("Edit button clicked, admin ID:", id); // Log when the edit button is clicked
 
@@ -189,14 +237,69 @@ const listAdmin = () => {
       setRole(data.role);
       setTrangThai(data.trang_thai);
       setDiaChi(data.dia_chi);
-      setImagePreview(data.anh_nguoi_dung); // Assuming the response includes an image URL if the admin has one
-      setMatKhau(data.mat_khau); // Assuming password is set on edit, but might not be shown in input
+      setImagePreview(data.anh_nguoi_dung);
+      setMatKhau(data.mat_khau);
     } catch (error) {
       console.error("Error fetching admin details:", error); // Log any error
     }
   };
 
-  const handleUpdate = async () => {};
+  const handleUpdate = async (adminId) => {
+    setIsUpdating(true);
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("ho_ten", hoTen);
+    formData.append("mat_khau", matKhau);
+    formData.append("ten_dang_nhap", tenDangNhap);
+    formData.append("trang_thai", trangThai);
+    formData.append("role", role);
+    formData.append("dia_chi", diaChi);
+    formData.append("so_dien_thoai", soDienThoai);
+    formData.append("_method", "PUT");
+
+    if (image) {
+      formData.append("image", image); // File image từ input
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/quan-tri-viens/update/${adminId}`, {
+        method: "POST", // Laravel Form Method Spoofing sử dụng POST với `_method`
+        headers: {
+          Accept: "application/json",
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        axios
+          .get(
+            `http://127.0.0.1:8000/api/quan-tri-viens/getAll?page=${currentPage}&limit=${adminPerPage}`
+          )
+          .then((response) => {
+            setQuanTriViens(response.data.data); // Dữ liệu của trang hiện tại
+            setTotalPages(response.data.last_page); // Tổng số trang
+          })
+          .catch((error) => {
+            console.error("Error fetching data:", error);
+          });
+
+        alert("Cập nhật thành công");
+        // Cập nhật lại dữ liệu giao diện nếu cần
+      } else {
+        const errorData = await response.json();
+        console.error("Error:", errorData);
+        alert("Cập nhật thất bại");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Có lỗi xảy ra trong quá trình cập nhật");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
 
   const handleDelete = async (id) => {
     const confirmation = window.confirm("Bạn có chắc chắn muốn xóa?");
@@ -232,7 +335,7 @@ const listAdmin = () => {
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <Link to="/admin">Dashboard</Link>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
 
           <li className="breadcrumb-item active" aria-current="page">
@@ -241,7 +344,7 @@ const listAdmin = () => {
         </ol>
       </nav>
       <div className="pb-6">
-        <h2 className="mb-4">List Admin</h2>
+        <h2 className="mb-4">Danh sách admin</h2>
         <div
           id="lealsTable"
           data-list='{"valueNames":["name","email","phone","contact","company","date"],"page":10,"pagination":true}'
@@ -338,7 +441,9 @@ const listAdmin = () => {
                     >
                       NGÀY TẠO
                     </th> */}
-                    <th className="align-middle"></th>
+                    <th className="align-middle">
+                      HÀNH ĐỘNG
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
@@ -387,45 +492,29 @@ const listAdmin = () => {
                       {/* <td className="tags align-middle review pb-2">
                         {new Date(admin.created_at).toLocaleDateString()}
                       </td> */}
-                      <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
-                        <div className="btn-reveal-trigger position-static">
-                          <button
-                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            data-boundary="window"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                            data-bs-reference="parent"
-                          >
-                            <span className="fas fa-ellipsis-h fs-10" />
-                          </button>
-                          <div className="dropdown-menu dropdown-menu-end py-2">
-                            <a className="dropdown-item" href="#view">
-                              Chi tiết
-                            </a>
-                            <button
-                              className="dropdown-item"
-                              type="button"
-                              data-bs-toggle="modal"
-                              data-bs-target="#editAdmin"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                              onClick={() => handleEditClick(admin.id)} // Pass the relevant id
-                            >
-                              Chỉnh sửa
-                            </button>
-                            <div className="dropdown-divider" />
-                            <button
-                              className="dropdown-item text-danger"
-                              onClick={() => handleDelete(admin.id)}
-                            >
-                              Xóa
-                            </button>
-                          </div>
-                        </div>
+                      <td className="align-middle white-space-nowrap">
+                        <button
+                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                          type="button"
+                          data-bs-toggle="modal"
+                          data-bs-target="#editAdmin"
+                          aria-haspopup="true"
+                          aria-expanded="false"
+                          data-bs-reference="parent"
+                          onClick={() => {
+                            // Set the selected customer by using the customer object directly
+                            handleEditClick(admin.id);
+                          }}
+                        >
+                          <span className="fa-solid fa-pen-to-square fs-9" />
+                        </button>
+                        <button
+                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                          type="button"
+                          onClick={() => handleDelete(admin.id)}
+                        >
+                          <span className="fa-solid fa-trash fs-9" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -434,39 +523,46 @@ const listAdmin = () => {
             </div>
           </div>
           <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
+            {/* Hiển thị số trang */}
             <div className="col-auto d-flex">
               <p className="mb-0 me-3 fw-semibold text-body">
-                Trang {pagination.current_page} / {totalPages}
+                Trang {currentPage} / {totalPages}
               </p>
             </div>
+
+            {/* Phần nút phân trang */}
             <div className="col-auto d-flex">
+              {/* Nút Previous */}
               <button
                 className="page-link"
-                onClick={() => handlePageChange(currentPage - 1)}
+                onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
               >
                 <span className="fas fa-chevron-left" />
               </button>
-              <ul className="mb-0 pagination">
-                {Array.from({ length: totalPages }, (_, i) => (
+
+              {/* Danh sách các trang */}
+              <ul className="pagination mb-0">
+                {Array.from({ length: totalPages }, (_, index) => (
                   <li
-                    key={i + 1}
-                    className={`page-item ${
-                      currentPage === i + 1 ? "active" : ""
-                    }`}
+                    key={index + 1}
+                    className={`page-item ${currentPage === index + 1 ? "active" : ""
+                      }`}
                   >
                     <button
                       className="page-link"
-                      onClick={() => handlePageChange(i + 1)}
+                      onClick={() => goToPage(index + 1)}
                     >
-                      {i + 1}
+                      {index + 1}
                     </button>
                   </li>
                 ))}
               </ul>
+
+              {/* Nút Next */}
               <button
-                className="page-link"
-                onClick={() => handlePageChange(currentPage + 1)}
+                className="page-link pe-0"
+                onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
               >
                 <span className="fas fa-chevron-right" />
@@ -548,7 +644,7 @@ const listAdmin = () => {
                             <a
                               className="dz-remove text-body-quaternary position-absolute bottom-0 end-0 m-2"
                               href="#!"
-                              onClick={() => setImagePreview(null)}
+                              onClick={() => setImagePreview("")}
                               data-dz-remove="data-dz-remove"
                             >
                               <span data-feather="x" />
@@ -797,7 +893,7 @@ const listAdmin = () => {
                                   ? imagePreview // Ảnh vừa chọn
                                   : `${link}${imagePreview}` // Ảnh từ API
                               }
-                              alt="Preview"
+                              alt="Ảnh admin"
                               style={{
                                 maxWidth: "100%",
                                 maxHeight: "100%",
@@ -808,8 +904,8 @@ const listAdmin = () => {
                               className="dz-remove text-body-quaternary position-absolute bottom-0 end-0 m-2"
                               href="#!"
                               onClick={() => {
-                                setImagePreview(null);
-                                setImage(null); // Xoá tệp tạm để ngăn cập nhật
+                                setImagePreview("");
+                                setImage(""); // Xoá tệp tạm để ngăn cập nhật
                               }}
                             >
                               <span data-feather="x" />
@@ -847,6 +943,7 @@ const listAdmin = () => {
                       type="text"
                       placeholder="Nhập họ tên"
                       value={hoTen}
+                      onChange={(e) => setHoTen(e.target.value)}
                     />
                   </div>
                 </div>
@@ -860,6 +957,7 @@ const listAdmin = () => {
                       type="text"
                       placeholder="Nhập tên người dùng"
                       value={tenDangNhap}
+                      onChange={(e) => setTenDangNhap(e.target.value)}
                     />
                   </div>
                 </div>
@@ -873,6 +971,8 @@ const listAdmin = () => {
                       type="email"
                       placeholder="Nhập địa chỉ email"
                       value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled
                     />
                   </div>
                 </div>
@@ -886,6 +986,7 @@ const listAdmin = () => {
                       type="text"
                       placeholder="Nhập số điện thoại"
                       value={soDienThoai}
+                      onChange={(e) => setSoDienThoai(e.target.value)}
                     />
                   </div>
                 </div>
@@ -895,7 +996,11 @@ const listAdmin = () => {
                     <label className="text-body-highlight fw-bold mb-2">
                       Vai trò
                     </label>
-                    <select className="form-control" value={role}>
+                    <select
+                      className="form-select"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                    >
                       <option value="" disabled={role !== ""}>
                         Chọn vai trò
                       </option>
@@ -909,7 +1014,11 @@ const listAdmin = () => {
                     <label className="text-body-highlight fw-bold mb-2">
                       Trạng thái
                     </label>
-                    <select className="form-control" value={trangThai}>
+                    <select
+                      className="form-select"
+                      value={trangThai}
+                      onChange={(e) => setTrangThai(e.target.value)}
+                    >
                       <option value="" disabled={trangThai !== ""}>
                         Chọn trạng thái
                       </option>
@@ -927,7 +1036,8 @@ const listAdmin = () => {
                       className="form-control"
                       placeholder="Nhập địa chỉ"
                       value={diaChi}
-                      rows="3" // Thêm số dòng để quản lý kích thước của textarea
+                      rows="3"
+                      onChange={(e) => setDiaChi(e.target.value)}
                     />
                   </div>
                 </div>

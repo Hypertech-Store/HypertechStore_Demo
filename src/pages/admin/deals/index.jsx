@@ -87,7 +87,7 @@ const Deals = () => {
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <Link to="/admin">Dashboard</Link>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
 
           <li className="breadcrumb-item active" aria-current="page">

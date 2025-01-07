@@ -4,7 +4,7 @@ import axios from "axios";
 
 const listOfAttributeName = () => {
   const breadcrumbTitles = {
-    "admin/ten-thuoc-tinh": "List attribute name", // Đây là URL không có "/"
+    "admin/ten-thuoc-tinh": "Danh sách thuộc tính", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -130,7 +130,7 @@ const listOfAttributeName = () => {
 
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
-  
+
   const handleUpdate = async () => {
     if (!selectedAttribute) return;
 
@@ -162,10 +162,10 @@ const listOfAttributeName = () => {
         data: prevState.data.map((item) =>
           item.id === selectedAttribute.id
             ? {
-                ...item,
-                ten_thuoc_tinh: attributeName,
-                updated_at: vietnamTime, // Cập nhật lại thời gian tại state
-              }
+              ...item,
+              ten_thuoc_tinh: attributeName,
+              updated_at: vietnamTime, // Cập nhật lại thời gian tại state
+            }
             : item
         ),
       }));
@@ -182,7 +182,7 @@ const listOfAttributeName = () => {
       <nav className="mb-3" aria-label="breadcrumb">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <Link to="/admin">Dashboard</Link>
+            <Link to="/admin">Bảng điều khiển</Link>
           </li>
 
           <li className="breadcrumb-item active" aria-current="page">
@@ -193,7 +193,7 @@ const listOfAttributeName = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">List Attribute Name</h2>
+            <h2 className="mb-0">Danh sách thuộc tính</h2>
           </div>
         </div>
 
@@ -208,7 +208,7 @@ const listOfAttributeName = () => {
                   <input
                     className="form-control search-input search"
                     type="search"
-                    placeholder="Search products"
+                    placeholder="Tìm kiếm thuộc tính"
                     aria-label="Search"
                   />
                   <span className="fas fa-search search-box-icon" />
@@ -280,10 +280,10 @@ const listOfAttributeName = () => {
                         {item.ten_thuoc_tinh}
                       </td>
                       <td className="tags align-middle review pb-2 ps-4">
-                        {formatDate(item.created_at)}
+                        {new Date(item.created_at).toLocaleString()}
                       </td>
                       <td className="tags align-middle review pb-2 ps-4">
-                        {formatDate(item.updated_at)}
+                        {new Date(item.updated_at).toLocaleString()}
                       </td>
                       <td className="align-middle white-space-nowrap">
                         <button
@@ -332,9 +332,8 @@ const listOfAttributeName = () => {
                   {Array.from({ length: data.last_page }, (_, index) => (
                     <li
                       key={index}
-                      className={`page-item ${
-                        data.current_page === index + 1 ? "active" : ""
-                      }`}
+                      className={`page-item ${data.current_page === index + 1 ? "active" : ""
+                        }`}
                     >
                       <button
                         className="page-link"
@@ -375,7 +374,7 @@ const listOfAttributeName = () => {
         >
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Add Attribute</h3>
+              <h3 className="mb-0">Thêm thuộc tính</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"
@@ -435,7 +434,7 @@ const listOfAttributeName = () => {
         >
           <div className="modal-content bg-body-highlight p-6">
             <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Edit Attribute</h3>
+              <h3 className="mb-0">Sửa thuộc tính</h3>
               <button
                 className="btn btn-sm btn-phoenix-secondary"
                 data-bs-dismiss="modal"

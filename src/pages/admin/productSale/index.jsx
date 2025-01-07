@@ -4,7 +4,7 @@ import axios from "axios";
 
 const Listsale = () => {
   const breadcrumbTitles = {
-    "admin/danh-sach-san-pham-sale": "List product sale", // Đây là URL không có "/"
+    "admin/danh-sach-san-pham-sale": "Danh sách sale", // Đây là URL không có "/"
   };
 
   const location = useLocation();
@@ -249,16 +249,6 @@ const Listsale = () => {
       });
   };
 
-  // Hàm formatDate: chuyển đổi datetime-local thành ngày tháng không thay đổi múi giờ
-  const formatDate = (dateString) => {
-    const date = new Date(dateString); // Chuyển đổi kiểu datetime-local
-    // Đảm bảo luôn nhận đúng kiểu YYYY-MM-DD
-    const year = date.getFullYear();
-    const month = ("0" + (date.getMonth() + 1)).slice(-2); // Tháng bắt đầu từ 0 nên cộng thêm 1
-    const day = ("0" + date.getDate()).slice(-2);
-    return `${year}-${month}-${day}`;
-  };
-
   const handleDeleteSale = async (id) => {
     // Xác nhận trước khi xóa
     const isConfirmed = window.confirm(
@@ -303,7 +293,7 @@ const Listsale = () => {
         <nav className="mb-3" aria-label="breadcrumb">
           <ol className="breadcrumb mb-0">
             <li className="breadcrumb-item">
-              <Link to="/admin">Dashboard</Link>
+              <Link to="/admin">Bảng điều khiển</Link>
             </li>
 
             <li className="breadcrumb-item active" aria-current="page">
@@ -419,10 +409,10 @@ const Listsale = () => {
                             {formatSalePercentage(sale.sale_theo_phan_tram)}%
                           </td>
                           <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
-                            {formatDate(sale.ngay_bat_dau_sale)}
+                            {new Date(sale.ngay_bat_dau_sale).toLocaleString()}
                           </td>
                           <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
-                            {formatDate(sale.ngay_ket_thuc_sale)}
+                            {new Date(sale.ngay_ket_thuc_sale).toLocaleString()}
                           </td>
                           <td className="align-middle white-space-nowrap">
                             <button
@@ -652,7 +642,7 @@ const Listsale = () => {
                             min="0"
                             max="100"
                             placeholder="Nhập phần trăm"
-                            value={percentSale}
+                            value={formatSalePercentage(percentSale)}
                             onChange={(e) => setPercentSale(e.target.value)}
                           />
                         </div>
