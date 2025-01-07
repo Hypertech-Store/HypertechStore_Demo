@@ -227,7 +227,7 @@ const PaymentMethod = () => {
                   <input
                     className="form-control search-input search"
                     type="search"
-                    placeholder="Search products"
+                    placeholder="Tìm kiếm phương thức thanh toán"
                     aria-label="Search"
                   />
                   <span className="fas fa-search search-box-icon" />

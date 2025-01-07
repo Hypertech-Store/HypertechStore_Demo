@@ -201,7 +201,7 @@ const OrderStatus = () => {
                   <input
                     className="form-control search-input search"
                     type="search"
-                    placeholder="Search products"
+                    placeholder="Tìm kiếm"
                     aria-label="Search"
                   />
                   <span className="fas fa-search search-box-icon" />
