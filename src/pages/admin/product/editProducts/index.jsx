@@ -1,7 +1,8 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-const editProducts = () => {
+import { useParams } from 'react-router-dom';
+const EditProducts = () => {
   const breadcrumbTitles = {
     "admin/sua-san-pham": "Sửa sản phẩm", // Đây là URL không có "/"
   };
@@ -109,9 +110,12 @@ const editProducts = () => {
   }
 
   //xử lý edit
-  const { search } = useLocation();
-  const queryParams = new URLSearchParams(search);
-  const productId = queryParams.get("id");
+
+
+  // Lấy productId từ URL path
+  const { id: productId } = useParams();
+  console.log(productId); // Kiểm tra productId
+
   const [productData, setProductData] = useState(null);
   const [ngayKetThucSale, setNgayKetThucSale] = useState(null);
   const [images, setImages] = useState([]);
@@ -119,7 +123,7 @@ const editProducts = () => {
   const [colorName, setColorName] = useState("");
   const [dungLuongOptions, setDungLuongOptions] = useState([]);
   const [otherAttributes, setOtherAttributes] = useState([]);
-  const [dungLuongName, setDungLuongName] = useState(""); 
+  const [dungLuongName, setDungLuongName] = useState("");
   const [colorVariants, setColorVariants] = useState([]);
 
   useEffect(() => {
@@ -259,6 +263,7 @@ const editProducts = () => {
                 className="form-control mb-5"
                 type="text"
                 placeholder="Write title here..."
+                value={productData?.sanPham?.ten_san_pham}
               />
               <div className="mb-6">
                 <h4 className="mb-3">Mô tả sản phẩm</h4>
@@ -269,19 +274,20 @@ const editProducts = () => {
                   placeholder="Leave a comment here"
                   style={{ height: 100 }}
                   defaultValue={""}
+                  value={productData?.sanPham?.mo_ta}
                 />
               </div>
               <div className="mb-6">
                 <h4 className="mb-2 text-body-highlight">Giá thông thường</h4>
-                <input className="form-control" type="text" placeholder="$$$" />
+                <input className="form-control" type="text" placeholder="$$$" value={productData?.sanPham?.gia} />
               </div>
               <div className="mb-6">
                 <h5 className="mb-3 text-body-highlight">Số lượng</h5>
-
                 <input
                   className="form-control"
                   type="number"
                   placeholder="Quantity"
+                  value={productData?.sanPham?.so_luong_ton_kho}
                 />
               </div>
             </div>
@@ -407,4 +413,4 @@ const editProducts = () => {
     </>
   );
 };
-export default editProducts;
+export default EditProducts;
