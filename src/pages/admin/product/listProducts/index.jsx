@@ -144,8 +144,8 @@ const ListProducts = () => {
     navigate("/admin/them-san-pham"); // Navigate to the 'thêm-san-pham' page
   };
 
-  const handleEditProductClick = () => {
-    navigate("/admin/sua-san-pham"); // Navigate to the 'thêm-san-pham' page
+  const handleEditProductClick = (id) => {
+    navigate(`/admin/sua-san-pham/${id}`);
   };
   return (
     <>
@@ -264,7 +264,7 @@ const ListProducts = () => {
                               </a>
                               <a
                                 className="dropdown-item"
-                                onClick={handleEditProductClick}
+                                onClick={() => handleEditProductClick(product.id)}
                               >
                                 Chỉnh sửa
                               </a>
@@ -308,9 +308,8 @@ const ListProducts = () => {
                       {Array.from({ length: totalPages }, (_, index) => (
                         <li
                           key={index}
-                          className={`page-item ${
-                            currentPage === index + 1 ? "active" : ""
-                          }`}
+                          className={`page-item ${currentPage === index + 1 ? "active" : ""
+                            }`}
                         >
                           <button
                             className="page-link"
