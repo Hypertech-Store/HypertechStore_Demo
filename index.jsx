@@ -1,857 +1,859 @@
-import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import ReactECharts from "echarts-for-react";
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const [thongKe, setThongKe] = useState(null);
+  const [thongKeDonHang7Ngay, setThongKeDonHang7Ngay] = useState(null);
+  const [thongKeKhachHangMoi7Ngay, setThongKeKhachHangMoi7Ngay] =
+    useState(null);
+  const [ordersChartOptions, setOrdersChartOptions] = useState(null);
+  const [customerChartOptions, setCustomerChartOptions] = useState(null);
 
-const ParameterLink = () => {
-  const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState("");
-  const [productSpecifications, setProductSpecifications] = useState([]);
-  const [productData, setProductData] = useState([]); // Dữ liệu sản phẩm
-  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
-  const [totalPages, setTotalPages] = useState(0); // Tổng số trang
-  const [thongSoList, setThongSoList] = useState([]);
-  const productsPerPage = 10; // Số sản phẩm trên mỗi trang
-  const [selectedSpecName, setSelectedSpecName] = useState(""); // Thêm dòng này để lưu tên thông số
+  const [productChartOptions, setProductChartOptions] = useState(null);
+  const [month, setMonth] = useState(null); // Month starts as null
+  const [year, setYear] = useState(null); // Year starts as null
+  const [monthYearOptions, setMonthYearOptions] = useState([]); // Dynamic options
 
-  const [selectedSpec, setSelectedSpec] = useState("");
-  const [description, setDescription] = useState("");
+  const [danhGia, setDanhGia] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   // eslint-disable-next-line no-unused-vars
-  const [editingThongSo, setEditingThongSo] = useState(null);
-  const [filteredSpecifications, setFilteredSpecifications] = useState([]);
+  const [lastPage, setLastPage] = useState(1);
+  const [loading, setLoading] = useState(true); // Thêm trạng thái loading
+  const [totalProducts, setTotalProducts] = useState(0);
+  // eslint-disable-next-line no-unused-vars
+  const [status, setStatus] = useState(null); // Để lưu trạng thái của đánh giá
 
-  const breadcrumbTitles = {
-    "admin/lien-ket-thong-so": "Parameter link", // Đây là URL không có "/"
-  };
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const location = useLocation();
-  const pathnames = location.pathname.split("/").filter(Boolean);
+  const handleUpdateStatus = async (review, newStatus) => {
+    try {
+      console.log(newStatus);
 
-  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
-  const currentTitle =
-    breadcrumbTitles[pathnames.join("/")] ||
-    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
-
-  // Cập nhật useEffect để xử lý thay đổi trang
-  useEffect(() => {
-    axios
-      .get("http://127.0.0.1:8000/api/san-pham-va-thong-so", {
-        params: {
-          page: currentPage, // Truyền thông tin trang hiện tại
-          limit: productsPerPage, // Truyền giới hạn sản phẩm trên mỗi trang
-        },
-      })
-      .then((response) => {
-        console.log("API Response:", response.data); // Kiểm tra dữ liệu trả về
-
-        // Trích xuất dữ liệu và tổng số
-        const { data, last_page } = response.data;
-
-        if (Array.isArray(data)) {
-          // Chuyển đổi các item để thêm tên sản phẩm và tên thông số
-          const updatedData = data.map((item) => ({
-            ...item,
-            san_pham_id: item.ten_san_pham || null,
-            thong_so_id: item.ten_thong_so || null,
-          }));
-
-          setProductData(updatedData); // Cập nhật danh sách sản phẩm với tên sản phẩm và thông số
-          setTotalPages(last_page); // Cập nhật tổng số trang
-
-          // Kiểm tra nếu sau khi xóa và trang không còn dữ liệu, chuyển về trang đầu tiên
-          if (updatedData.length === 0 && currentPage > 1) {
-            setCurrentPage((prev) => prev - 1); // Chuyển trang về trang trước đó
-          }
-        } else {
-          console.error("Products không phải là mảng:", data);
-          setProductData([]); // Đặt lại danh sách sản phẩm nếu không phải là mảng
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/danh-gia/${review.id}`,
+        {
+          trang_thai: newStatus, // Cập nhật trạng thái mới
         }
-      })
-      .catch((error) => {
-        console.error("Error fetching product data:", error);
-        setProductData([]); // Đặt lại danh sách sản phẩm khi có lỗi
-      });
-  }, [currentPage]); // Chỉ gọi lại API khi currentPage thay đổi
+      );
 
-  const handlePageChange = (newPage) => {
-    // Nếu người dùng đang ở trang 1 và không có dữ liệu
-    if (newPage <= 0 || newPage > totalPages) {
-      return;
+      console.log(response);
+      setStatus(newStatus); // Cập nhật lại trạng thái trong state
+      console.log(response.data.message); // In thông báo phản hồi từ API
+      // Cập nhật danh gia local sau khi thay đổi trạng thái
+      const updatedDanhGia = danhGia.map((item) =>
+        item.id === review.id ? { ...item, trang_thai: newStatus } : item
+      );
+
+      setDanhGia(updatedDanhGia);
+    } catch (error) {
+      console.error("Error updating status:", error);
     }
-
-    setCurrentPage(newPage); // Thay đổi trang
   };
 
-  // Fetch product list
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/san-pham/allSanPham")
-      .then((response) => response.json())
-      .then((data) => {
-        setProducts(data.data); // Store data in state
-      })
-      .catch((error) => console.error("Error fetching products:", error));
+    const adminId = localStorage.getItem("adminId");
+    if (adminId === null) {
+      console.log("User is not logged in.");
+      navigate("/login");
+    } else {
+      navigate("/admin");
+    }
+  }, [navigate]);
+
+  // Hàm gọi API chung
+  const fetchData = async (url, setState) => {
+    try {
+      const response = await axios.get(url);
+      setState(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchData("http://127.0.0.1:8000/api/thong-ke", setThongKe),
+          fetchData(
+            "http://127.0.0.1:8000/api/thong-ke-don-hang-7-ngay",
+            setThongKeDonHang7Ngay
+          ),
+          fetchData(
+            "http://127.0.0.1:8000/api/thong-ke-khach-hang-moi-7-ngay",
+            setThongKeKhachHangMoi7Ngay
+          ),
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    console.log(thongKeDonHang7Ngay);
+
+    fetchAllData();
   }, []);
 
-  const handleProductChange = (event) => {
-    const selectedProductId = event.target.value;
-    setSelectedProduct(selectedProductId); // Cập nhật sản phẩm đã chọn
+  // Cập nhật ordersChartOptions dựa trên thongKeDonHang7Ngay
+  useEffect(() => {
+    if (thongKeDonHang7Ngay) {
+      const currentDaysData = thongKeDonHang7Ngay.current_seven_days_data;
 
-    if (selectedProductId) {
-      const selectedProductData = products.find(
-        (product) => product.id === parseInt(selectedProductId)
+      // Lấy tổng đơn hàng cho mỗi ngày
+      const totalOrders = currentDaysData.map((item) => item.tong_don_hang);
+
+      // Cập nhật options cho biểu đồ cột
+      const newOrdersChartOptions = {
+        tooltip: {
+          trigger: "axis",
+        },
+        xAxis: {
+          type: "category",
+          data: currentDaysData.map((item) => item.ngay), // Mảng các ngày
+          axisTick: {
+            alignWithLabel: true,
+          },
+        },
+        yAxis: {
+          type: "value",
+          min: 0,
+          max: Math.max(...totalOrders) + 1, // Thiết lập max cho trục y
+        },
+        series: [
+          {
+            name: "Tổng đơn hàng",
+            type: "bar",
+            data: totalOrders, // Dữ liệu tổng đơn hàng cho mỗi ngày
+            itemStyle: {
+              color: "#3485E4", // Màu xanh cho cột
+            },
+          },
+        ],
+      };
+      setOrdersChartOptions(newOrdersChartOptions);
+    }
+  }, [thongKeDonHang7Ngay]); // Khi thongKeDonHang7Ngay thay đổi thì cập nhật lại biểu đồ
+
+  // Cập nhật customerChartOptions dựa trên thongKeKhachHangMoi7Ngay
+  useEffect(() => {
+    if (thongKeKhachHangMoi7Ngay) {
+      const currentCustomersData =
+        thongKeKhachHangMoi7Ngay.current_fourteen_days_data;
+
+      // Lấy tổng khách hàng của từng ngày
+      const totalCustomers = Object.keys(currentCustomersData).map(
+        (date) => currentCustomersData[date].tong_khach_hang
       );
 
-      if (selectedProductData) {
-        const productCategoryId = selectedProductData.danh_muc_id;
+      // Cập nhật options cho biểu đồ khách hàng
+      const newCustomerChartOptions = {
+        tooltip: {
+          trigger: "axis",
+        },
+        xAxis: {
+          type: "category",
+          data: Object.keys(currentCustomersData), // Mảng các ngày
+          axisTick: {
+            alignWithLabel: true,
+          },
+        },
+        yAxis: {
+          type: "value",
+          min: 0,
+          max: Math.max(...totalCustomers) + 1, // Thiết lập max cho trục y
+        },
+        series: [
+          {
+            name: "Tổng khách hàng",
+            type: "bar",
+            data: totalCustomers, // Dữ liệu tổng khách hàng cho mỗi ngày
+            itemStyle: {
+              color: "#28a745", // Màu xanh lá cho cột
+            },
+          },
+        ],
+      };
+      setCustomerChartOptions(newCustomerChartOptions);
+    }
+  }, [thongKeKhachHangMoi7Ngay]); // Khi thongKeKhachHangMoi7Ngay thay đổi thì cập nhật lại biểu đồ
 
-        // Gọi API và cập nhật state filteredSpecifications
-        fetch(
-          `http://127.0.0.1:8000/api/thong-so?danh_muc_id=${productCategoryId}`
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            setFilteredSpecifications(data.data); // Cập nhật thông số sản phẩm từ API
-            setSelectedSpec(""); // Đặt lại selectedSpec mỗi khi sản phẩm thay đổi
-          })
-          .catch((error) => {
-            console.error("Error fetching specifications:", error);
-          });
+  // Fetch product statistics from API
+  useEffect(() => {
+    // Generate options dynamically for selecting months and years
+    const generateMonthYearOptions = async () => {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/thong-ke-san-pham"
+        );
+        const data = await response.json();
+
+        const options = [];
+        // Get the current month and year from the API response
+        const currentMonth = data.current_month.thang;
+        const currentYear = data.current_month.nam;
+        const previousMonth = data.previous_month.thang;
+        const previousYear = data.previous_month.nam;
+
+        // Add the current and previous month/year to the options
+        options.push({
+          label: `Tháng ${currentMonth} - ${currentYear}`,
+          value: `${currentMonth}-${currentYear}`,
+        });
+
+        options.push({
+          label: `Tháng ${previousMonth} - ${previousYear}`,
+          value: `${previousMonth}-${previousYear}`,
+        });
+
+        return options;
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        return [];
       }
-    } else {
-      setFilteredSpecifications([]); // Reset thông số khi không chọn sản phẩm
-      setSelectedSpec(""); // Đặt lại selectedSpec khi không có sản phẩm
-    }
-  };
-
-  const handleAddThongSo = async () => {
-    if (!selectedProduct || thongSoList.length === 0) {
-      alert("Vui lòng chọn sản phẩm và thêm thông số");
-      return;
-    }
-
-    const requestData = {
-      product_id: selectedProduct,
-      parameters: thongSoList.map((item) => ({
-        spec_id: item.selectedSpec,
-        description: item.moTa,
-      })),
     };
 
-    try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/san-pham-va-thong-so",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+    const fetchData = async () => {
+      const options = await generateMonthYearOptions();
+      setMonthYearOptions(options);
+
+      // Initially set month and year based on first option if available
+      if (options.length > 0 && month === null && year === null) {
+        const [defaultMonth, defaultYear] = options[0].value.split("-");
+        setMonth(parseInt(defaultMonth));
+        setYear(parseInt(defaultYear));
+      }
+
+      const chartData = {
+        xAxis: [],
+        totalProducts: [],
+      };
+
+      // Update the chart with the product data based on month and year
+      if (month && year) {
+        try {
+          const response = await fetch(
+            `http://127.0.0.1:8000/api/thong-ke-san-pham?month=${month}&year=${year}`
+          );
+          const data = await response.json();
+          // Prepare chart data
+          if (data.current_month) {
+            chartData.xAxis.push(`Tháng ${data.current_month.thang}`);
+            chartData.totalProducts.push(
+              parseInt(data.current_month.tong_san_pham)
+            );
+          }
+
+          if (data.previous_month) {
+            chartData.xAxis.push(`Tháng ${data.previous_month.thang}`);
+            chartData.totalProducts.push(
+              parseInt(data.previous_month.tong_san_pham)
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching data for the chart:", error);
+        }
+      }
+
+      setProductChartOptions({
+        tooltip: {
+          trigger: "axis",
+        },
+        xAxis: {
+          type: "category",
+          data: chartData.xAxis, // Months
+        },
+        yAxis: {
+          type: "value",
+          min: 0,
+          max: Math.max(...chartData.totalProducts) + 1, // Dynamically adjust Y axis limit
+        },
+        series: [
+          {
+            name: "Tổng số sản phẩm",
+            type: "bar",
+            data: chartData.totalProducts, // Total products each month
+            itemStyle: {
+              color: "#007bff", // Set the bar color to blue
+            },
           },
-          body: JSON.stringify(requestData),
-        }
-      );
-
-      const data = await response.json();
-      console.log("Response from server:", data);
-
-      if (response.ok) {
-        if (Array.isArray(data.data)) {
-          alert("Thêm thông số thành công!");
-
-          setProductData((prevProductData) => {
-            const newProductData = [
-              ...prevProductData,
-              ...data.data, // Dữ liệu đã được trả về từ server chứa tên thay vì ID
-            ];
-
-            // Kiểm tra nếu đủ 10 thông số trên trang hiện tại thì chuyển sang trang tiếp theo
-            const totalProducts = newProductData.length;
-            if (totalProducts > currentPage * productsPerPage) {
-              // Nếu trang hiện tại đã đủ số lượng, tự động chuyển sang trang sau
-              setCurrentPage((prevPage) => prevPage + 1); // Tăng trang lên
-            }
-
-            return newProductData;
-          });
-        } else {
-          console.error("Dữ liệu trả về không phải là mảng:", data);
-          alert("Có lỗi khi thêm thông số.");
-        }
-      } else {
-        throw new Error(`API error: ${data.message || response.statusText}`);
-      }
-    } catch (error) {
-      console.error("Lỗi khi gửi thông số:", error);
-      alert(`Có lỗi xảy ra: ${error.message}`);
-    }
-  };
-
-  const addThongSo = () => {
-    // Thêm một thông số mới vào danh sách thongSoList
-    setThongSoList([
-      ...thongSoList,
-      {
-        id: Math.random(), // Tạo ID duy nhất cho mỗi thông số mới
-        moTa: "", // Mô tả ban đầu
-        selectedSpec: "", // Mã thông số đã chọn
-      },
-    ]);
-  };
-
-  const removeThongSo = (index) => {
-    // Xóa thông số khỏi danh sách thongSoList
-    const newThongSoList = thongSoList.filter((_, idx) => idx !== index);
-    setThongSoList(newThongSoList);
-  };
-
-  const updateThongSo = (index, field, value) => {
-    // Cập nhật thông tin cho thông số
-    const updatedList = [...thongSoList];
-    updatedList[index][field] = value;
-    setThongSoList(updatedList);
-  };
-
-  // Sửa đổi handleDeleteThongSo để cập nhật dữ liệu sau khi xóa và đảm bảo việc chuyển trang khi thiếu thông số
-  const handleDeleteThongSo = async (thongSoId) => {
-    console.log("ID của thông số cần xóa:", thongSoId);
-
-    if (!window.confirm("Bạn có chắc chắn muốn xóa thông số này?")) {
-      return; // Hủy nếu người dùng không xác nhận
-    }
-
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/san-pham-va-thong-so/${thongSoId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        alert("Xóa thông số thành công!");
-
-        // Cập nhật danh sách sản phẩm ngay lập tức sau khi xóa
-        setProductData(
-          (prevProductData) =>
-            prevProductData.filter((item) => item.id !== thongSoId) // Loại bỏ thông số đã xóa
-        );
-
-        // Kiểm tra nếu không còn thông số nào trên trang, thì chuyển về trang đầu tiên
-        if (productData.length <= 1) {
-          setCurrentPage(1); // Chuyển về trang 1 nếu không còn sản phẩm
-        }
-      } else {
-        const data = await response.json();
-        throw new Error(data.message || "Có lỗi khi xóa thông số.");
-      }
-    } catch (error) {
-      console.error("Error deleting parameter:", error);
-      alert(`Không thể xóa thông số: ${error.message}`);
-    }
-  };
-
-  const handleSpecChange = (e) => {
-    setSelectedSpec(e.target.value);
-    const selectedSpecification = productSpecifications.find(
-      (spec) => spec.id === Number(e.target.value)
-    );
-    if (selectedSpecification) {
-      setDescription(selectedSpecification.mo_ta); // Pre-fill description
-    }
-  };
-
-  const handleDescriptionChange = (e) => {
-    setDescription(e.target.value);
-  };
-
-  const handleEditClick = async (item) => {
-    try {
-      console.log("Clicked item ID:", item.id);
-
-      // Send API request to fetch detailed product info and specs
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/san-pham-va-thong-so/${item.id}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch item details");
-      }
-
-      const result = await response.json();
-      const data = result.data; // Fetch data from response
-      console.log("API response data:", data);
-
-      // Update the state with item details
-      setEditingThongSo(data);
-      setSelectedProduct(data.san_pham_id); // Set selected product ID
-      setSelectedSpec(data.thong_so_id); // Set selected spec ID
-      setDescription(data.mo_ta); // Set description
-
-      // Find related product in the products list
-      const relatedProduct = products.find(
-        (product) => product.id === data.san_pham_id
-      );
-
-      if (relatedProduct && relatedProduct.danh_muc_id) {
-        const productCategoryId = relatedProduct.danh_muc_id;
-
-        // Call API to fetch specs based on category ID
-        const specsResponse = await fetch(
-          `http://127.0.0.1:8000/api/thong-so?danh_muc_id=${productCategoryId}`
-        );
-        if (!specsResponse.ok) {
-          throw new Error("Failed to fetch specifications");
-        }
-
-        const specsResult = await specsResponse.json();
-        const specifications = specsResult.data; // Spec data
-        setFilteredSpecifications(specifications); // Update filtered specs
-        console.log("Filtered specifications:", specifications);
-
-        // Find the correct spec that matches the item's thong_so_id
-        const specData = specifications.find(
-          (spec) => spec.id === data.thong_so_id
-        );
-        if (specData) {
-          setSelectedSpec(specData.id); // Set selected spec based on thong_so_id
-        }
-      } else {
-        console.warn(`Product not found or missing category ID`);
-        setFilteredSpecifications([]); // Reset specifications if no category
-      }
-    } catch (error) {
-      console.error("Error fetching item details:", error);
-    }
-  };
-
-  const handleUpdateThongSo = async () => {
-    // Kiểm tra dữ liệu đầu vào
-    if (!selectedProduct || !selectedSpec || !description) {
-      alert("Vui lòng điền đầy đủ thông tin!");
-      return;
-    }
-
-    try {
-      // Trước khi gửi yêu cầu cập nhật, lấy tên sản phẩm và thông số
-      const selectedProductName = productData.find(
-        (item) => item.id === selectedProduct
-      )?.ten_san_pham;
-
-      // Tên thông số đã được lưu trong selectedSpecName từ bước trước
-      const selectedSpecName = filteredSpecifications.find(
-        (spec) => spec.id === selectedSpec
-      )?.ten_thong_so;
-
-      console.log("Sending update request with data:", {
-        san_pham_id: selectedProduct,
-        thong_so_id: selectedSpec,
-        ten_san_pham: selectedProductName,
-        ten_thong_so: selectedSpecName,
-        mo_ta: description,
+        ],
       });
+    };
 
-      // Gửi yêu cầu cập nhật API
-      const response = await axios.put(
-        `http://127.0.0.1:8000/api/san-pham-va-thong-so/${editingThongSo.id}`,
-        {
-          san_pham_id: selectedProduct,
-          thong_so_id: selectedSpec,
-          mo_ta: description,
-        }
-      );
+    fetchData();
+  }, [month, year]); // Dependent on month and year to re-fetch the chart data
 
-      if (response.status === 200) {
-        // Cập nhật dữ liệu UI sau khi cập nhật thành công
-        const updatedItem = {
-          ...editingThongSo,
-          ten_san_pham: selectedProductName, // Thêm tên sản phẩm
-          ten_thong_so: selectedSpecName, // Thêm tên thông số
-          mo_ta: description,
-        };
+  // Handle change for selecting month and year
+  const handleMonthYearChange = (event) => {
+    const [selectedMonth, selectedYear] = event.target.value.split("-");
+    setMonth(parseInt(selectedMonth));
+    setYear(parseInt(selectedYear));
+  };
 
-        setProductData((prevData) =>
-          prevData.map((item) =>
-            item.id === updatedItem.id ? updatedItem : item
-          )
+  // Lấy dữ liệu đánh giá
+  useEffect(() => {
+    const fetchDanhGia = async (page) => {
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/danh-gia?page=${page}`
         );
+        const { data, current_page, last_page } = response.data.data;
 
-        console.log("Updated data from API:", response.data);
-        alert("Cập nhật thông số thành công!");
+        setDanhGia(data);
+        setCurrentPage(current_page);
+        setLastPage(last_page);
+        setTotalProducts(response.data.data.total);
 
-        // Reset các state và đóng modal
-        setEditingThongSo(null);
-        setSelectedProduct("");
-        setSelectedSpec("");
-        setDescription("");
-      } else {
-        console.error("Error updating specification:", response);
-        alert("Có lỗi xảy ra khi cập nhật thông số!");
+        setLoading(false); // Khi hoàn thành gọi API, set loading = false
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
       }
-    } catch (error) {
-      console.error("Error sending update request:", error);
-      alert("Có lỗi xảy ra khi gửi yêu cầu cập nhật!");
+    };
+
+    fetchDanhGia(currentPage);
+  }, [currentPage]);
+
+  const totalPages = Math.ceil(totalProducts / 10);
+
+  // Xử lý thay đổi trang
+  // const handlePageChange = (newPage) => {
+  //   if (newPage >= 1 && newPage <= lastPage) {
+  //     setCurrentPage(newPage);
+  //   }
+  // };
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Hiển thị loading khi đang tải dữ liệu
+  }
 
   return (
-    <div className="content">
-      <nav aria-label="breadcrumb">
-        <ol className="breadcrumb mb-0">
-          <li className="breadcrumb-item">
-            <Link to="/admin">Dashboard</Link>
-          </li>
-          <li className="breadcrumb-item active" aria-current="page">
-            {currentTitle}
-          </li>
-        </ol>
-      </nav>
-      <div className="mb-9">
-        <div className="row g-3 mb-4">
-          <div className="col-auto">
-            <h2 className="mb-0">List parameter link</h2>
-          </div>
-        </div>
-
-        <div
-          id="products"
-          data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
-        >
-          <div className="mb-4">
-            <div className="d-flex flex-wrap gap-3">
-              <div className="search-box">
-                <form className="position-relative">
-                  <input
-                    className="form-control search-input search"
-                    type="search"
-                    placeholder="Search products"
-                    aria-label="Search"
-                  />
-                  <span className="fas fa-search search-box-icon" />
-                </form>
+    <>
+      <div className="content">
+        <div className="pb-5">
+          <div className="row g-4">
+            <div className="col-12 col-xxl-6">
+              <div className="mb-8">
+                <h2 className="mb-2">Thống kê sản phẩm</h2>
+                <h5 className="text-body-tertiary fw-semibold">
+                  Đây là những gì đang diễn ra tại doanh nghiệp của bạn ngay bây
+                  giờ
+                </h5>
+              </div>
+              <div className="row align-items-center g-4">
+                <div className="col-12 col-md-auto">
+                  <div className="d-flex align-items-center">
+                    <span
+                      className="fa-stack"
+                      style={{ minHeight: 46, minWidth: 46 }}
+                    >
+                      <span
+                        className="fa-solid fa-square fa-stack-2x dark__text-opacity-50 text-success-light"
+                        data-fa-transform="down-4 rotate--10 left-4"
+                      />
+                      <span
+                        className="fa-solid fa-circle fa-stack-2x stack-circle text-stats-circle-success"
+                        data-fa-transform="up-4 right-3 grow-2"
+                      />
+                      <span
+                        className="fa-stack-1x fa-solid fa-star text-success "
+                        data-fa-transform="shrink-2 up-8 right-6"
+                      />
+                    </span>
+                    <div className="ms-3">
+                      <h4 className="mb-0">
+                        {thongKe?.tong_hang_moi} đơn hàng mới
+                      </h4>
+                      <p className="text-body-secondary fs-9 mb-0">
+                        Đang chờ xử lý
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-12 col-md-auto">
+                  <div className="d-flex align-items-center">
+                    <span
+                      className="fa-stack"
+                      style={{ minHeight: 46, minWidth: 46 }}
+                    >
+                      <span
+                        className="fa-solid fa-square fa-stack-2x dark__text-opacity-50 text-warning-light"
+                        data-fa-transform="down-4 rotate--10 left-4"
+                      />
+                      <span
+                        className="fa-solid fa-circle fa-stack-2x stack-circle text-stats-circle-warning"
+                        data-fa-transform="up-4 right-3 grow-2"
+                      />
+                      <span
+                        className="fa-stack-1x fa-solid fa-pause text-warning "
+                        data-fa-transform="shrink-2 up-8 right-6"
+                      />
+                    </span>
+                    <div className="ms-3">
+                      <h4 className="mb-0">
+                        {thongKe?.tong_don_hang_dang_giu} đơn hàng
+                      </h4>
+                      <p className="text-body-secondary fs-9 mb-0">Đang giữ</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-12 col-md-auto">
+                  <div className="d-flex align-items-center">
+                    <span
+                      className="fa-stack"
+                      style={{ minHeight: 46, minWidth: 46 }}
+                    >
+                      <span
+                        className="fa-solid fa-square fa-stack-2x dark__text-opacity-50 text-danger-light"
+                        data-fa-transform="down-4 rotate--10 left-4"
+                      />
+                      <span
+                        className="fa-solid fa-circle fa-stack-2x stack-circle text-stats-circle-danger"
+                        data-fa-transform="up-4 right-3 grow-2"
+                      />
+                      <span
+                        className="fa-stack-1x fa-solid fa-xmark text-danger "
+                        data-fa-transform="shrink-2 up-8 right-6"
+                      />
+                    </span>
+                    <div className="ms-3">
+                      <h4 className="mb-0">
+                        {thongKe?.tong_san_pham_ton_kho_bang_0} sản phẩm
+                      </h4>
+                      <p className="text-body-secondary fs-9 mb-0">Hết hàng</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <hr className="bg-body-secondary mb-6 mt-4" />
+              <div className="row flex-between-center mb-4 g-3">
+                <div className="col-auto">
+                  <h3>Tổng số sản phẩm</h3>
+                  <p className="text-body-tertiary lh-sm mb-0">
+                    Thanh toán được nhận trên tất cả các kênh
+                  </p>
+                </div>
+                <div className="col-8 col-sm-4">
+                  <select
+                    className="form-select form-select-sm"
+                    id="select-month-year"
+                    value={`${month}-${year}`} // Keep selected value synced
+                    onChange={handleMonthYearChange}
+                  >
+                    {monthYearOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="ms-xxl-auto ms-auto">
-                <button
-                  className="btn btn-primary"
-                  id="addBtn"
-                  data-bs-toggle="modal"
-                  data-bs-target="#addParameterLink"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                  data-bs-reference="parent"
-                >
-                  <span className="fas fa-plus me-2" />
-                  Thêm liên kết
-                </button>
+              <div className="d-flex justify-content-center px-4 py-6">
+                {loading ? (
+                  <div>Loading...</div>
+                ) : productChartOptions ? (
+                  <ReactECharts
+                    option={productChartOptions}
+                    style={{ minHeight: 320, width: "100%" }}
+                  />
+                ) : (
+                  <div>Chưa có dữ liệu</div>
+                )}
+              </div>
+            </div>
+            <div className="col-12 col-xxl-6">
+              <div className="row g-3">
+                <div className="col-12 col-md-12">
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <div className="d-flex justify-content-between">
+                        <div>
+                          <h5 className="mb-1">
+                            Tổng số đơn hàng
+                            <span className="badge badge-phoenix badge-phoenix-warning rounded-pill fs-9 ms-2">
+                              <span className="badge-label">
+                                {thongKeDonHang7Ngay?.ti_le_chenh_lech % 1 === 0
+                                  ? `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
+                                      0
+                                    )}%`
+                                  : `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
+                                      1
+                                    )}%`}
+                              </span>
+                            </span>
+                          </h5>
+                          <h6 className="text-body-tertiary">7 ngày qua</h6>
+                        </div>
+                        <h4>{thongKeDonHang7Ngay?.tong_don_hang}</h4>
+                      </div>
+                      <div className="d-flex justify-content-center px-4 py-6">
+                        {ordersChartOptions ? (
+                          <ReactECharts
+                            option={ordersChartOptions}
+                            style={{ height: 300, width: "100%" }}
+                          />
+                        ) : (
+                          <div>Loading...</div>
+                        )}
+                      </div>
+                      <div className="mt-2">
+                        <div className="d-flex align-items-center mb-2">
+                          <div className="bullet-item bg-primary me-2" />
+                          <h6 className="text-body fw-semibold flex-1 mb-0">
+                            Hoàn thành
+                          </h6>
+                          <h6 className="text-body fw-semibold mb-0">
+                            {thongKeDonHang7Ngay?.ti_le_hoan_thanh % 1 === 0
+                              ? `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
+                                  0
+                                )}%`
+                              : `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
+                                  1
+                                )}%`}
+                          </h6>
+                        </div>
+                        <div className="d-flex align-items-center">
+                          <div className="bullet-item bg-primary-subtle me-2" />
+                          <h6 className="text-body fw-semibold flex-1 mb-0">
+                            Chưa hoàn thành
+                          </h6>
+                          <h6 className="text-body fw-semibold mb-0">
+                            {thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh % 1 ===
+                            0
+                              ? `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
+                                  0
+                                )}%`
+                              : `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
+                                  1
+                                )}%`}
+                          </h6>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-12 col-md-12">
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <div className="d-flex justify-content-between">
+                        <div>
+                          <h5 className="mb-1">
+                            Khách hàng mới
+                            <span className="badge badge-phoenix badge-phoenix-warning rounded-pill fs-9 ms-2">
+                              {""}
+                              <span className="badge-label">
+                                {thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech %
+                                  1 ===
+                                0
+                                  ? `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
+                                      0
+                                    )}%`
+                                  : `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
+                                      1
+                                    )}%`}
+                              </span>
+                            </span>
+                          </h5>
+                          <h6 className="text-body-tertiary">7 ngày qua</h6>
+                        </div>
+                        <h4>{thongKeKhachHangMoi7Ngay?.tong_khach_hang}</h4>
+                      </div>
+                      <div className="d-flex justify-content-center px-4 py-6">
+                        {customerChartOptions ? (
+                          <ReactECharts
+                            option={customerChartOptions}
+                            style={{ height: 300, width: "100%" }}
+                          />
+                        ) : (
+                          <div>Loading...</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis border-top border-bottom border-translucent position-relative top-1">
-            <div className="table-responsive scrollbar mx-n1 px-1">
-              <table className="table fs-9 mb-0">
+        </div>
+        <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis pt-7 border-y">
+          <div data-list='{"valueNames":["product","customer","rating","review","time"],"page":6}'>
+            <div className="row align-items-end justify-content-between pb-5 g-3">
+              <div className="col-auto">
+                <h3>Đánh giá mới nhất</h3>
+                <p className="text-body-tertiary lh-sm mb-0">
+                  Thanh toán được nhận trên tất cả các kênh
+                </p>
+              </div>
+              <div className="col-12 col-md-auto">
+                <div className="row g-2 gy-3">
+                  <div className="col-auto flex-1">
+                    <div className="search-box">
+                      <form className="position-relative">
+                        <input
+                          className="form-control search-input search form-control-sm"
+                          type="search"
+                          placeholder="Search"
+                          aria-label="Search"
+                        />
+                        <span className="fas fa-search search-box-icon" />
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="table-responsive mx-n1 px-1 scrollbar">
+              <table className="table fs-9 mb-0 border-top border-translucent">
                 <thead>
                   <tr>
                     <th
-                      className="white-space-nowrap fs-9 align-middle ps-3"
+                      className="white-space-nowrap align-middle ps-0"
                       scope="col"
-                      style={{ width: "6%" }}
+                      style={{ width: "5%" }}
                     >
                       STT
                     </th>
                     <th
-                      className="white-space-nowrap align-middle ps-4"
+                      className="white-space-nowrap align-middle ps-0"
                       scope="col"
-                      style={{ width: "30%" }}
+                      style={{ width: "8%" }}
+                    >
+                      HÌNH ẢNH
+                    </th>
+                    <th
+                      className="white-space-nowrap align-middle ps-0"
+                      scope="col"
+                      style={{ width: "20%" }}
                       data-sort="product"
                     >
                       SẢN PHẨM
                     </th>
                     <th
-                      className="align-middle ps-4"
+                      className="align-middle ps-0"
                       scope="col"
-                      style={{ width: "20%" }}
+                      data-sort="customer"
+                      style={{ width: "12%" }}
                     >
-                      THÔNG SỐ
+                      KHÁCH HÀNG
                     </th>
                     <th
-                      className="align-middle ps-4"
+                      className="align-middle ps-0"
                       scope="col"
+                      data-sort="rating"
+                      style={{ width: "8%" }}
+                    >
+                      ĐÁNH GIÁ
+                    </th>
+                    <th
+                      className="align-middle"
+                      scope="col"
+                      data-sort="review"
                       style={{ width: "25%" }}
                     >
-                      MÔ TẢ
+                      NHẬN XÉT
                     </th>
-                    <th className="align-middle ps-3" style={{ width: "5%" }}>
+                    <th
+                      className="align-middle ps-0"
+                      scope="col"
+                      data-sort="status"
+                      style={{ width: "10%" }}
+                    >
+                      TRẠNG THÁI
+                    </th>
+                    <th
+                      className="align-middle ps-0"
+                      scope="col"
+                      data-sort="time"
+                      style={{ width: "11%" }}
+                    >
+                      THỜI GIAN
+                    </th>
+                    <th
+                      className="pe-0 align-middle text-center"
+                      scope="col"
+                      style={{ width: "5%" }}
+                    >
                       HÀNH ĐỘNG
                     </th>
                   </tr>
                 </thead>
-                <tbody className="list" id="products-table-body">
-                  {Array.isArray(productData) && productData.length > 0 ? (
-                    productData.map((item, index) => (
-                      <tr key={index}>
-                        <td className="ps-3">
-                          {index + 1 + (currentPage - 1) * 10}
-                        </td>
-                        <td className="product align-middle ps-4">
-                          {item.ten_san_pham}{" "}
-                          {/* Sử dụng tên sản phẩm từ response */}
-                        </td>
-                        <td className="tags align-middle review pb-2 ps-4">
-                          {item.ten_thong_so}{" "}
-                          {/* Sử dụng tên thông số từ response */}
-                        </td>
 
-                        <td className="tags align-middle review pb-2 ps-4">
-                          {item.mo_ta}
+                <tbody className="list" id="table-latest-review-body">
+                  {Array.isArray(danhGia) && danhGia.length > 0 ? (
+                    danhGia.map((review, index) => (
+                      <tr key={review.id}>
+                        <td>{index + 1}</td>
+                        <td className="align-middle product white-space-nowrap py-0 ps-0">
+                          <img
+                            src={`http://127.0.0.1:8000/storage/${review.san_pham.duong_dan_anh}`}
+                            width={50}
+                            alt="product"
+                          />
                         </td>
-                        <td className="align-middle white-space-nowrap">
-                          <button
-                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                            type="button"
-                            onClick={() => handleEditClick(item)}
-                            data-bs-toggle="modal"
-                            data-bs-target="#editParameterLink"
-                          >
-                            <span className="fa-solid fa-pen-to-square fs-9" />
-                          </button>
-                          <button
-                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                            type="button"
-                            onClick={() => handleDeleteThongSo(item.id)} // Gọi hàm xóa thông số với ID
-                          >
-                            <span className="fa-solid fa-trash fs-9" />
-                          </button>
+                        <td className="align-middle product white-space-nowrap ps-0">
+                          {review.san_pham.ten_san_pham}
+                        </td>
+                        <td className="align-middle customer white-space-nowrap ps-0">
+                          {review.khach_hang.ho_ten}
+                        </td>
+                        <td className="align-middle rating white-space-nowrap fs-10 ps-0">
+                          {Array.from({ length: review.danh_gia }).map(
+                            (_, idx) => (
+                              <span
+                                key={idx}
+                                className="fa fa-star text-warning"
+                              />
+                            )
+                          )}
+                        </td>
+                        <td>
+                          <p className="fs-9 fw-semibold text-body-highlight mb-0">
+                            {review.binh_luan}
+                          </p>
+                        </td>
+                        <td className="align-middle text-start status ps-0">
+                          {review.trang_thai === 1 ? (
+                            <span className="badge badge-phoenix fs-10 badge-phoenix-success">
+                              Đã duyệt
+                            </span>
+                          ) : review.trang_thai === 0 ? (
+                            <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
+                              Chưa duyệt
+                            </span>
+                          ) : review.trang_thai === 2 ? (
+                            <span className="badge badge-phoenix fs-10 badge-phoenix-secondary">
+                              Đã hủy
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="align-middle time white-space-nowrap">
+                          <h6 className="text-body-highlight mb-0">
+                            {new Date(review.created_at).toLocaleString()}
+                          </h6>
+                        </td>
+                        <td className="align-middle white-space-nowrap text-end pe-0">
+                          <div>
+                            <button
+                              className="btn btn-sm btn-phoenix-secondary me-1 fs-10"
+                              onClick={() => handleUpdateStatus(review, 1)}
+                            >
+                              <span className="fas fa-check" />
+                            </button>
+                            <button
+                              className="btn btn-sm btn-phoenix-secondary fs-10"
+                              onClick={() => handleUpdateStatus(review, 2)}
+                            >
+                              <span className="fas fa-trash" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="text-center">
-                        Không có dữ liệu để hiển thị
+                      <td colSpan="9" className="text-center">
+                        Không có dữ liệu đánh giá
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
-            <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
-              <div className="col-auto d-flex">
-                <p className="mb-0 me-3 fw-semibold text-body">
-                  Trang {currentPage} / {totalPages}
+            <div>
+              <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
+                {/* Hiển thị số trang */}
+                <div className="col-auto d-flex">
+                  <p className="mb-0 me-3 fw-semibold text-body">
+                    Trang {currentPage} / {totalPages}
+                  </p>
+                </div>
+
+                {/* Điều hướng phân trang */}
+                <div className="col-auto d-flex">
+                  {/* Nút Previous */}
+                  <button
+                    className="page-link"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <span className="fas fa-chevron-left" />
+                  </button>
+
+                  {/* Danh sách các trang */}
+                  <ul className="pagination mb-0">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                      <li
+                        key={index}
+                        className={`page-item ${
+                          currentPage === index + 1 ? "active" : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => goToPage(index + 1)}
+                        >
+                          {index + 1}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Nút Next */}
+                  <button
+                    className="page-link pe-0"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <span className="fas fa-chevron-right" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis pt-6 pb-9 border-top">
+          <div className="row g-6">
+            <div className="col-12 col-xl-12">
+              <div>
+                <h3>Tỷ lệ khách hàng quay lại</h3>
+                <p className="mb-1 text-body-tertiary">
+                  Tỷ lệ khách hàng quay lại cửa hàng của bạn theo thời gian
                 </p>
               </div>
-              <div className="col-auto d-flex">
-                <button
-                  className="page-link"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <span className="fas fa-chevron-left" />
-                </button>
-                <ul className="mb-0 pagination">
-                  {Array.from({ length: totalPages }, (_, index) => (
-                    <li
-                      key={index}
-                      className={`page-item ${
-                        currentPage === index + 1 ? "active" : ""
-                      }`}
-                    >
-                      <button
-                        className="page-link"
-                        onClick={() => handlePageChange(index + 1)}
-                        type="button"
-                      >
-                        {index + 1}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  className="page-link pe-0"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <span className="fas fa-chevron-right" />
-                </button>
-              </div>
+              <div
+                className="echart-returning-customer"
+                style={{ height: 300 }}
+              />
             </div>
           </div>
         </div>
+        <footer className="footer position-absolute">
+          <div className="row g-0 justify-content-between align-items-center h-100">
+            <div className="col-12 col-sm-auto text-center">
+              <p className="mb-0 mt-2 mt-sm-0 text-body">
+                Thank you for creating with Phoenix
+                <span className="d-none d-sm-inline-block" />
+                <span className="d-none d-sm-inline-block mx-1">|</span>
+                <br className="d-sm-none" />
+                2024 ©
+                <a className="mx-1" href="https://themewagon.com/">
+                  Themewagon
+                </a>
+              </p>
+            </div>
+            <div className="col-12 col-sm-auto text-center">
+              <p className="mb-0 text-body-tertiary text-opacity-85">v1.18.0</p>
+            </div>
+          </div>
+        </footer>
       </div>
-
-      <div
-        className="modal fade"
-        id="addParameterLink"
-        data-bs-backdrop="static"
-        data-bs-keyboard="false"
-        tabIndex={-1}
-        aria-labelledby="addParameterLink"
-        aria-hidden="true"
-      >
-        <div
-          className="modal-dialog modal-lg modal-dialog-centered"
-          style={{ width: "1100px" }}
-        >
-          <div className="modal-content bg-body-highlight p-6">
-            <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Thêm liên kết</h3>
-              <button
-                className="btn btn-sm btn-phoenix-secondary"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                <span className="fas fa-times text-danger" />
-              </button>
-            </div>
-            <div className="modal-body px-0 mt-1">
-              <div className="row g-4">
-                <div className="col-lg-12">
-                  <div className="mb-2">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Sản phẩm
-                    </label>
-                    <select
-                      className="form-select"
-                      aria-label="Product select"
-                      value={selectedProduct}
-                      onChange={handleProductChange}
-                    >
-                      <option value="">Chọn sản phẩm</option>
-                      {products.map((product) => (
-                        <option key={product.id} value={product.id}>
-                          {product.ten_san_pham}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {thongSoList.length > 0 && (
-                  <div className="col-lg-12">
-                    <h5 className="mb-3">Liên kết thông số đã thêm</h5>
-                  </div>
-                )}
-
-                {thongSoList.map((item, index) => (
-                  <div key={index} className="col-lg-6">
-                    <div className="card p-3 h-100">
-                      <div className="row g-3 align-items-start">
-                        <div className="col-lg-12">
-                          <label className="form-label fw-bold">
-                            Tên thông số
-                          </label>
-                          <select
-                            className="form-control"
-                            value={item.selectedSpec}
-                            onChange={(e) =>
-                              updateThongSo(
-                                index,
-                                "selectedSpec",
-                                e.target.value
-                              )
-                            }
-                          >
-                            <option value="" disabled>
-                              Chọn tên thông số...
-                            </option>
-                            {productSpecifications
-                              .filter(
-                                (spec) =>
-                                  !thongSoList.some(
-                                    (addedItem) =>
-                                      addedItem.selectedSpec === spec.id
-                                  )
-                              ) // Lọc các thông số đã được chọn
-                              .map((spec) => (
-                                <option key={spec.id} value={spec.id}>
-                                  {spec.ten_thong_so}
-                                </option>
-                              ))}
-                          </select>
-                        </div>
-                        <div className="col-lg-12">
-                          <label className="form-label fw-bold">Mô tả</label>
-                          <textarea
-                            className="form-control"
-                            rows="2"
-                            placeholder="Mô tả"
-                            value={item.moTa}
-                            onChange={(e) =>
-                              updateThongSo(index, "moTa", e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div className="row mt-3">
-                        <div className="col-lg-12 text-end">
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => removeThongSo(index)}
-                          >
-                            Xóa thông số
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="col-lg-12 text-center mt-4">
-                  <div className="card p-3 bg-light border-dashed">
-                    <button
-                      className="btn btn-outline-success btn-block d-flex align-items-center justify-content-center btn-sm"
-                      style={{ fontSize: "12px", fontWeight: "bold" }}
-                      onClick={addThongSo}
-                    >
-                      <i className="fas fa-plus me-2"></i>
-                      Thêm thông số mới
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <hr className="my-5" />
-
-            <div className="modal-footer border-0 pt-0 px-0 pb-0 mt-5">
-              <button
-                className="btn btn-link text-danger px-3 my-0"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                Hủy bỏ
-              </button>
-              <button className="btn btn-primary" onClick={handleAddThongSo}>
-                Thêm mới
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className="modal fade"
-        id="editParameterLink"
-        data-bs-backdrop="static"
-        data-bs-keyboard="false"
-        tabIndex={-1}
-        aria-labelledby="editParameterLink"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-l modal-dialog-centered">
-          <div className="modal-content bg-body-highlight p-6">
-            <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Chỉnh sửa thông số</h3>
-              <button
-                className="btn btn-sm btn-phoenix-secondary"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                <span className="fas fa-times text-danger" />
-              </button>
-            </div>
-            <div className="modal-body px-0 mt-1">
-              <div className="row g-4">
-                <div className="col-lg-12">
-                  <div className="mb-2">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Sản phẩm
-                    </label>
-                    <select
-                      className="form-select"
-                      value={selectedProduct}
-                      onChange={handleProductChange}
-                    >
-                      <option value="">Chọn sản phẩm</option>
-                      {products.map((product) => (
-                        <option key={product.id} value={product.id}>
-                          {product.ten_san_pham}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="col-lg-12">
-                  <div className="mb-2">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Thông số
-                    </label>
-                    <select
-                      className="form-select"
-                      value={selectedSpec} // Set giá trị của select từ state
-                      onChange={handleSpecChange}
-                    >
-                      <option value="">Chọn thông số</option>
-                      {filteredSpecifications.length > 0 ? (
-                        filteredSpecifications.map((spec) => (
-                          <option key={spec.id} value={spec.id}>
-                            {spec.ten_thong_so} {/* Hiển thị tên thông số */}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="">Không có thông số nào</option>
-                      )}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="col-lg-12">
-                  <div className="mb-2">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Mô tả
-                    </label>
-                    <textarea
-                      className="form-control"
-                      rows="4"
-                      placeholder="Mô tả thông số của sản phẩm"
-                      value={description}
-                      onChange={handleDescriptionChange}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer border-0 pt-0 px-0 pb-0 mt-5">
-              <button
-                className="btn btn-link text-danger px-3 my-0"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                className="btn btn-primary my-0"
-                onClick={handleUpdateThongSo}
-              >
-                Cập nhật
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <footer className="footer position-absolute">
-        <div className="row g-0 justify-content-between align-items-center h-100">
-          <div className="col-12 col-sm-auto text-center">
-            <p className="mb-0 mt-2 mt-sm-0 text-body">
-              Thank you for creating with Phoenix
-              <span className="d-none d-sm-inline-block" />
-              <span className="d-none d-sm-inline-block mx-1">|</span>
-              <br className="d-sm-none" />
-              2024 ©
-              <a className="mx-1" href="https://themewagon.com/">
-                Themewagon
-              </a>
-            </p>
-          </div>
-          <div className="col-12 col-sm-auto text-center">
-            <p className="mb-0 text-body-tertiary text-opacity-85">v1.18.0</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </>
   );
 };
-export default ParameterLink;
-
-
-
+export default Dashboard;
