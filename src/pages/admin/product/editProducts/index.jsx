@@ -216,7 +216,7 @@ const EditProducts = () => {
           },
         }
       );
-  
+
       const data = await response.json();
       if (response.ok) {
         setSubCategories(data.data);
@@ -375,7 +375,7 @@ const EditProducts = () => {
       alert("Đã xảy ra lỗi, vui lòng thử lại.");
     }
   };
-  
+
 
   return (
     <>
@@ -409,69 +409,69 @@ const EditProducts = () => {
             <div className="col-12 col-xl-8">
               <h4 className="mb-3">Ảnh sản phẩm</h4>
               <div
-                              className="dropzone dropzone-multiple p-0 mb-5"
-                              onDrop={handleDrop}
-                              onDragOver={handleDragOver}
-                              onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
-                              id="my-awesome-dropzone"
-                              data-dropzone="data-dropzone"
-                            >
-                              <div className="fallback">
-                                <input
-                                  id="fileInput"
-                                  type="file"
-                                  style={{ display: "none" }} // Ẩn input
-                                  onChange={handleFileChange}
-                                  multiple="multiple"
-                                />
-                              </div>
-              
-                              {formData.image ? (
-                                <div className="dz-preview d-flex flex-wrap">
-                                  <div
-                                    className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2"
-                                    style={{ height: 120, width: 120 }}
-                                  >
-                                    <img
-                                      className="dz-image"
-                                      src={URL.createObjectURL(formData.image)}
-                                      alt="Preview"
-                                      data-dz-thumbnail="data-dz-thumbnail"
-                                      style={{
-                                        maxWidth: "100%",
-                                        maxHeight: "100%",
-                                        objectFit: "contain",
-                                      }}
-                                    />
-                                    <a
-                                      className="dz-remove text-body-quaternary"
-                                      href="#!"
-                                      data-dz-remove="data-dz-remove"
-                                    >
-                                      <span data-feather="x" />
-                                    </a>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div
-                                  className="dz-message text-body-tertiary text-opacity-85"
-                                  data-dz-message="data-dz-message"
-                                >
-                                  Kéo ảnh của bạn vào đây
-                                  <span className="text-body-secondary px-1">hoặc</span>
-                                  <button className="btn btn-link p-0" type="button">
-                                    Duyệt từ thiết bị
-                                  </button>
-                                  <br />
-                                  <img
-                                    className="mt-3 me-2"
-                                    src={icon}
-                                    width={40}
-                                    alt="upload icon"
-                                  />
-                                </div>
-                              )}
-                            </div>
+                className="dropzone dropzone-multiple p-0 mb-5"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
+                id="my-awesome-dropzone"
+                data-dropzone="data-dropzone"
+              >
+                <div className="fallback">
+                  <input
+                    id="fileInput"
+                    type="file"
+                    style={{ display: "none" }} // Ẩn input
+                    onChange={handleFileChange}
+                    multiple="multiple"
+                  />
+                </div>
+
+                {formData.image ? (
+                  <div className="dz-preview d-flex flex-wrap">
+                    <div
+                      className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2"
+                      style={{ height: 120, width: 120 }}
+                    >
+                      <img
+                        className="dz-image"
+                        src={URL.createObjectURL(formData.image)}
+                        alt="Preview"
+                        data-dz-thumbnail="data-dz-thumbnail"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                      <a
+                        className="dz-remove text-body-quaternary"
+                        href="#!"
+                        data-dz-remove="data-dz-remove"
+                      >
+                        <span data-feather="x" />
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="dz-message text-body-tertiary text-opacity-85"
+                    data-dz-message="data-dz-message"
+                  >
+                    Kéo ảnh của bạn vào đây
+                    <span className="text-body-secondary px-1">hoặc</span>
+                    <button className="btn btn-link p-0" type="button">
+                      Duyệt từ thiết bị
+                    </button>
+                    <br />
+                    <img
+                      className="mt-3 me-2"
+                      src={icon}
+                      width={40}
+                      alt="upload icon"
+                    />
+                  </div>
+                )}
+              </div>
               <h4 className="mb-3">Tên sản phẩm</h4>
               <input
                 className="form-control mb-5"
@@ -498,11 +498,11 @@ const EditProducts = () => {
               <div className="mb-6">
                 <h4 className="mb-2 text-body-highlight">Giá thông thường</h4>
                 <input className="form-control"
-                type="text" 
-                placeholder="$$$" 
-                value={formData?.gia}
-                name="gia"
-                onChange={handleInputChange}
+                  type="text"
+                  placeholder="$$$"
+                  value={formData?.gia}
+                  name="gia"
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="mb-6">
@@ -536,11 +536,11 @@ const EditProducts = () => {
                               </a>
                             </div>
                             <select className="form-select mb-3" aria-label="Danh mục"
-                            onChange={(e) => {
-                              const categoryId = e.target.value;
-                              setFormData({ ...formData, danh_muc_id: categoryId, danh_muc_con_id: "" }); // Reset subcategory when category changes
-                              fetchSubCategories(categoryId); // Fetch subcategories for the selected category
-                            }}
+                              onChange={(e) => {
+                                const categoryId = e.target.value;
+                                setFormData({ ...formData, danh_muc_id: categoryId, danh_muc_con_id: "" }); // Reset subcategory when category changes
+                                fetchSubCategories(categoryId); // Fetch subcategories for the selected category
+                              }}
                             >
                               <option value="">Chọn danh mục...</option>
                               {categories.length > 0 &&
@@ -572,14 +572,14 @@ const EditProducts = () => {
                                 Thêm danh mục con
                               </a>
                             </div>
-                      
+
                             <select className="form-select mb-3" aria-label="Danh mục"
-                            onChange={(e) => {
-                              const subCategoryId = e.target.value;
-                              setFormData({ ...formData, danh_muc_con_id: subCategoryId }); // Update formData for subcategory
-                            }}
+                              onChange={(e) => {
+                                const subCategoryId = e.target.value;
+                                setFormData({ ...formData, danh_muc_con_id: subCategoryId }); // Update formData for subcategory
+                              }}
                             >
-                            <option value="">Chọn danh mục con...</option>
+                              <option value="">Chọn danh mục con...</option>
                               {subCategories.length > 0 &&
                                 subCategories.map((category) => (
                                   <option
