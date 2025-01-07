@@ -120,6 +120,20 @@ const EditProducts = () => {
 
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  const [attributes, setAttributes] = useState([]); // Dữ liệu từ API
+  const [options, setOptions] = useState([]); // Danh sách options được thêm
+  const [formData, setFormData] = useState({
+    danh_muc_id: "",
+    danh_muc_con_id: "",
+    ten_san_pham: "",
+    mo_ta: "",
+    gia: "",
+    so_luong_ton_kho: "",
+    image: null,
+    luot_xem: "0",
+    _method: "PUT",
+    id: "",
+  });
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -146,9 +160,9 @@ const EditProducts = () => {
           mo_ta: data.sanPham?.mo_ta || "",
           gia: data.sanPham?.gia || "",
           so_luong_ton_kho: data.sanPham?.so_luong_ton_kho || 0,
-          image: data.sanPham?.duong_dan_anh || "",
           luot_xem: data.sanPham?.luot_xem || "0",
           _method: "PUT",
+          id: data.sanPham?.id || "0",
         });
 
       } catch (error) {
@@ -161,9 +175,9 @@ const EditProducts = () => {
     }
   }, [productId]);
 
-
   useEffect(() => {
     fetchCategories();
+    fetchAttributeValues();
   }, []);
 
   const fetchCategories = async () => {
@@ -202,7 +216,7 @@ const EditProducts = () => {
           },
         }
       );
-  
+
       const data = await response.json();
       if (response.ok) {
         setSubCategories(data.data);
@@ -214,19 +228,31 @@ const EditProducts = () => {
     }
   };
 
-  //xử lý set form data update
-  const [formData, setFormData] = useState({
-    danh_muc_id: "",
-    danh_muc_con_id: "",
-    ten_san_pham: "",
-    mo_ta: "",
-    gia: "",
-    so_luong_ton_kho: "",
-    image: null,
-    luot_xem: "0",
-    _method: "PUT",
-  });
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, image: file });
+      console.log("Selected file:", file);
+    }
+  };
 
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setFormData({ ...formData, image: file });
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+
+  //xử lý set form data update
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -235,8 +261,121 @@ const EditProducts = () => {
   useEffect(() => {
     console.log("Updated formData:", formData);
   }, [formData]);
-  
-  
+
+  const fetchAttributeValues = async () => {
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/thuoc-tinh/gia-tri-theo-thuoc-tinh",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        setAttributes(data); // Lưu dữ liệu vào state
+      } else {
+        console.error("Failed to fetch attribute values:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching attribute values:", error);
+    }
+  };
+
+
+  const addOption = () => {
+    setOptions((prev) => [...prev, { attributeId: "", selectedValues: [] }]);
+  };
+
+  const handleAttributeChange = (index, attributeId) => {
+    setOptions((prev) =>
+      prev.map((option, i) =>
+        i === index
+          ? {
+            ...option,
+            attributeId,
+            selectedValues: [],
+          }
+          : option
+      )
+    );
+  };
+
+  const handleValueChange = (optionIndex, valueId) => {
+    setOptions((prev) =>
+      prev.map((option, index) =>
+        index === optionIndex
+          ? {
+            ...option,
+            selectedValues: option.selectedValues.includes(valueId)
+              ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
+              : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
+          }
+          : option
+      )
+    );
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const form = new FormData();
+
+    // Thêm các trường cơ bản
+    form.append("danh_muc_id", formData.danh_muc_id);
+    form.append("danh_muc_con_id", formData.danh_muc_con_id);
+    form.append("ten_san_pham", formData.ten_san_pham);
+    form.append("mo_ta", formData.mo_ta);
+    form.append("gia", formData.gia);
+    form.append("so_luong_ton_kho", formData.so_luong_ton_kho);
+    form.append("_method", formData._method);
+    if (formData.image) {
+      form.append("image", formData.image);
+    }
+
+    // Thêm thuoc_tinh
+    options.forEach((option, index) => {
+      form.append(`thuoc_tinh[${index}][id]`, option.attributeId); // ID thuộc tính
+      option.selectedValues.forEach((valueId, valueIndex) => {
+        form.append(`thuoc_tinh[${index}][gia_tri][${valueIndex}]`, valueId); // Giá trị thuộc tính
+      });
+    });
+
+    // Thêm giá biến thể
+    form.append("gia_bien_the[]", "0");
+
+    // Gửi dữ liệu qua API
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/san-pham/update/" + formData.id,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          body: form,
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Sản phẩm đã được cập nhật thành công!");
+        console.log(result);
+      } else {
+        console.error("Lỗi:", result);
+        alert("Không thể cập nhật sản phẩm, vui lòng kiểm tra lại.");
+      }
+    } catch (error) {
+      console.error("Lỗi kết nối:", error);
+      alert("Đã xảy ra lỗi, vui lòng thử lại.");
+    }
+  };
+
 
   return (
     <>
@@ -252,7 +391,7 @@ const EditProducts = () => {
             </li>
           </ol>
         </nav>
-        <form className="mb-9">
+        <form onSubmit={handleSubmit} className="mb-9">
           <div className="row g-3 flex-between-end mb-5">
             <div className="col-auto">
               <h2 className="mb-2">Sửa sản phẩm</h2>
@@ -271,6 +410,9 @@ const EditProducts = () => {
               <h4 className="mb-3">Ảnh sản phẩm</h4>
               <div
                 className="dropzone dropzone-multiple p-0 mb-5"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
                 id="my-awesome-dropzone"
                 data-dropzone="data-dropzone"
               >
@@ -279,27 +421,56 @@ const EditProducts = () => {
                     id="fileInput"
                     type="file"
                     style={{ display: "none" }} // Ẩn input
+                    onChange={handleFileChange}
                     multiple="multiple"
                   />
                 </div>
 
-                <div
-                  className="dz-message text-body-tertiary text-opacity-85"
-                  data-dz-message="data-dz-message"
-                >
-                  Kéo ảnh của bạn vào đây
-                  <span className="text-body-secondary px-1">hoặc</span>
-                  <button className="btn btn-link p-0" type="button">
-                    Duyệt từ thiết bị
-                  </button>
-                  <br />
-                  <img
-                    className="mt-3 me-2"
-                    src={icon}
-                    width={40}
-                    alt="upload icon"
-                  />
-                </div>
+                {formData.image ? (
+                  <div className="dz-preview d-flex flex-wrap">
+                    <div
+                      className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2"
+                      style={{ height: 120, width: 120 }}
+                    >
+                      <img
+                        className="dz-image"
+                        src={URL.createObjectURL(formData.image)}
+                        alt="Preview"
+                        data-dz-thumbnail="data-dz-thumbnail"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                      <a
+                        className="dz-remove text-body-quaternary"
+                        href="#!"
+                        data-dz-remove="data-dz-remove"
+                      >
+                        <span data-feather="x" />
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="dz-message text-body-tertiary text-opacity-85"
+                    data-dz-message="data-dz-message"
+                  >
+                    Kéo ảnh của bạn vào đây
+                    <span className="text-body-secondary px-1">hoặc</span>
+                    <button className="btn btn-link p-0" type="button">
+                      Duyệt từ thiết bị
+                    </button>
+                    <br />
+                    <img
+                      className="mt-3 me-2"
+                      src={icon}
+                      width={40}
+                      alt="upload icon"
+                    />
+                  </div>
+                )}
               </div>
               <h4 className="mb-3">Tên sản phẩm</h4>
               <input
@@ -327,11 +498,11 @@ const EditProducts = () => {
               <div className="mb-6">
                 <h4 className="mb-2 text-body-highlight">Giá thông thường</h4>
                 <input className="form-control"
-                type="text" 
-                placeholder="$$$" 
-                value={formData?.gia}
-                name="gia"
-                onChange={handleInputChange}
+                  type="text"
+                  placeholder="$$$"
+                  value={formData?.gia}
+                  name="gia"
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="mb-6">
@@ -365,11 +536,11 @@ const EditProducts = () => {
                               </a>
                             </div>
                             <select className="form-select mb-3" aria-label="Danh mục"
-                            onChange={(e) => {
-                              const categoryId = e.target.value;
-                              setFormData({ ...formData, danh_muc_id: categoryId, danh_muc_con_id: "" }); // Reset subcategory when category changes
-                              fetchSubCategories(categoryId); // Fetch subcategories for the selected category
-                            }}
+                              onChange={(e) => {
+                                const categoryId = e.target.value;
+                                setFormData({ ...formData, danh_muc_id: categoryId, danh_muc_con_id: "" }); // Reset subcategory when category changes
+                                fetchSubCategories(categoryId); // Fetch subcategories for the selected category
+                              }}
                             >
                               <option value="">Chọn danh mục...</option>
                               {categories.length > 0 &&
@@ -401,14 +572,14 @@ const EditProducts = () => {
                                 Thêm danh mục con
                               </a>
                             </div>
-                      
+
                             <select className="form-select mb-3" aria-label="Danh mục"
-                            onChange={(e) => {
-                              const subCategoryId = e.target.value;
-                              setFormData({ ...formData, danh_muc_con_id: subCategoryId }); // Update formData for subcategory
-                            }}
+                              onChange={(e) => {
+                                const subCategoryId = e.target.value;
+                                setFormData({ ...formData, danh_muc_con_id: subCategoryId }); // Update formData for subcategory
+                              }}
                             >
-                            <option value="">Chọn danh mục con...</option>
+                              <option value="">Chọn danh mục con...</option>
                               {subCategories.length > 0 &&
                                 subCategories.map((category) => (
                                   <option
@@ -432,37 +603,87 @@ const EditProducts = () => {
                     <div className="card-body">
                       <h4 className="card-title mb-4">Biến thể</h4>
                       <div className="row g-3">
-                        <div className="col-12 col-sm-6 col-xl-12">
-                          <div className="border-bottom border-translucent border-dashed border-sm-0 border-bottom-xl pb-4">
-                            <div className="d-flex flex-wrap mb-2">
-                              <h5 className="text-body-highlight me-2">
-                                Lựa chọn 1
-                              </h5>
-                              <a className="fw-bold fs-9" href="#!">
-                                Xóa
-                              </a>
-                            </div>
-                            <select className="form-select mb-3">
-                              <option value="">Chọn thuộc tính</option>
-                            </select>
+                        {options.map((option, index) => {
+                          const selectedAttribute = attributes.find(
+                            (attr) => attr.id === parseInt(option.attributeId)
+                          );
 
-                            {/* <div className="product-variant-checkbox-menu">
-                              <h6>Chọn giá trị:</h6>
-
-                              <div className="form-check mb-2">
-                                <input
-                                  className="form-check-input"
-                                  type="checkbox"
-                                />
-                                <label className="form-check-label"></label>
+                          return (
+                            <div
+                              className="col-12 col-sm-6 col-xl-12"
+                              key={index}
+                            >
+                              <div className="border-bottom border-translucent border-dashed border-sm-0 border-bottom-xl pb-4">
+                                <div className="d-flex flex-wrap mb-2">
+                                  <h5 className="text-body-highlight me-2">
+                                    Lựa chọn {index + 1}
+                                  </h5>
+                                  <a
+                                    className="fw-bold fs-9"
+                                    href="#!"
+                                    onClick={() =>
+                                      setOptions((prev) =>
+                                        prev.filter((_, i) => i !== index)
+                                      )
+                                    }
+                                  >
+                                    Xóa
+                                  </a>
+                                </div>
+                                <select
+                                  className="form-select mb-3"
+                                  value={option.attributeId}
+                                  onChange={(e) =>
+                                    handleAttributeChange(index, e.target.value)
+                                  }
+                                >
+                                  <option value="">Chọn thuộc tính</option>
+                                  {attributes.map((attr) => (
+                                    <option key={attr.id} value={attr.id}>
+                                      {attr.ten_thuoc_tinh}
+                                    </option>
+                                  ))}
+                                </select>
+                                {selectedAttribute && (
+                                  <div className="product-variant-checkbox-menu">
+                                    <h6>Chọn giá trị:</h6>
+                                    {selectedAttribute.gia_tri_thuoc_tinh.map(
+                                      (value) => (
+                                        <div
+                                          key={value.id}
+                                          className="form-check mb-2"
+                                        >
+                                          <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            id={`value-${index}-${value.id}`}
+                                            checked={option.selectedValues.includes(
+                                              value.id
+                                            )}
+                                            onChange={() =>
+                                              handleValueChange(index, value.id)
+                                            }
+                                          />
+                                          <label
+                                            className="form-check-label"
+                                            htmlFor={`value-${index}-${value.id}`}
+                                          >
+                                            {value.ten_gia_tri}
+                                          </label>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                            </div> */}
-                          </div>
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                       <button
                         className="btn btn-phoenix-primary w-100"
                         type="button"
+                        onClick={addOption}
                       >
                         Thêm lựa chọn
                       </button>
