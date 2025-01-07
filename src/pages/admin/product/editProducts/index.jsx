@@ -1,6 +1,8 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
 import { Link, useLocation } from "react-router-dom";
-const AddProducts = () => {
+import { useEffect, useState } from "react";
+import { useParams } from 'react-router-dom';
+const EditProducts = () => {
   const breadcrumbTitles = {
     "admin/sua-san-pham": "Sửa sản phẩm", // Đây là URL không có "/"
   };
@@ -106,6 +108,189 @@ const AddProducts = () => {
   if (navbarVerticalStyle === "darker") {
     navbarVertical?.setAttribute("data-navbar-appearance", "darker");
   }
+
+  //xử lý edit
+
+
+  // Lấy productId từ URL path
+  const { id: productId } = useParams();
+  console.log(productId); // Kiểm tra productId
+
+  const [productData, setProductData] = useState(null);
+  const [ngayKetThucSale, setNgayKetThucSale] = useState(null);
+  const [images, setImages] = useState([]);
+  const [colorAttribute, setColorAttribute] = useState("");
+  const [colorName, setColorName] = useState("");
+  const [dungLuongOptions, setDungLuongOptions] = useState([]);
+  const [otherAttributes, setOtherAttributes] = useState([]);
+  const [dungLuongName, setDungLuongName] = useState("");
+  const [colorVariants, setColorVariants] = useState([]);
+
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/san-pham/detail/${productId}`
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Product data:", data);
+        setProductData(data);
+
+        setNgayKetThucSale(data.sale?.ngay_ket_thuc_sale || null);
+
+        if (data.hinh_anh_bien_the_san_pham) {
+          const imageLinks = data.hinh_anh_bien_the_san_pham.flatMap((item) =>
+            item.hinh_anh.map(
+              (image) => `${baseUrl}${image.duong_dan_hinh_anh}`
+            )
+          );
+          setImages(imageLinks);
+        }
+
+        // Xử lý thuộc tính "Màu sắc"
+        const colorAttributeData = data.gia_tri_thuoc_tinh?.find(
+          (item) => item.thuoc_tinh_san_pham?.ten_thuoc_tinh === "Màu sắc"
+        );
+        setColorAttribute(
+          colorAttributeData?.thuoc_tinh_san_pham?.ten_thuoc_tinh || "Màu sắc"
+        );
+        setColorName(colorAttributeData?.gia_tri || "Chưa chọn màu");
+
+        // Hiển thị các biến thể màu sắc (nếu có)
+        if (data.hinh_anh_bien_the_san_pham) {
+          const colorVariantsData = data.hinh_anh_bien_the_san_pham.flatMap(
+            (item) =>
+              item.hinh_anh.map((image) => ({
+                colorName: image.ten_gia_tri,
+                imageUrl: `${baseUrl}${image.duong_dan_hinh_anh}`,
+              }))
+          );
+          setColorVariants(colorVariantsData);
+        }
+
+        // Xử lý thuộc tính "Dung lượng"
+        const capacityAttributeData = data.grouped_attributes?.["Dung lượng"];
+        if (capacityAttributeData) {
+          setDungLuongOptions(capacityAttributeData.ten_gia_tri || []);
+          setDungLuongName("Dung lượng");
+        }
+
+        // Xử lý các thuộc tính khác (không phải Màu sắc và Dung lượng)
+        const otherAttributesData = Object.keys(
+          data.grouped_attributes || {}
+        ).filter((key) => key !== "Màu sắc" && key !== "Dung lượng");
+        setOtherAttributes(otherAttributesData);
+
+        if (data.sanPham?.danh_muc_id) {
+          fetchSubCategories(data.sanPham.danh_muc_id); // Pass categoryId
+        }
+
+        setFormData({
+          danh_muc_id: data.sanPham?.danh_muc_id || "",   // Set the default category ID
+          danh_muc_con_id: data.sanPham?.danh_muc_con_id || "", // Set the default subcategory ID
+          ten_san_pham: data.sanPham?.ten_san_pham || "",  // Other fields from product data
+          mo_ta: data.sanPham?.mo_ta || "",
+          gia: data.sanPham?.gia || "",
+          so_luong_ton_kho: data.sanPham?.so_luong_ton_kho || 0,
+          image: data.sanPham?.duong_dan_anh || "",
+          luot_xem: data.sanPham?.luot_xem || "0",
+          _method: "PUT",
+        });
+
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+
+    if (productId) {
+      fetchProductData();
+    }
+  }, [productId]);
+
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/danh-muc/getAll",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setCategories(data); // Đảm bảo API trả về danh sách phù hợp
+      } else {
+        console.error("Failed to fetch categories:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+
+  const fetchSubCategories = async (categoryId) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/danh-muc-con/${categoryId}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      const data = await response.json();
+      if (response.ok) {
+        setSubCategories(data.data);
+      } else {
+        console.error("Failed to fetch subcategories:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+    }
+  };
+
+  //xử lý set form data update
+  const [formData, setFormData] = useState({
+    danh_muc_id: "",
+    danh_muc_con_id: "",
+    ten_san_pham: "",
+    mo_ta: "",
+    gia: "",
+    so_luong_ton_kho: "",
+    image: null,
+    luot_xem: "0",
+    _method: "PUT",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  useEffect(() => {
+    console.log("Updated formData:", formData);
+  }, [formData]);
+  
+  
+
   return (
     <>
       <div className="content">
@@ -174,6 +359,9 @@ const AddProducts = () => {
                 className="form-control mb-5"
                 type="text"
                 placeholder="Write title here..."
+                value={formData?.ten_san_pham}
+                onChange={handleInputChange}
+                name="ten_san_pham"
               />
               <div className="mb-6">
                 <h4 className="mb-3">Mô tả sản phẩm</h4>
@@ -184,19 +372,30 @@ const AddProducts = () => {
                   placeholder="Leave a comment here"
                   style={{ height: 100 }}
                   defaultValue={""}
+                  value={formData?.mo_ta}
+                  name="mo_ta"
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="mb-6">
                 <h4 className="mb-2 text-body-highlight">Giá thông thường</h4>
-                <input className="form-control" type="text" placeholder="$$$" />
+                <input className="form-control"
+                type="text" 
+                placeholder="$$$" 
+                value={formData?.gia}
+                name="gia"
+                onChange={handleInputChange}
+                />
               </div>
               <div className="mb-6">
                 <h5 className="mb-3 text-body-highlight">Số lượng</h5>
-
                 <input
                   className="form-control"
                   type="number"
                   placeholder="Quantity"
+                  value={formData?.so_luong_ton_kho}
+                  name="so_luong_ton_kho"
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
@@ -218,12 +417,20 @@ const AddProducts = () => {
                                 Thêm danh mục
                               </a>
                             </div>
-                            <select
-                              className="form-select mb-3"
-                              aria-label="Danh mục"
-                            >
+                            <select className="form-select mb-3" aria-label="Danh mục">
                               <option value="">Chọn danh mục...</option>
+                              {categories.length > 0 &&
+                                categories.map((category) => (
+                                  <option
+                                    key={category.id}
+                                    value={category.id}
+                                    selected={category.id === productData?.sanPham?.danh_muc_id}
+                                  >
+                                    {category.ten_danh_muc}
+                                  </option>
+                                ))}
                             </select>
+
                           </div>
                         </div>
 
@@ -241,12 +448,21 @@ const AddProducts = () => {
                                 Thêm danh mục con
                               </a>
                             </div>
-                            <select
-                              name="danh_muc_con_id"
-                              className="form-select"
-                            >
-                              <option value="">Chọn danh mục con...</option>
+                      
+                            <select className="form-select mb-3" aria-label="Danh mục">
+                            <option value="">Chọn danh mục con...</option>
+                              {subCategories.length > 0 &&
+                                subCategories.map((category) => (
+                                  <option
+                                    key={category.id}
+                                    value={category.id}
+                                    selected={category.id === productData?.sanPham?.danh_muc_con_id}
+                                  >
+                                    {category.ten_danh_muc_con}
+                                  </option>
+                                ))}
                             </select>
+
                           </div>
                         </div>
                       </div>
@@ -322,4 +538,4 @@ const AddProducts = () => {
     </>
   );
 };
-export default AddProducts;
+export default EditProducts;
