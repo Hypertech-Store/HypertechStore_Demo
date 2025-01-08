@@ -34,10 +34,10 @@ import ProductDetails from "./pages/client/productDetails";
 import Wishlist from "./pages/client/wishlist";
 import Cart from "./pages/client/cart";
 import Shipping from "./pages/client/shipping";
-import Order from "./pages/client/order";
+import OrderStatuss from "./pages/client/orderStatus";
 import Deals from "./pages/admin/deals";
 import Checkout from "./pages/client/checkout";
-import Invoice from "./pages/client/invoice";
+import OrderDetails from "./pages/client/orderDetails";
 import Profile from "./pages/client/profile";
 import Login from "./pages/client/login";
 import Register from "./pages/client/register";
@@ -96,9 +96,12 @@ const Router = () => {
           <Route path="gio-hang" element={<Cart />} />
           <Route path="chi-tiet-san-pham" element={<ProductDetails />} />
           <Route path="thong-tin-van-chuyen" element={<Shipping />} />
-          <Route path="don-hang" element={<Order />} />
+          <Route path="trang-thai-don-hang" element={<OrderStatuss />} />
           <Route path="thanh-toan" element={<Checkout />} />
-          <Route path="hoa-don" element={<Invoice />} />
+          <Route
+            path="/chi-tiet-don-hang/:orderId"
+            element={<OrderDetails />}
+          />
           <Route path="thong-tin-tai-khoan" element={<Profile />} />
           <Route path="dang-nhap" element={<Login />} />
           <Route path="dang-ky" element={<Register />} />
