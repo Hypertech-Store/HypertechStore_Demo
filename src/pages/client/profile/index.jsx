@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import haha from "../../../assets/img/e-commerce/image-removebg-preview.png";
 import defaultAvatar from "../../../assets/img/team/image-default.png";
@@ -18,6 +19,12 @@ function Profile() {
   // eslint-disable-next-line no-unused-vars
   const [totalOrders, setTotalOrders] = useState(0); // Tổng số đơn hàng
 
+  const [passwordVisible, setPasswordVisible] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
+
   const storedUserInfo = localStorage.getItem("userInfo");
   const [formData, setFormData] = useState({});
   const [avatar, setAvatar] = useState(null);
@@ -26,6 +33,17 @@ function Profile() {
   const userId = user.id;
 
   console.log(orders);
+
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  const breadcrumbTitles = {
+    "thong-tin-tai-khoan": "Thông tin tài khoản", // Đây là URL không có "/"
+  };
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
 
   useEffect(() => {
     fetch(
@@ -176,7 +194,7 @@ function Profile() {
           email: data?.data?.email,
           dien_thoai: data?.data?.dien_thoai,
           dia_chi: data?.data?.dia_chi,
-          ngay_sinh: data?.data?.ngay_sinh
+          ngay_sinh: data?.data?.ngay_sinh,
         };
 
         localStorage.setItem("userInfo", JSON.stringify(updatedUser));
@@ -198,25 +216,23 @@ function Profile() {
   //   Handle form data change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
+
     setFormData((prevData) => {
       const updatedData = {
         ...prevData,
         [name]: value, // Chỉ cập nhật trường đang thay đổi
       };
-  
+
       // Chỉ cập nhật `ngay_sinh` nếu có đủ `ngay`, `thang`, `nam`
       if (updatedData.nam && updatedData.thang && updatedData.ngay) {
         updatedData.ngay_sinh = `${updatedData.nam}-${updatedData.thang}-${updatedData.ngay}`;
       } else {
         updatedData.ngay_sinh = prevData.ngay_sinh; // Giữ nguyên nếu thiếu thông tin
       }
-  
+
       return updatedData;
     });
   };
-  
-  
 
   const years = Array.from({ length: 2025 - 1990 + 1 }, (v, i) => 1990 + i);
 
@@ -344,19 +360,25 @@ function Profile() {
     }
   }
 
+  // Function to toggle the visibility of a specific password input
+  const togglePasswordVisibility = (field) => {
+    setPasswordVisible((prevState) => ({
+      ...prevState,
+      [field]: !prevState[field],
+    }));
+  };
+
   return (
     <section className="pt-5 pb-9">
       <div className="container-small">
         <nav className="mb-3" aria-label="breadcrumb">
           <ol className="breadcrumb mb-0">
             <li className="breadcrumb-item">
-              <a href="#!">Page 1</a>
+              <Link to="/">Trang chủ</Link>
             </li>
-            <li className="breadcrumb-item">
-              <a href="#!">Page 2</a>
-            </li>
+
             <li className="breadcrumb-item active" aria-current="page">
-              Default
+              {currentTitle}
             </li>
           </ol>
         </nav>
@@ -373,7 +395,15 @@ function Profile() {
                 </button>
               </div>
               <div className="col-auto">
-                <button className="btn btn-phoenix-secondary">
+                <button
+                  className="btn btn-phoenix-secondary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#changePassword"
+                  data-boundary="window"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  data-bs-reference="parent"
+                >
                   <span className="fas fa-key me-2" />
                   Đặt lại mật khẩu
                 </button>
@@ -732,7 +762,7 @@ function Profile() {
                           className="white-space-nowrap align-middle pe-3 ps-0"
                           scope="col"
                           data-sort="order"
-                          style={{ width: "15%", minWidth: 140 }}
+                          style={{ width: "10%", minWidth: 120 }}
                         >
                           Mã đơn hàng
                         </th>
@@ -740,7 +770,7 @@ function Profile() {
                           className="align-middle pe-3"
                           scope="col"
                           data-sort="status"
-                          style={{ width: "20%", minWidth: 180 }}
+                          style={{ width: "15%", minWidth: 150 }}
                         >
                           Trạng thái
                         </th>
@@ -748,15 +778,32 @@ function Profile() {
                           className="align-middle text-start"
                           scope="col"
                           data-sort="delivery"
-                          style={{ width: "30%", minWidth: 160 }}
+                          style={{ width: "20%", minWidth: 200 }}
                         >
                           Phương thức thanh toán
                         </th>
+
                         <th
-                          className="align-middle pe-0 text-start"
+                          className="align-middle text-start"
+                          scope="col"
+                          data-sort="delivery"
+                          style={{ width: "30%", minWidth: 180 }}
+                        >
+                          Hình thức vận chuyển
+                        </th>
+                        <th
+                          className="align-middle text-start"
+                          scope="col"
+                          data-sort="delivery"
+                          style={{ width: "25%", minWidth: 150 }}
+                        >
+                          Địa chỉ nhận hàng
+                        </th>
+                        <th
+                          className="align-middle pe-0 ps-5"
                           scope="col"
                           data-sort="date"
-                          style={{ width: "30%", minWidth: 100 }}
+                          style={{ width: "25%", minWidth: 200 }}
                         >
                           Ngày đặt hàng
                         </th>
@@ -764,7 +811,7 @@ function Profile() {
                           className="align-middle text-start"
                           scope="col"
                           data-sort="total"
-                          style={{ width: "20%", minWidth: 200 }}
+                          style={{ width: "20%", minWidth: 150 }}
                         >
                           Tổng tiền
                         </th>
@@ -804,7 +851,13 @@ function Profile() {
                           <td className="delivery align-middle white-space-nowrap text-body py-2">
                             {order.phuong_thuc_thanh_toan.ten_phuong_thuc}
                           </td>
-                          <td className="total align-middle text-body-tertiary text-start py-2">
+                          <td className="delivery align-middle white-space-nowrap text-body py-2">
+                            {order.hinh_thuc_van_chuyen.ten_van_chuyen}
+                          </td>
+                          <td className="delivery align-middle white-space-nowrap text-body py-2">
+                            {order.dia_chi_giao_hang}
+                          </td>
+                          <td className="total align-middle text-body-tertiary text-start py-2  ps-5">
                             {new Date(order.created_at).toLocaleString()}
                           </td>
                           <td className="date align-middle fw-semibold text-start py-2 text-body-highlight">
@@ -865,11 +918,15 @@ function Profile() {
                                 <span className="fas fa-ellipsis-h fs-10" />
                               </button>
                               <div className="dropdown-menu dropdown-menu-end py-2">
-                                <a className="dropdown-item" href="#!">
+                                <a
+                                  href={`chi-tiet-don-hang/${order.id}`}
+                                  className="dropdown-item"
+                                >
                                   Chi tiết
                                 </a>
+
                                 <a className="dropdown-item" href="#!">
-                                  Export
+                                  Trạng thái
                                 </a>
                                 <div className="dropdown-divider" />
                                 <a
@@ -1739,6 +1796,157 @@ function Profile() {
         </div>
       </div>
       {/* end of .container*/}
+      <div
+        className="modal fade"
+        id="changePassword"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+        tabIndex={-1}
+        aria-labelledby="changePassword"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-l modal-dialog-centered">
+          <div className="modal-content bg-body-highlight p-6">
+            <div className="modal-header justify-content-between border-0 p-0 mb-2">
+              <h3 className="mb-0">Đổi mật khẩu</h3>
+              <button
+                className="btn btn-sm btn-phoenix-secondary"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <span className="fas fa-times text-danger" />
+              </button>
+            </div>
+            <div className="modal-body px-0 mt-1">
+              <form>
+                <div className="row g-4">
+                  {/* Mật khẩu hiện tại */}
+                  <div className="col-lg-12">
+                    <div className="mb-4">
+                      <label
+                        htmlFor="currentPassword"
+                        className="text-body-highlight fw-bold mb-2"
+                      >
+                        Mật khẩu hiện tại
+                      </label>
+                      <input
+                        id="currentPassword"
+                        className="form-control"
+                        type={
+                          passwordVisible.currentPassword ? "text" : "password"
+                        }
+                        placeholder="Nhập mật khẩu hiện tại"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="btn px-3 py-0 position-absolute end-0 fs-7 text-body-tertiary"
+                        style={{ marginTop: "-2pc" }}
+                        onClick={() =>
+                          togglePasswordVisibility("currentPassword")
+                        }
+                      >
+                        <span
+                          className={
+                            passwordVisible.currentPassword
+                              ? "uil uil-eye-slash"
+                              : "uil uil-eye"
+                          }
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Mật khẩu mới */}
+                  <div className="col-lg-12">
+                    <div className="mb-4">
+                      <label
+                        htmlFor="newPassword"
+                        className="text-body-highlight fw-bold mb-2"
+                      >
+                        Mật khẩu mới
+                      </label>
+                      <input
+                        id="newPassword"
+                        className="form-control"
+                        type={passwordVisible.newPassword ? "text" : "password"}
+                        placeholder="Nhập mật khẩu mới"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="btn px-3 py-0 position-absolute end-0 fs-7 text-body-tertiary"
+                        style={{ marginTop: "-2pc" }}
+                        onClick={() => togglePasswordVisibility("newPassword")}
+                      >
+                        <span
+                          className={
+                            passwordVisible.newPassword
+                              ? "uil uil-eye-slash"
+                              : "uil uil-eye"
+                          }
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Nhập lại mật khẩu mới */}
+                  <div className="col-lg-12">
+                    <div className="mb-4">
+                      <label
+                        htmlFor="confirmPassword"
+                        className="text-body-highlight fw-bold mb-2"
+                      >
+                        Xác nhận mật khẩu mới
+                      </label>
+                      <div className="position-relative">
+                        <input
+                          id="confirmPassword"
+                          className="form-control"
+                          type={
+                            passwordVisible.confirmPassword
+                              ? "text"
+                              : "password"
+                          }
+                          placeholder="Xác nhận mật khẩu"
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="btn px-3 py-0 h-100 position-absolute top-0 end-0 fs-7 text-body-tertiary"
+                          onClick={() =>
+                            togglePasswordVisibility("confirmPassword")
+                          }
+                        >
+                          <span
+                            className={
+                              passwordVisible.confirmPassword
+                                ? "uil uil-eye-slash"
+                                : "uil uil-eye"
+                            }
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div className="modal-footer border-0 pt-0 px-0 pb-0">
+              <button
+                className="btn btn-link text-danger px-3 my-0"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                Hủy bỏ
+              </button>
+              <button type="submit" className="btn btn-primary my-0">
+                Cập nhật
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

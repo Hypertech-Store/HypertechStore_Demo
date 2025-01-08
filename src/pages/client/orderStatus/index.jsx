@@ -8,6 +8,7 @@ const Order = () => {
   const [data, setData] = useState([]); // Store all the states
   const queryParams = new URLSearchParams(location.search);
   const orderId = queryParams.get("id");
+
   const [orderData, setOrderData] = useState(null);
   const [firstStatus, setFirstStatus] = useState(null); // Lưu trạng thái đầu tiên
   const [lastStatus, setLastStatus] = useState(null); // Lưu trạng thái cuối cùng
@@ -83,60 +84,50 @@ const Order = () => {
     console.log("firstStatus:", firstStatus);
     console.log("lastStatus:", lastStatus);
 
-    // Trường hợp TH1: Trạng thái đầu tiên (Set bg-success if currentState matches firstStatus)
+    // Trạng thái đầu tiên (Set bg-warning if currentState matches firstStatus)
     if (currentState === firstStatus) {
       console.log("Trạng thái 1: firstStatus matched");
-      timelineItemClass = "bg-warning"; // Set bg-success for first status
-      timelineBarClass = "border-dashed"; // Keep default border style
-      icon = "fa-solid fa-dolly"; // Custom icon for the first status
+      timelineItemClass = "bg-warning";
+      timelineBarClass = "border-dashed";
+      icon = "fa-solid fa-dolly";
     }
-    // Trường hợp TH2: Trạng thái cuối cùng (Set specific styles for lastStatus)
+    // Trạng thái cuối cùng (Set specific styles for lastStatus)
     else if (currentState === lastStatus) {
       console.log("Trạng thái 2: lastStatus matched");
-      timelineItemClass = "bg-success"; // Custom class for last status
+      timelineItemClass = "bg-success";
       timelineBarClass = "border-success";
-      icon = "fa-check"; // Custom icon for the last status
+      icon = "fa-check";
     }
-    // Trường hợp TH3: Trạng thái trong khoảng firstStatus và lastStatus
+    // Trạng thái trong khoảng firstStatus và lastStatus
     else if (currentState > firstStatus && currentState < lastStatus) {
       console.log(
         "Trạng thái 3: currentState between firstStatus and lastStatus"
       );
 
-      // If statusId matches currentState, we're in an active or processing state
       if (statusId === currentState) {
         console.log("Trạng thái 3.1: currentState is active");
-        timelineItemClass = "bg-warning"; // Active state
+        timelineItemClass = "bg-warning";
         timelineBarClass = "border-dashed";
         icon = "fa-truck-ramp-box";
-      }
-      // If statusId is less than currentState, we're in a completed state
-      else if (statusId < currentState) {
+      } else if (statusId < currentState) {
         console.log("Trạng thái 3.2: previous states completed");
-        timelineItemClass = "bg-success"; // Completed states
-        timelineBarClass = "border-warning";
+        timelineItemClass = "bg-success";
+        timelineBarClass = "border-success";
         icon = "fa-check";
-      }
-      // If statusId is greater than currentState, we're in a future state
-      else if (statusId > currentState) {
+      } else if (statusId > currentState) {
         console.log("Trạng thái 3.3: future states");
-        timelineItemClass = "bg-body-quaternary"; // Pending or future states
+        timelineItemClass = "bg-body-quaternary";
         timelineBarClass = "border-dashed";
         icon = "fa-truck";
       }
     }
 
-    // Output the result for debugging
-    console.log("Timeline Item Class:", timelineItemClass);
-    console.log("Timeline Bar Class:", timelineBarClass);
-    console.log("Icon:", icon);
-
-    // Return the updated classes
+    // Trả về kết quả, `shouldDisplayBar` sẽ là false nếu trạng thái hiện tại là lastStatus
     return {
       timelineItemClass,
       timelineBarClass,
       icon,
-      shouldDisplayBar: true, // You can control whether to show the timeline bar here
+      shouldDisplayBar: currentState !== lastStatus, // Chỉ hiển thị thanh bar nếu không phải trạng thái cuối cùng
     };
   };
 

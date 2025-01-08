@@ -7494,7 +7494,7 @@ textarea.form-control.is-invalid {
   float: left;
   padding-right: var(--phoenix-breadcrumb-item-padding-x);
   color: var(--phoenix-breadcrumb-divider-color);
-   content: var(
+  content: var(
     --phoenix-breadcrumb-divider,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16px' height='16px' viewBox='0 0 24 24' fill='none' stroke='%23b0b0b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='13 17 18 12 13 7'%3E%3C/polyline%3E%3Cpolyline points='6 17 11 12 6 7'%3E%3C/polyline%3E%3C/svg%3E")
   );
@@ -11389,6 +11389,9 @@ textarea.form-control.is-invalid {
 }
 .mt-15 {
   margin-top: 7.5rem !important;
+}
+.mt-16 {
+  margin-top: 0.7rem !important;
 }
 .mt-auto {
   margin-top: auto !important;
