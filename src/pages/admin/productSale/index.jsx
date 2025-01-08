@@ -4,7 +4,7 @@ import axios from "axios";
 
 const Listsale = () => {
   const breadcrumbTitles = {
-    "admin/danh-sach-san-pham-sale": "Danh sách sale", // Đây là URL không có "/"
+    "admin/danh-sach-san-pham-sale": "Danh sách sản phẩm sale", // Đây là URL không có "/"
   };
 
   const location = useLocation();
@@ -319,7 +319,7 @@ const Listsale = () => {
                     <input
                       className="form-control search-input search"
                       type="search"
-                      placeholder="Search products"
+                      placeholder="Tìm kiếm sản phẩm"
                       aria-label="Search"
                     />
                     <span className="fas fa-search search-box-icon" />

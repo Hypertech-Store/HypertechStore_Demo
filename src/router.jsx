@@ -58,7 +58,7 @@ const Router = () => {
           <Route path="/admin" element={<LayoutAdmin />}>
             <Route index element={<Dashboard />} />
             <Route path="them-san-pham" element={<AddProducts />} />
-            <Route path="sua-san-pham" element={<EditProducts />} />
+            <Route path="sua-san-pham/:id" element={<EditProducts />} />
             <Route path="danh-sach-san-pham" element={<ListProducts />} />
             <Route path="them-danh-muc" element={<AddCategory />} />
             <Route path="danh-sach-danh-muc" element={<ListCategory />} />

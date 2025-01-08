@@ -152,7 +152,7 @@ const Order = () => {
                 <input
                   className="form-control search-input search"
                   type="search"
-                  placeholder="Search orders"
+                  placeholder="Tìm kiếm đơn hàng"
                   aria-label="Search"
                 />
                 <span className="fas fa-search search-box-icon" />
