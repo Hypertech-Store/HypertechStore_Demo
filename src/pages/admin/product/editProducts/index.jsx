@@ -133,6 +133,7 @@ const EditProducts = () => {
     luot_xem: "0",
     _method: "PUT",
     id: "",
+    grouped_attributes: "",
   });
 
   useEffect(() => {
@@ -165,6 +166,22 @@ const EditProducts = () => {
           id: data.sanPham?.id || "0",
         });
 
+        if (productData.grouped_attributes) {
+          const initialOptions = Object.keys(productData.grouped_attributes).map(
+            (key) => {
+              const attribute = attributes.find(
+                (attr) => attr.ten_thuoc_tinh === key
+              );
+              return {
+                attributeId: attribute?.id || "",
+                selectedValues:
+                  productData.grouped_attributes[key]?.gia_tri_thuoc_tinh_id || [],
+              };
+            }
+          );
+          setOptions(initialOptions);
+        }
+
       } catch (error) {
         console.error("Error fetching product data:", error);
       }
@@ -173,7 +190,7 @@ const EditProducts = () => {
     if (productId) {
       fetchProductData();
     }
-  }, [productId]);
+  }, [productId, attributes]);
 
   useEffect(() => {
     fetchCategories();
@@ -613,7 +630,7 @@ const EditProducts = () => {
                               className="col-12 col-sm-6 col-xl-12"
                               key={index}
                             >
-                              <div className="border-bottom border-translucent border-dashed border-sm-0 border-bottom-xl pb-4">
+                              <div className="border-bottom border-translucent border-dashed pb-4">
                                 <div className="d-flex flex-wrap mb-2">
                                   <h5 className="text-body-highlight me-2">
                                     Lựa chọn {index + 1}
@@ -647,32 +664,25 @@ const EditProducts = () => {
                                 {selectedAttribute && (
                                   <div className="product-variant-checkbox-menu">
                                     <h6>Chọn giá trị:</h6>
-                                    {selectedAttribute.gia_tri_thuoc_tinh.map(
-                                      (value) => (
-                                        <div
-                                          key={value.id}
-                                          className="form-check mb-2"
+                                    {selectedAttribute.gia_tri_thuoc_tinh.map((value) => (
+                                      <div key={value.id} className="form-check mb-2">
+                                        <input
+                                          className="form-check-input"
+                                          type="checkbox"
+                                          id={`value-${index}-${value.id}`}
+                                          checked={option.selectedValues.includes(value.id)}
+                                          onChange={() =>
+                                            handleValueChange(index, value.id)
+                                          }
+                                        />
+                                        <label
+                                          className="form-check-label"
+                                          htmlFor={`value-${index}-${value.id}`}
                                         >
-                                          <input
-                                            className="form-check-input"
-                                            type="checkbox"
-                                            id={`value-${index}-${value.id}`}
-                                            checked={option.selectedValues.includes(
-                                              value.id
-                                            )}
-                                            onChange={() =>
-                                              handleValueChange(index, value.id)
-                                            }
-                                          />
-                                          <label
-                                            className="form-check-label"
-                                            htmlFor={`value-${index}-${value.id}`}
-                                          >
-                                            {value.ten_gia_tri}
-                                          </label>
-                                        </div>
-                                      )
-                                    )}
+                                          {value.ten_gia_tri}
+                                        </label>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>
@@ -688,6 +698,7 @@ const EditProducts = () => {
                         Thêm lựa chọn
                       </button>
                     </div>
+
                   </div>
                 </div>
               </div>
