@@ -660,7 +660,7 @@ const HeaderClient = () => {
                                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                                       <circle cx={12} cy={7} r={4} />
                                     </svg>
-                                    <span>Profile</span>
+                                    <span>Tài khoản</span>
                                   </a>
                                 </li>
 
@@ -716,7 +716,7 @@ const HeaderClient = () => {
                                       <circle cx={12} cy={12} r={3} />
                                       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                                     </svg>
-                                    Settings &amp; Privacy{" "}
+                                    Cài đặt &amp; Quyền riêng tư{" "}
                                   </a>
                                 </li>
                                 <li className="nav-item">
@@ -746,7 +746,7 @@ const HeaderClient = () => {
                                         y2={17}
                                       />
                                     </svg>
-                                    Help Center
+                                    Trợ giúp
                                   </a>
                                 </li>
                                 <li className="nav-item">
@@ -771,7 +771,7 @@ const HeaderClient = () => {
                                       <line x1={2} y1={12} x2={22} y2={12} />
                                       <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                                     </svg>
-                                    Language
+                                    Ngôn ngữ
                                   </a>
                                 </li>
                               </ul>
@@ -800,31 +800,10 @@ const HeaderClient = () => {
                                     <polyline points="16 17 21 12 16 7" />
                                     <line x1={21} y1={12} x2={9} y2={12} />
                                   </svg>
-                                  Sign out
+                                  Đăng xuất
                                 </a>
                               </div>
-                              <div className="my-2 text-center fw-bold fs-10 text-body-quaternary">
-                                <a
-                                  className="text-body-quaternary me-1"
-                                  href="#!"
-                                >
-                                  Privacy policy
-                                </a>
-                                •
-                                <a
-                                  className="text-body-quaternary mx-1"
-                                  href="#!"
-                                >
-                                  Terms
-                                </a>
-                                •
-                                <a
-                                  className="text-body-quaternary ms-1"
-                                  href="#!"
-                                >
-                                  Cookies
-                                </a>
-                              </div>
+                        
                             </div>
                           </div>
                         </div>
@@ -953,12 +932,12 @@ const HeaderClient = () => {
           <ul className="navbar-nav justify-content-end align-items-center">
             <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/" exact>
-                Home
+                Trang chủ
               </NavLink>
             </li>
             <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/cua-hang">
-                Products
+                Cửa hàng 
               </NavLink>
             </li>
             {/* <li className="nav-item" data-nav-item="data-nav-item">
@@ -974,7 +953,7 @@ const HeaderClient = () => {
 
             <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/don-hang">
-                Track order
+                Trạng thái đơn hàng
               </NavLink>
             </li>
             {/* <li className="nav-item" data-nav-item="data-nav-item">
@@ -984,7 +963,7 @@ const HeaderClient = () => {
             </li> */}
             <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/hoa-don">
-                Invoice
+                Hóa đơn
               </NavLink>
             </li>
           </ul>
