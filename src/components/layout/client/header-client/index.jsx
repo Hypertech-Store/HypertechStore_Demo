@@ -33,7 +33,6 @@ const HeaderClient = () => {
     }
   }, []);
 
-
   // Lấy tổng số sản phẩm từ giỏ hàng
   useEffect(() => {
     const fetchTotalProducts = async () => {
@@ -67,7 +66,6 @@ const HeaderClient = () => {
       cancelButtonText: "Hủy bỏ",
     }).then((result) => {
       if (result.isConfirmed) {
-
         // Lấy giá trị cần lưu trữ trước khi xóa
         const adminId = localStorage.getItem("adminId");
         const adminName = localStorage.getItem("adminName");
@@ -78,7 +76,11 @@ const HeaderClient = () => {
 
         // Xóa tất cả dữ liệu trong localStorage, nhưng giữ lại những giá trị đã lấy
         Object.keys(localStorage).forEach((key) => {
-          if (key !== "adminId" && key !== "adminName" && key !== "adminAvatar") {
+          if (
+            key !== "adminId" &&
+            key !== "adminName" &&
+            key !== "adminAvatar"
+          ) {
             localStorage.removeItem(key); // Xóa mọi thứ trừ 3 key trên
           }
         });
@@ -107,7 +109,6 @@ const HeaderClient = () => {
       }
     });
   };
-
 
   return (
     <>
@@ -622,7 +623,10 @@ const HeaderClient = () => {
                                 <div className="avatar avatar-xl ">
                                   <img
                                     className="rounded-circle"
-                                    src={"http://127.0.0.1:8000/storage/" + userInfo?.hinh_anh || defaultAvatar} // Sử dụng ảnh mặc định nếu không có hình ảnh
+                                    src={
+                                      "http://127.0.0.1:8000/storage/" +
+                                        userInfo?.hinh_anh || defaultAvatar
+                                    } // Sử dụng ảnh mặc định nếu không có hình ảnh
                                     alt="User Avatar"
                                   />
                                 </div>
@@ -803,7 +807,6 @@ const HeaderClient = () => {
                                   Đăng xuất
                                 </a>
                               </div>
-                        
                             </div>
                           </div>
                         </div>
@@ -913,18 +916,14 @@ const HeaderClient = () => {
               className="btn text-body ps-0 pe-5 text-nowrap dropdown-toggle dropdown-caret-none"
               data-category-btn="data-category-btn"
               data-bs-toggle="dropdown"
-            >
-
-            </button>
+            ></button>
             <div className="dropdown-menu border border-translucent py-0 category-dropdown-menu">
               <div
                 className="card border-0 scrollbar"
                 style={{ maxHeight: 657 }}
               >
                 <div className="card-body p-6 pb-3">
-                  <div className="row gx-7 gy-5 mb-5">
-
-                  </div>
+                  <div className="row gx-7 gy-5 mb-5"></div>
                 </div>
               </div>
             </div>
@@ -937,7 +936,7 @@ const HeaderClient = () => {
             </li>
             <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/cua-hang">
-                Cửa hàng 
+                Cửa hàng
               </NavLink>
             </li>
             {/* <li className="nav-item" data-nav-item="data-nav-item">
@@ -951,21 +950,21 @@ const HeaderClient = () => {
               </NavLink>
             </li> */}
 
-            <li className="nav-item" data-nav-item="data-nav-item">
+            {/* <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/don-hang">
                 Trạng thái đơn hàng
               </NavLink>
-            </li>
+            </li> */}
             {/* <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/thanh-toan">
                 Checkout
               </NavLink>
             </li> */}
-            <li className="nav-item" data-nav-item="data-nav-item">
+            {/* <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/hoa-don">
                 Hóa đơn
               </NavLink>
-            </li>
+            </li> */}
           </ul>
         </div>
       </nav>

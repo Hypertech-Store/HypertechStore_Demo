@@ -36533,10 +36533,10 @@ a[href].bg-body-secondary:focus {
 }
 .icon-nav-item:hover .icon-container {
   color: var(--phoenix-emphasis-bg);
-  background: var(--phoenix-primary);
+  background: var(--phoenix-gray-200);
 }
 .icon-nav-item:hover .nav-label {
-  color: var(--phoenix-secondary-color);
+  color: var(--phoenix-emphasis-color);
 }
 .fa-icon-wait {
   opacity: 0;

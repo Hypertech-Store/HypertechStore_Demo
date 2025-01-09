@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { toast } from "react-toastify"; // Thư viện toast cho thông báo
 import PacmanLoader from "react-spinners/PacmanLoader";
@@ -13,7 +13,6 @@ import products6 from "../../../assets/img/products/5.png";
 import products7 from "../../../assets/img/products/6.png";
 import icon from "../../../assets/img/icons/image-icon.png";
 
-
 const ProductDetails = () => {
   const { search } = useLocation();
   const queryParams = new URLSearchParams(search);
@@ -21,6 +20,19 @@ const ProductDetails = () => {
   const productId = queryParams.get("id");
   const khachHangIdFromStorage = localStorage.getItem("userId");
   const [productData, setProductData] = useState(null);
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean); // Tách các phần của URL
+
+  // Tiêu đề cho từng phần của URL
+  const breadcrumbTitles = {
+    "cua-hang": "Cửa hàng",
+    "chi-tiet-san-pham": "Chi tiết sản phẩm",
+  };
+
+  // Kiểm tra giá trị của pathnames và breadcrumbTitles
+  console.log("Pathnames:", pathnames);
+  console.log("Breadcrumb Titles:", breadcrumbTitles);
+
   // eslint-disable-next-line no-unused-vars
   const [variantPrice, setVariantPrice] = useState(0); // lưu giá biến thể
   const [remainingTime, setRemainingTime] = useState("");
@@ -44,8 +56,6 @@ const ProductDetails = () => {
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
   const [totalPages, setTotalPages] = useState(1); // Tổng số trang
 
-
-
   const [formData, setFormData] = useState({
     rating: 0, // Điểm đánh giá
     reviewText: "", // Nội dung đánh giá
@@ -61,13 +71,13 @@ const ProductDetails = () => {
     let stars = [];
     for (let i = 0; i < 5; i++) {
       stars.push(
-        <span 
+        <span
           key={i}
           onClick={() => handleStarClick(i)}
           style={{
             fontSize: 32,
-            cursor: 'pointer',
-            color: i < formData.rating ? '#FFD700' : '#D3D3D3', // Màu vàng cho sao đã chọn
+            cursor: "pointer",
+            color: i < formData.rating ? "#FFD700" : "#D3D3D3", // Màu vàng cho sao đã chọn
           }}
         >
           &#9733; {/* Biểu tượng sao */}
@@ -77,7 +87,6 @@ const ProductDetails = () => {
     return stars;
   };
 
-  
   // Xử lý thay đổi khi người dùng chọn tệp
   const handleFileChange = (e) => {
     const files = e.target.files;
@@ -124,49 +133,50 @@ const ProductDetails = () => {
     const { rating, reviewText, images } = formData;
 
     const formDataToSubmit = new FormData();
-    formDataToSubmit.append('san_pham_id', productId);
-    formDataToSubmit.append('khach_hang_id', khachHangIdFromStorage);
-    formDataToSubmit.append('danh_gia', rating);
-    formDataToSubmit.append('binh_luan', reviewText);
+    formDataToSubmit.append("san_pham_id", productId);
+    formDataToSubmit.append("khach_hang_id", khachHangIdFromStorage);
+    formDataToSubmit.append("danh_gia", rating);
+    formDataToSubmit.append("binh_luan", reviewText);
 
     // Gửi từng hình ảnh lên server
     images.forEach((image) => {
-      formDataToSubmit.append('image[]', image);
+      formDataToSubmit.append("image[]", image);
     });
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/danh-gia', {
-        method: 'POST',
+      const response = await fetch("http://127.0.0.1:8000/api/danh-gia", {
+        method: "POST",
         body: formDataToSubmit,
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert('Review submitted successfully!');
+        alert("Review submitted successfully!");
       } else {
-        alert('Error submitting review: ' + data.message);
+        alert("Error submitting review: " + data.message);
       }
     } catch (error) {
-      console.error('Error submitting review:', error);
-      alert('Error submitting review');
+      console.error("Error submitting review:", error);
+      alert("Error submitting review");
     }
   };
 
   // Đánh giá sao
-  const handleRatingClick = (ratingValue) => {
-    setFormData({
-      ...formData,
-      rating: ratingValue,
-    });
-  };
-
+  // const handleRatingClick = (ratingValue) => {
+  //   setFormData({
+  //     ...formData,
+  //     rating: ratingValue,
+  //   });
+  // };
 
   useEffect(() => {
     // Hàm để gọi API
     const fetchDanhGias = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/danh-gia/san-pham/${productId}?page=${currentPage}`);
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/danh-gia/san-pham/${productId}?page=${currentPage}`
+        );
         if (!response.ok) {
           throw new Error("Lỗi khi lấy dữ liệu");
         }
@@ -184,20 +194,22 @@ const ProductDetails = () => {
     fetchDanhGias();
   }, [currentPage]); // Gọi lại mỗi khi trang thay đổi
 
-
   useEffect(() => {
     // Kiểm tra xem khách hàng đã mua sản phẩm chưa
     const kiemTraMuaSanPham = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/san-pham/kiem-tra-mua-san-pham/${productId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            khach_hang_id: khachHangIdFromStorage, // Gửi ID khách hàng từ FE
-          }),
-        });
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/san-pham/kiem-tra-mua-san-pham/${productId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              khach_hang_id: khachHangIdFromStorage, // Gửi ID khách hàng từ FE
+            }),
+          }
+        );
 
         const data = await response.json();
 
@@ -206,7 +218,6 @@ const ProductDetails = () => {
         if (data.da_mua === false) {
           setDaMua(false);
           console.log(daMua);
-
         } else {
           setDaMua(true); // Khách hàng chưa mua sản phẩm
         }
@@ -217,7 +228,6 @@ const ProductDetails = () => {
 
     kiemTraMuaSanPham();
   }, [productId, khachHangIdFromStorage]);
-
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -501,7 +511,7 @@ const ProductDetails = () => {
             const errorData = await response.json();
             toast.error(
               errorData.message ||
-              "Đã có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng."
+                "Đã có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng."
             );
           }
           // eslint-disable-next-line no-unused-vars
@@ -532,21 +542,17 @@ const ProductDetails = () => {
   const formatDate = (dateString) => {
     const date = new Date(dateString); // Tạo đối tượng Date từ chuỗi
     const options = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
       hour12: false,
     };
     // Sử dụng UTC để định dạng theo múi giờ UTC
-    return date.toLocaleString('vi-VN', { timeZone: 'UTC', ...options });
+    return date.toLocaleString("vi-VN", { timeZone: "UTC", ...options });
   };
-
-
-
-
 
   return (
     <>
@@ -556,18 +562,32 @@ const ProductDetails = () => {
             <div className="container-small">
               <nav className="mb-3" aria-label="breadcrumb">
                 <ol className="breadcrumb mb-0">
+                  {/* Trang chủ */}
                   <li className="breadcrumb-item">
-                    <a href="#">Fashion</a>
+                    <Link to="/">Trang chủ</Link>
                   </li>
-                  <li className="breadcrumb-item">
-                    <a href="#">Womens fashion</a>
-                  </li>
-                  <li className="breadcrumb-item">
-                    <a href="#">Footwear</a>
-                  </li>
-                  <li className="breadcrumb-item active" aria-current="page">
-                    Hills
-                  </li>
+                  {/* Thêm "Cửa hàng" nếu đang ở trang "Chi tiết sản phẩm" */}
+                  {pathnames.includes("chi-tiet-san-pham") && (
+                    <li className="breadcrumb-item">
+                      <Link to="/cua-hang">Cửa hàng</Link>
+                    </li>
+                  )}
+                  {/* Chi tiết sản phẩm */}
+                  {pathnames.map((pathname, index) => {
+                    const to = `/${pathnames.slice(0, index + 1).join("/")}`;
+                    const title = breadcrumbTitles[pathname] || pathname;
+                    const isLast = index === pathnames.length - 1;
+
+                    return isLast ? (
+                      <li
+                        key={to}
+                        className="breadcrumb-item active"
+                        aria-current="page"
+                      >
+                        {title}
+                      </li>
+                    ) : null;
+                  })}
                 </ol>
               </nav>
               <div
@@ -591,10 +611,11 @@ const ProductDetails = () => {
                           {images.map((image, index) => (
                             <div
                               key={index}
-                              className={`swiper-slide ${activeImageIndex === index + 1 // Chỉnh lại logic tính toán active
-                                ? "swiper-slide-thumb-active"
-                                : ""
-                                }`}
+                              className={`swiper-slide ${
+                                activeImageIndex === index + 1 // Chỉnh lại logic tính toán active
+                                  ? "swiper-slide-thumb-active"
+                                  : ""
+                              }`}
                               role="group"
                               aria-label={`${index + 2} / ${imageArray.length}`}
                               style={{ height: 84, marginBottom: 16 }}
@@ -632,19 +653,21 @@ const ProductDetails = () => {
                             <div
                               className="swiper-slide swiper-slide-active"
                               role="group"
-                              aria-label={`${activeImageIndex + 1} / ${imageArray.length
-                                }`}
+                              aria-label={`${activeImageIndex + 1} / ${
+                                imageArray.length
+                              }`}
                               style={{ width: 411 }}
                             >
                               {/* Hiển thị ảnh active */}
                               <img
                                 className="w-100"
-                                src={`${imageArray[activeImageIndex]?.startsWith(
-                                  "http"
-                                )
-                                  ? imageArray[activeImageIndex]
-                                  : baseUrl + imageArray[activeImageIndex]
-                                  }`}
+                                src={`${
+                                  imageArray[activeImageIndex]?.startsWith(
+                                    "http"
+                                  )
+                                    ? imageArray[activeImageIndex]
+                                    : baseUrl + imageArray[activeImageIndex]
+                                }`}
                                 alt={`Product image ${activeImageIndex + 1}`}
                               />
                             </div>
@@ -819,12 +842,12 @@ const ProductDetails = () => {
                               })
                                 .format(
                                   parseFloat(productData?.sanPham?.gia) *
-                                  (1 -
-                                    parseFloat(
-                                      productData?.sale_theo_phan_tram
-                                    ) /
-                                    100) +
-                                  variantPrice
+                                    (1 -
+                                      parseFloat(
+                                        productData?.sale_theo_phan_tram
+                                      ) /
+                                        100) +
+                                    variantPrice
                                 )
                                 .replace("₫", "VNĐ")}
                             </h1>
@@ -852,7 +875,7 @@ const ProductDetails = () => {
                             })
                               .format(
                                 parseFloat(productData?.sanPham?.gia) +
-                                variantPrice
+                                  variantPrice
                               )
                               .replace("₫", "VNĐ")}
                           </h1>
@@ -889,8 +912,9 @@ const ProductDetails = () => {
                             {colorVariants.map((variant, index) => (
                               <div
                                 key={index}
-                                className={`rounded-1 border border-translucent me-2 ${activeImageIndex === index + 1 ? "active" : ""
-                                  }`}
+                                className={`rounded-1 border border-translucent me-2 ${
+                                  activeImageIndex === index + 1 ? "active" : ""
+                                }`}
                                 onClick={() =>
                                   handleImageClick(index + 1, variant.colorName)
                                 }
@@ -925,10 +949,11 @@ const ProductDetails = () => {
                                 dungLuongOptions.map((option, index) => (
                                   <div
                                     key={index}
-                                    className={`d-flex align-items-center me-3 rounded-1 border cursor-pointer ${selectedDungLuong === option
-                                      ? "border border-primary"
-                                      : "border border-1"
-                                      }`} // Ensure `option.name` is compared with selectedDungLuong
+                                    className={`d-flex align-items-center me-3 rounded-1 border cursor-pointer ${
+                                      selectedDungLuong === option
+                                        ? "border border-primary"
+                                        : "border border-1"
+                                    }`} // Ensure `option.name` is compared with selectedDungLuong
                                     onClick={() =>
                                       handleDungLuongChange({
                                         target: { value: option },
@@ -1058,11 +1083,17 @@ const ProductDetails = () => {
                             <div className="d-flex align-items-center flex-wrap">
                               <h2 className="fw-bolder me-3">
                                 {danhGias?.summary.trung_binh_sao}
-                                <span className="fs-8 text-body-quaternary fw-bold">/5</span>
+                                <span className="fs-8 text-body-quaternary fw-bold">
+                                  /5
+                                </span>
                               </h2>
                               <div className="me-3">
                                 {/* Loop to display full stars */}
-                                {[...Array(Math.floor(danhGias?.summary.trung_binh_sao))].map((_, index) => (
+                                {[
+                                  ...Array(
+                                    Math.floor(danhGias?.summary.trung_binh_sao)
+                                  ),
+                                ].map((_, index) => (
                                   <svg
                                     key={`full-star-${index}`}
                                     className="svg-inline--fa fa-star text-warning fs-6"
@@ -1103,7 +1134,14 @@ const ProductDetails = () => {
                                 )}
 
                                 {/* Loop to display empty stars */}
-                                {[...Array(5 - Math.ceil(danhGias?.summary.trung_binh_sao))].map((_, index) => (
+                                {[
+                                  ...Array(
+                                    5 -
+                                      Math.ceil(
+                                        danhGias?.summary.trung_binh_sao
+                                      )
+                                  ),
+                                ].map((_, index) => (
                                   <svg
                                     key={`empty-star-${index}`}
                                     className="svg-inline--fa fa-star text-body-quaternary fs-6"
@@ -1125,7 +1163,8 @@ const ProductDetails = () => {
                               </div>
 
                               <p className="text-body mb-0 fw-semibold fs-7">
-                                {danhGias?.summary.tong_sao} ratings and {danhGias?.summary.tong_danh_gia} reviews
+                                {danhGias?.summary.tong_sao} ratings and{" "}
+                                {danhGias?.summary.tong_danh_gia} reviews
                               </p>
                             </div>
                           </div>
@@ -1149,8 +1188,12 @@ const ProductDetails = () => {
                                 <div className="modal-dialog modal-dialog-centered">
                                   <div className="modal-content p-4">
                                     <div className="d-flex flex-between-center mb-2">
-                                      <h5 className="modal-title fs-8 mb-0">Your rating</h5>
-                                      <button className="btn p-0 fs-10">Clear</button>
+                                      <h5 className="modal-title fs-8 mb-0">
+                                        Your rating
+                                      </h5>
+                                      <button className="btn p-0 fs-10">
+                                        Clear
+                                      </button>
                                     </div>
                                     {/* <div
                                       className="mb-3 star-rating"
@@ -1168,26 +1211,40 @@ const ProductDetails = () => {
                                       />
                                     </div> */}
 
-                                    <div className="mb-3 star-rating" style={{ display: 'flex', gap: '10px' }}>
+                                    <div
+                                      className="mb-3 star-rating"
+                                      style={{ display: "flex", gap: "10px" }}
+                                    >
                                       {renderStars()} {/* Hiển thị sao */}
                                     </div>
 
                                     <div className="mb-3">
-                                      <h5 className="text-body-highlight mb-3">Your review</h5>
+                                      <h5 className="text-body-highlight mb-3">
+                                        Your review
+                                      </h5>
                                       <textarea
                                         className="form-control"
                                         id="reviewTextarea"
                                         rows={5}
                                         placeholder="Write your review"
                                         value={formData.reviewText}
-                                        onChange={(e) => setFormData({ ...formData, reviewText: e.target.value })}
+                                        onChange={(e) =>
+                                          setFormData({
+                                            ...formData,
+                                            reviewText: e.target.value,
+                                          })
+                                        }
                                       />
                                     </div>
                                     <div
                                       className="dropzone dropzone-multiple p-0 mb-5"
                                       onDrop={handleDrop}
                                       onDragOver={handleDragOver}
-                                      onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
+                                      onClick={() =>
+                                        document
+                                          .getElementById("fileInput")
+                                          .click()
+                                      } // Kích hoạt input khi click
                                       id="my-awesome-dropzone"
                                       data-dropzone="data-dropzone"
                                     >
@@ -1201,35 +1258,45 @@ const ProductDetails = () => {
                                         />
                                       </div>
 
-                                      {formData.images && formData.images.length > 0 ? (
+                                      {formData.images &&
+                                      formData.images.length > 0 ? (
                                         <div className="dz-preview d-flex flex-wrap">
-                                          {formData.images.map((image, index) => (
-                                            <div
-                                              key={index}
-                                              className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2"
-                                              style={{ height: 120, width: 120 }}
-                                            >
-                                              <img
-                                                className="dz-image"
-                                                src={URL.createObjectURL(image)}
-                                                alt="Preview"
-                                                data-dz-thumbnail="data-dz-thumbnail"
+                                          {formData.images.map(
+                                            (image, index) => (
+                                              <div
+                                                key={index}
+                                                className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2"
                                                 style={{
-                                                  maxWidth: "100%",
-                                                  maxHeight: "100%",
-                                                  objectFit: "contain",
+                                                  height: 120,
+                                                  width: 120,
                                                 }}
-                                              />
-                                              <a
-                                                className="dz-remove text-body-quaternary"
-                                                href="#!"
-                                                data-dz-remove="data-dz-remove"
-                                                onClick={() => handleRemoveImage(index)}
                                               >
-                                                <span data-feather="x" />
-                                              </a>
-                                            </div>
-                                          ))}
+                                                <img
+                                                  className="dz-image"
+                                                  src={URL.createObjectURL(
+                                                    image
+                                                  )}
+                                                  alt="Preview"
+                                                  data-dz-thumbnail="data-dz-thumbnail"
+                                                  style={{
+                                                    maxWidth: "100%",
+                                                    maxHeight: "100%",
+                                                    objectFit: "contain",
+                                                  }}
+                                                />
+                                                <a
+                                                  className="dz-remove text-body-quaternary"
+                                                  href="#!"
+                                                  data-dz-remove="data-dz-remove"
+                                                  onClick={() =>
+                                                    handleRemoveImage(index)
+                                                  }
+                                                >
+                                                  <span data-feather="x" />
+                                                </a>
+                                              </div>
+                                            )
+                                          )}
                                         </div>
                                       ) : (
                                         <div
@@ -1237,8 +1304,13 @@ const ProductDetails = () => {
                                           data-dz-message="data-dz-message"
                                         >
                                           Drag your photo here
-                                          <span className="text-body-secondary px-1">or</span>
-                                          <button className="btn btn-link p-0" type="button">
+                                          <span className="text-body-secondary px-1">
+                                            or
+                                          </span>
+                                          <button
+                                            className="btn btn-link p-0"
+                                            type="button"
+                                          >
                                             Browse from device
                                           </button>
                                           <br />
@@ -1259,11 +1331,17 @@ const ProductDetails = () => {
                                           type="checkbox"
                                           defaultChecked
                                         />
-                                        <label className="form-check-label mb-0 text-body-emphasis fw-semibold" htmlFor="reviewAnonymously">
+                                        <label
+                                          className="form-check-label mb-0 text-body-emphasis fw-semibold"
+                                          htmlFor="reviewAnonymously"
+                                        >
                                           Review anonymously
                                         </label>
                                       </div>
-                                      <button className="btn ps-0" data-bs-dismiss="modal">
+                                      <button
+                                        className="btn ps-0"
+                                        data-bs-dismiss="modal"
+                                      >
                                         Close
                                       </button>
                                       <button
@@ -1277,36 +1355,42 @@ const ProductDetails = () => {
                                 </div>
                               </div>
                             </div>
-                          ) : (
-                            null
-                          )}
-
+                          ) : null}
                         </div>
                         <div>
                           {danhGias?.data?.data.map((danhGia, index) => (
-                            <div key={index} className="mb-4 hover-actions-trigger btn-reveal-trigger">
+                            <div
+                              key={index}
+                              className="mb-4 hover-actions-trigger btn-reveal-trigger"
+                            >
                               <div className="d-flex justify-content-between">
                                 <h5 className="mb-2">
                                   {/* Hiển thị số sao */}
-                                  {Array.from({ length: danhGia.danh_gia }, (_, i) => (
-                                    <svg
-                                      key={i}
-                                      className="svg-inline--fa fa-star text-warning"
-                                      aria-hidden="true"
-                                      focusable="false"
-                                      data-prefix="fas"
-                                      data-icon="star"
-                                      role="img"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      viewBox="0 0 576 512"
-                                    >
-                                      <path
-                                        fill="currentColor"
-                                        d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                                      />
-                                    </svg>
-                                  ))}
-                                  <span className="text-body-secondary ms-1"> by </span>
+                                  {Array.from(
+                                    { length: danhGia.danh_gia },
+                                    (_, i) => (
+                                      <svg
+                                        key={i}
+                                        className="svg-inline--fa fa-star text-warning"
+                                        aria-hidden="true"
+                                        focusable="false"
+                                        data-prefix="fas"
+                                        data-icon="star"
+                                        role="img"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 576 512"
+                                      >
+                                        <path
+                                          fill="currentColor"
+                                          d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                                        />
+                                      </svg>
+                                    )
+                                  )}
+                                  <span className="text-body-secondary ms-1">
+                                    {" "}
+                                    by{" "}
+                                  </span>
                                   {danhGia.khach_hang.ho_ten}
                                 </h5>
                                 <div className="btn-reveal-trigger position-static">
@@ -1344,13 +1428,29 @@ const ProductDetails = () => {
                                 {danhGia.binh_luan}
                               </p>
                               <div className="row g-2 mb-2">
-                                {Array.isArray(danhGia.chi_tiet_danh_gias) && danhGia.chi_tiet_danh_gias.map((image, index) => (
-                                  <div className="col-auto" key={index}>
-                                    <a href={"http://127.0.0.1:8000/storage/" + image.hinh_anh_duong_dan} data-gallery={`gallery-${index}`}>
-                                      <img src={"http://127.0.0.1:8000/storage/" + image.hinh_anh_duong_dan} alt={`Review ${index + 1}`} height={164} />
-                                    </a>
-                                  </div>
-                                ))}
+                                {Array.isArray(danhGia.chi_tiet_danh_gias) &&
+                                  danhGia.chi_tiet_danh_gias.map(
+                                    (image, index) => (
+                                      <div className="col-auto" key={index}>
+                                        <a
+                                          href={
+                                            "http://127.0.0.1:8000/storage/" +
+                                            image.hinh_anh_duong_dan
+                                          }
+                                          data-gallery={`gallery-${index}`}
+                                        >
+                                          <img
+                                            src={
+                                              "http://127.0.0.1:8000/storage/" +
+                                              image.hinh_anh_duong_dan
+                                            }
+                                            alt={`Review ${index + 1}`}
+                                            height={164}
+                                          />
+                                        </a>
+                                      </div>
+                                    )
+                                  )}
                               </div>
                             </div>
                           ))}
@@ -1359,11 +1459,17 @@ const ProductDetails = () => {
                           <nav>
                             <ul className="pagination mb-0">
                               {/* Nút quay lại */}
-                              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                              <li
+                                className={`page-item ${
+                                  currentPage === 1 ? "disabled" : ""
+                                }`}
+                              >
                                 <a
                                   className="page-link"
                                   href="#!"
-                                  onClick={() => setCurrentPage(currentPage - 1)}
+                                  onClick={() =>
+                                    setCurrentPage(currentPage - 1)
+                                  }
                                 >
                                   <svg
                                     className="svg-inline--fa fa-chevron-left"
@@ -1384,27 +1490,41 @@ const ProductDetails = () => {
                               </li>
 
                               {/* Các trang */}
-                              {Array.from({ length: totalPages }).map((_, pageIndex) => (
-                                <li
-                                  key={pageIndex + 1}
-                                  className={`page-item ${currentPage === pageIndex + 1 ? 'active' : ''}`}
-                                >
-                                  <a
-                                    className="page-link"
-                                    href="#!"
-                                    onClick={() => setCurrentPage(pageIndex + 1)}
+                              {Array.from({ length: totalPages }).map(
+                                (_, pageIndex) => (
+                                  <li
+                                    key={pageIndex + 1}
+                                    className={`page-item ${
+                                      currentPage === pageIndex + 1
+                                        ? "active"
+                                        : ""
+                                    }`}
                                   >
-                                    {pageIndex + 1}
-                                  </a>
-                                </li>
-                              ))}
+                                    <a
+                                      className="page-link"
+                                      href="#!"
+                                      onClick={() =>
+                                        setCurrentPage(pageIndex + 1)
+                                      }
+                                    >
+                                      {pageIndex + 1}
+                                    </a>
+                                  </li>
+                                )
+                              )}
 
                               {/* Nút tiếp theo */}
-                              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                              <li
+                                className={`page-item ${
+                                  currentPage === totalPages ? "disabled" : ""
+                                }`}
+                              >
                                 <a
                                   className="page-link"
                                   href="#!"
-                                  onClick={() => setCurrentPage(currentPage + 1)}
+                                  onClick={() =>
+                                    setCurrentPage(currentPage + 1)
+                                  }
                                 >
                                   <svg
                                     className="svg-inline--fa fa-chevron-right"
@@ -1426,7 +1546,6 @@ const ProductDetails = () => {
                             </ul>
                           </nav>
                         </div>
-
                       </div>
                     </div>
                   </div>
