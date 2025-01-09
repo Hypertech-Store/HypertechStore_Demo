@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom"; // Import NavLink từ react-router-dom
 import Swal from "sweetalert2";
@@ -5,7 +6,6 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie"; // Import thư viện js-cookie
-
 import logo from "../../../../assets/img/icons/logo1.png";
 import team from "../../../../assets/img/team/40x40/30.webp";
 import team1 from "../../../../assets/img/team/40x40/avatar.webp";
@@ -17,9 +17,20 @@ import defaultAvatar from "../../../../assets/img/team/image-default.png";
 const HeaderClient = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false); // Track loading state
+  // eslint-disable-next-line no-unused-vars
+  const [errorMessage, setErrorMessage] = useState("");
+  // eslint-disable-next-line no-unused-vars
+  const [enterKeyPressed, setEnterKeyPressed] = useState(false); // Add this state
+  const [recentSearches, setRecentSearches] = useState(() => {
+    return JSON.parse(localStorage.getItem("recentSearches")) || [];
+  }); // Lịch sử tìm kiếm
+  const [showDropdown, setShowDropdown] = useState(false); // Quản lý trạng thái dropdown
 
   const [totalProducts, setTotalProducts] = useState(0);
-
+  const baseUrl = "http://127.0.0.1:8000/storage/";
   const navigate = useNavigate();
 
   // Kiểm tra thông tin người dùng trong localStorage khi component mount
@@ -108,6 +119,99 @@ const HeaderClient = () => {
         }, 100);
       }
     });
+  };
+
+  const searchProduct = async () => {
+    console.log("Search term:", searchTerm);
+    setIsLoading(true); // Show loading icon when starting the search
+    if (!searchTerm) {
+      setErrorMessage("Vui lòng nhập từ khóa tìm kiếm.");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/san-pham/search/`,
+        {
+          params: { keyword: searchTerm },
+        }
+      );
+
+      console.log("API response data:", response.data); // Log dữ liệu trả về từ API
+
+      if (response.data.status === "error") {
+        setErrorMessage(response.data.message);
+        setProducts([]); // Xóa danh sách sản phẩm nếu không có kết quả
+      } else {
+        setProducts(response.data.data.data); // Cập nhật danh sách sản phẩm từ response.data.data.data
+        setErrorMessage("");
+        setTimeout(() => {
+          setIsLoading(false); // Hide loading spinner
+        }, 1500);
+
+        // Update recent search state if there's a valid search
+        setRecentSearches((prevSearches) => {
+          const updatedSearches = [searchTerm, ...prevSearches];
+          if (updatedSearches.length > 5) updatedSearches.pop(); // Limit to 5 recent searches
+          return updatedSearches;
+        });
+      }
+    } catch (error) {
+      setErrorMessage("Có lỗi xảy ra. Vui lòng thử lại.");
+      setProducts([]); // Xóa danh sách sản phẩm nếu có lỗi
+      console.error(error); // Log lỗi ra console để xem chi tiết
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+
+    // Kiểm tra từ khóa và chỉ thực hiện khi không phải là khoảng trắng
+    if (searchTerm.trim()) {
+      // Nếu từ khóa đã có trong lịch sử, ta loại bỏ khỏi danh sách rồi chèn lại ở đầu
+      if (recentSearches.includes(searchTerm)) {
+        const updatedRecentSearches = recentSearches.filter(
+          (term) => term !== searchTerm
+        );
+        const newRecentSearches = [searchTerm, ...updatedRecentSearches];
+        setRecentSearches(newRecentSearches);
+        localStorage.setItem(
+          "recentSearches",
+          JSON.stringify(newRecentSearches)
+        );
+      } else {
+        // Nếu từ khóa mới, ta chèn nó vào đầu danh sách và giới hạn tối đa 5 từ khóa
+        const newRecentSearches = [searchTerm, ...recentSearches].slice(0, 5);
+        setRecentSearches(newRecentSearches);
+        localStorage.setItem(
+          "recentSearches",
+          JSON.stringify(newRecentSearches)
+        );
+      }
+
+      // Gọi hàm tìm kiếm
+      searchProduct();
+
+      // Mở dropdown menu ngay lập tức sau khi tìm kiếm
+      setShowDropdown(true);
+    }
+  };
+
+  // Hàm xử lý khi người dùng click vào từ khóa trong lịch sử tìm kiếm
+  const handleRecentSearchClick = (term) => {
+    setSearchTerm(term); // Thiết lập lại từ khóa tìm kiếm
+    searchProduct(); // Gọi hàm tìm kiếm ngay lập tức
+
+    // Mở dropdown-menu ngay lập tức
+    setShowDropdown(true);
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      console.log("Enter key pressed");
+      setEnterKeyPressed(true); // Set to true when Enter is pressed
+      searchProduct();
+    }
   };
 
   return (
@@ -877,29 +981,151 @@ const HeaderClient = () => {
               </div>
 
               <div className="col-md-6 col-12">
-                <div className="search-box ecommerce-search-box w-100">
-                  <form className="position-relative">
+                <div
+                  className="search-box navbar-top-search-box d-none d-lg-block ecommerce-search-box w-100"
+                  data-list='{"valueNames":["title"]}'
+                  style={{ width: "25rem" }}
+                >
+                  <form
+                    className="position-relative"
+                    data-bs-toggle="search"
+                    data-bs-display="static"
+                    onSubmit={handleSearchSubmit} // Chỉ gọi handleSearchSubmit ở đây
+                  >
                     <input
-                      placeholder="Search..."
+                      className="form-control search-input fuzzy-search rounded-pill form-control-sm"
                       type="search"
-                      className="search-input search rounded-pill form-control form-control-sm"
+                      placeholder="Tìm kiếm..."
+                      aria-label="Search"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật trạng thái khi gõ từ khóa
+                      onClick={() => {
+                        setShowDropdown(true);
+                      }} // Mở dropdown khi click vào input
+                      onKeyDown={handleKeyPress}
                     />
-                    <svg
-                      aria-hidden="true"
-                      focusable="false"
-                      data-prefix="fas"
-                      data-icon="magnifying-glass"
-                      className="svg-inline--fa fa-magnifying-glass search-box-icon"
-                      role="img"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 512 512"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
-                      ></path>
-                    </svg>
+
+                    <span className="fas fa-search search-box-icon" />
                   </form>
+                  <div
+                    className="btn-close position-absolute end-0 top-50 translate-middle cursor-pointer shadow-none"
+                    data-bs-dismiss="search"
+                  >
+                    <button className="btn btn-link p-0" aria-label="Close" />
+                  </div>
+
+                  <div className="dropdown-menu border start-0 py-0 overflow-hidden w-100">
+                    <div
+                      className="scrollbar-overlay"
+                      style={{ maxHeight: "30rem" }}
+                    >
+                      <div className="list">
+                        {searchTerm ? (
+                          <>
+                            <h6 className="dropdown-header text-body-highlight fs-10 py-2">
+                              {isLoading ? "Đang tải..." : products.length} {""}
+                              <span className="text-body-quaternary">
+                                {/* eslint-disable-next-line react/no-unescaped-entities*/}
+                                Kết quả tìm kiếm cho "{searchTerm}"
+                              </span>
+                            </h6>
+
+                            <hr className="my-0" />
+                            <h6 className="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                              Các sản phẩm
+                            </h6>
+                            {isLoading ? (
+                              <div className="text-center py-3">
+                                <div
+                                  className="spinner-border text-primary"
+                                  role="status"
+                                >
+                                  <span className="visually-hidden">
+                                    Loading...
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="py-2">
+                                {products.length === 0 ? (
+                                  <div className="d-flex justify-content-center align-items-center">
+                                    <p className="fallback fw-bold fs-9 text-danger">
+                                      Không có sản phẩm nào phù hợp với từ khóa
+                                      tìm kiếm.
+                                    </p>
+                                  </div>
+                                ) : (
+                                  products.map((product, index) => (
+                                    <a
+                                      key={index}
+                                      className="dropdown-item py-2 d-flex align-items-center"
+                                      href={`/chi-tiet-san-pham?id=${product?.id}`}
+                                    >
+                                      <div className="file-thumbnail me-2">
+                                        <img
+                                          className="h-100 w-100 object-fit-cover rounded-3"
+                                          src={`${baseUrl}${product.duong_dan_anh}`}
+                                          alt={product.ten_san_pham}
+                                        />
+                                      </div>
+                                      <div className="flex-1">
+                                        <h6 className="mb-0 text-body-highlight title">
+                                          {product.ten_san_pham}
+                                        </h6>
+                                        <p className="fs-10 mb-0 d-flex text-body-tertiary">
+                                          <span className="fw-medium text-body-tertiary text-opacity-85">
+                                            {product.mo_ta.length > 100
+                                              ? product.mo_ta.slice(0, 100) +
+                                                "..."
+                                              : product.mo_ta}
+                                          </span>
+                                        </p>
+                                      </div>
+                                    </a>
+                                  ))
+                                )}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <h6 className="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                              Tìm kiếm gần đây
+                            </h6>
+                            <div className="py-2">
+                              {recentSearches.length === 0 ? (
+                                <p className="text-body-tertiary d-flex justify-content-center align-items-center">
+                                  Chưa có tìm kiếm gần đây
+                                </p>
+                              ) : (
+                                recentSearches.map((recentSearch, index) => (
+                                  <a
+                                    key={index}
+                                    className="dropdown-item"
+                                    href="#"
+                                    onClick={() =>
+                                      handleRecentSearchClick(recentSearch)
+                                    } // Xử lý khi bấm vào từ khóa
+                                  >
+                                    <div className="d-flex align-items-center">
+                                      <div className="fw-normal text-body-highlight title">
+                                        <span
+                                          className="fa-solid fa-clock-rotate-left"
+                                          data-fa-transform="shrink-2"
+                                        />{" "}
+                                        {""}
+                                        {recentSearch}
+                                      </div>
+                                    </div>
+                                  </a>
+                                ))
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -960,11 +1186,11 @@ const HeaderClient = () => {
                 Checkout
               </NavLink>
             </li> */}
-            {/* <li className="nav-item" data-nav-item="data-nav-item">
+            <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/hoa-don">
                 Hóa đơn
               </NavLink>
-            </li> */}
+            </li>
           </ul>
         </div>
       </nav>

@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 const HeaderAdmin = () => {
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
   const adminId = localStorage.getItem("adminId");
   const adminName = localStorage.getItem("adminName");
   const adminAvatar = localStorage.getItem("adminAvatar");
