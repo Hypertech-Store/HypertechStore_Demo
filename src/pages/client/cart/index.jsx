@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { Link, useLocation } from "react-router-dom";
 const Cart = () => {
   document.title = "Hypertech Store - Giỏ hàng";
   const baseUrl = "http://127.0.0.1:8000/storage/";
@@ -14,6 +14,17 @@ const Cart = () => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [selectAll, setSelectAll] = useState(false);
   const [selectedItems, setSelectedItems] = useState({}); // Initialize with an empty object
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  const breadcrumbTitles = {
+    "gio-hang": "Giỏ hàng", // URL chính, không có "/"
+  };
+
+  // Tách ra tên của các phần đường dẫn, không bao gồm id (phần cuối cùng là id đơn hàng)
+  const currentTitle =
+    breadcrumbTitles[pathnames[0]] ||
+    pathnames[pathnames.length - 1]?.toUpperCase();
 
   // useEffect to fetch cart data
   useEffect(() => {
@@ -205,10 +216,7 @@ const Cart = () => {
       (item) => selectedItems[item.id]
     );
 
-    localStorage.setItem(
-      "selectedProducts",
-      JSON.stringify(selectedProducts)
-    );
+    localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
 
     // Kiểm tra và in thông báo nếu lưu thành công
     const storedSelectedProducts = JSON.parse(
@@ -238,13 +246,11 @@ const Cart = () => {
           <nav className="mb-3" aria-label="breadcrumb">
             <ol className="breadcrumb mb-0">
               <li className="breadcrumb-item">
-                <a href="#!">Page 1</a>
+                <Link to="/">Trang chủ</Link>
               </li>
-              <li className="breadcrumb-item">
-                <a href="#!">Page 2</a>
-              </li>
+
               <li className="breadcrumb-item active" aria-current="page">
-                Default
+                {currentTitle}
               </li>
             </ol>
           </nav>

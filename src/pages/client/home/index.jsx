@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 // Import ảnh
 import whoopingBannerProduct from "../../../assets/img/e-commerce/whooping_banner_product.png";
@@ -6,12 +7,7 @@ import whoopingBannerShape from "../../../assets/img/e-commerce/whooping_banner_
 import giftItemsBannerBg from "../../../assets/img/e-commerce/gift-items-banner-bg.png";
 import bestInMarketBg from "../../../assets/img/e-commerce/best-in-market-bg.png";
 import productImage from "../../../assets/img/e-commerce/5.png";
-import product18 from "../../../assets/img/products/18.png";
-import product17 from "../../../assets/img/products/17.png";
-import product24 from "../../../assets/img/products/24.png";
-import product25 from "../../../assets/img/products/25.png";
-import product26 from "../../../assets/img/products/26.png";
-import product27 from "../../../assets/img/products/27.png";
+
 import ecommerce from "../../../assets/img/e-commerce/4.png";
 import illustrations from "../../../assets/img/spot-illustrations/light_30.png";
 import illustrations1 from "../../../assets/img/spot-illustrations/dark_30.png";
@@ -19,6 +15,12 @@ import illustrations1 from "../../../assets/img/spot-illustrations/dark_30.png";
 const HomeClient = () => {
   const baseUrl = "http://127.0.0.1:8000/storage/";
   const [products, setProducts] = useState([]);
+  const [bestProducts, setBestProducts] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0); // Chỉ số sản phẩm hiển thị
+  const [isFirstSlide, setIsFirstSlide] = useState(true); // Trạng thái của nút Previous
+  const [isLastSlide, setIsLastSlide] = useState(false); // Trạng thái của nút Next
+
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     // Gọi API và lấy dữ liệu
@@ -85,201 +87,119 @@ const HomeClient = () => {
     maximumFractionDigits: 0,
   });
 
+  useEffect(() => {
+    // Lấy dữ liệu sản phẩm bán chạy nhất từ API
+    axios
+      .get("http://localhost:8000/api/san-pham/getBestSellingProduct")
+      .then((response) => {
+        // Giả sử dữ liệu trả về là một mảng sản phẩm
+        setBestProducts(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+      });
+  }, []);
+
+  const handleNextClick = () => {
+    if (currentIndex < bestProducts.length - 6) {
+      // Tăng 1 sản phẩm vào cuối danh sách hiển thị
+      setCurrentIndex(currentIndex + 1);
+
+      setIsFirstSlide(false); // Đảm bảo nút "Previous" hoạt động
+
+      if (currentIndex + 1 === bestProducts.length - 6) {
+        setIsLastSlide(true); // Đến sản phẩm cuối cùng
+      }
+    }
+  };
+
+  const handlePrevClick = () => {
+    if (currentIndex > 0) {
+      // Giảm 1 sản phẩm từ cuối danh sách hiển thị
+      setCurrentIndex(currentIndex - 1);
+
+      setIsLastSlide(false); // Đảm bảo nút "Next" hoạt động
+
+      if (currentIndex - 1 === 0) {
+        setIsFirstSlide(true); // Đến sản phẩm đầu tiên
+      }
+    }
+  };
+
+  // Fetch data from the API
+  useEffect(() => {
+    axios
+      .get("http://localhost:8000/api/danh-muc-con/getAll")
+      .then((response) => {
+        setCategories(response.data); // Assuming the API response returns an array of categories
+      })
+      .catch((error) => {
+        console.error("There was an error fetching the data:", error);
+      });
+  }, []);
+
   return (
     <div>
       <section className="py-0 mt-5">
         <div className="container-small">
-          <div className="scrollbar">
-            <div className="d-flex justify-content-between">
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="bg-warning-subtle icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="text-warning"
+          <div
+            className="scrollbar"
+            style={{
+              overflow: "hidden", // Ẩn các mục trượt ra khỏi viewport
+              position: "relative", // Đặt vị trí cố định
+              whiteSpace: "nowrap", // Giữ các mục hiển thị trên cùng một hàng
+            }}
+          >
+            <div
+              className="d-flex justify-content-between"
+              style={{
+                display: "flex",
+                animation: "marquee 40s linear infinite", // Điều khiển chuyển động
+              }}
+            >
+              {[...categories, ...categories].map((category, index) => (
+                <div
+                  className="d-flex flex-column justify-content-center align-items-center mb-3 category-item"
+                  style={{
+                    flex: "1",
+                    maxWidth: "calc(10% - 50px)", // Kích thước mỗi danh mục
+                    margin: "0 30px", // Khoảng cách giữa các danh mục
+                  }}
+                  key={index}
+                >
+                  <a
+                    className="icon-nav-item d-flex flex-column justify-content-center align-items-center"
+                    href={`/cua-hang?danh-muc-con=${category.id}`}
                   >
-                    <path d="M22,9.67A1,1,0,0,0,21.14,9l-5.69-.83L12.9,3a1,1,0,0,0-1.8,0L8.55,8.16,2.86,9a1,1,0,0,0-.81.68,1,1,0,0,0,.25,1l4.13,4-1,5.68a1,1,0,0,0,.4,1,1,1,0,0,0,1.05.07L12,18.76l5.1,2.68a.93.93,0,0,0,.46.12,1,1,0,0,0,.59-.19,1,1,0,0,0,.4-1l-1-5.68,4.13-4A1,1,0,0,0,22,9.67Zm-6.15,4a1,1,0,0,0-.29.89l.72,4.19-3.76-2a1,1,0,0,0-.94,0l-3.76,2,.72-4.19a1,1,0,0,0-.29-.89l-3-3,4.21-.61a1,1,0,0,0,.76-.55L12,5.7l1.88,3.82a1,1,0,0,0,.76.55l4.21.61Z"></path>
-                  </svg>
+                    <div className="icon-container mb-2">
+                      <img
+                        src={`${baseUrl}${category.img}`}
+                        alt={category.ten_danh_muc_con}
+                        width={50}
+                        height={50}
+                      />
+                    </div>
+                    <p className="nav-label mb-0 text-center">
+                      {category.ten_danh_muc_con}
+                    </p>
+                  </a>
                 </div>
-                <p className="nav-label mb-0">Deals</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M19,7H16V6A4,4,0,0,0,8,6V7H5A1,1,0,0,0,4,8V19a3,3,0,0,0,3,3H17a3,3,0,0,0,3-3V8A1,1,0,0,0,19,7ZM10,6a2,2,0,0,1,4,0V7H10Zm8,13a1,1,0,0,1-1,1H7a1,1,0,0,1-1-1V9H8v1a1,1,0,0,0,2,0V9h4v1a1,1,0,0,0,2,0V9h2Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Grocery</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M17,8.61,16,2.84A1,1,0,0,0,15,2H9a1,1,0,0,0-1,.84l-1,5.77a6,6,0,0,0,0,6.78l1,5.77A1,1,0,0,0,9,22h6a1,1,0,0,0,1-.84l1-5.77a6,6,0,0,0,0-6.78ZM9.85,4h4.3l.44,2.59a6,6,0,0,0-5.18,0Zm4.3,16H9.85l-.44-2.59a6,6,0,0,0,5.18,0ZM12,16a4,4,0,1,1,4-4A4,4,0,0,1,12,16Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Fashion</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M12.71,16.29l-.15-.12a.76.76,0,0,0-.18-.09L12.2,16a1,1,0,0,0-.91.27,1.15,1.15,0,0,0-.21.33,1,1,0,0,0,1.3,1.31,1.46,1.46,0,0,0,.33-.22,1,1,0,0,0,.21-1.09A1,1,0,0,0,12.71,16.29ZM16,2H8A3,3,0,0,0,5,5V19a3,3,0,0,0,3,3h8a3,3,0,0,0,3-3V5A3,3,0,0,0,16,2Zm1,17a1,1,0,0,1-1,1H8a1,1,0,0,1-1-1V5A1,1,0,0,1,8,4h8a1,1,0,0,1,1,1Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Mobile</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M19,2H5A3,3,0,0,0,2,5V15a3,3,0,0,0,3,3H7.64l-.58,1a2,2,0,0,0,0,2,2,2,0,0,0,1.75,1h6.46A2,2,0,0,0,17,21a2,2,0,0,0,0-2l-.59-1H19a3,3,0,0,0,3-3V5A3,3,0,0,0,19,2ZM8.77,20,10,18H14l1.2,2ZM20,15a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V14H20Zm0-3H4V5A1,1,0,0,1,5,4H19a1,1,0,0,1,1,1Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Electronics</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M20,8h0L14,2.74a3,3,0,0,0-4,0L4,8a3,3,0,0,0-1,2.26V19a3,3,0,0,0,3,3H18a3,3,0,0,0,3-3V10.25A3,3,0,0,0,20,8ZM14,20H10V15a1,1,0,0,1,1-1h2a1,1,0,0,1,1,1Zm5-1a1,1,0,0,1-1,1H16V15a3,3,0,0,0-3-3H11a3,3,0,0,0-3,3v5H6a1,1,0,0,1-1-1V10.25a1,1,0,0,1,.34-.75l6-5.25a1,1,0,0,1,1.32,0l6,5.25a1,1,0,0,1,.34.75Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Home</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M18,2.78A1,1,0,0,0,17,2H7a1,1,0,0,0-1,.78l-2,9a1,1,0,0,0,.2.85A1,1,0,0,0,5,13H8.94A8.26,8.26,0,0,1,9,14a8.92,8.92,0,0,1-2.57,6.3A1,1,0,0,0,7.14,22h9.72a1,1,0,0,0,.71-1.7A8.92,8.92,0,0,1,15,14a8.26,8.26,0,0,1,.06-1H16v2a1,1,0,0,0,2,0V13h1a1,1,0,0,0,.78-.37,1,1,0,0,0,.2-.85ZM9.22,20A10.9,10.9,0,0,0,11,14c0-.33,0-.67-.05-1h2.1c0,.33-.05.67-.05,1a10.9,10.9,0,0,0,1.78,6Zm-3-9L7.8,4h8.4l1.55,7Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Dining</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M18,7h-.35A3.45,3.45,0,0,0,18,5.5a3.49,3.49,0,0,0-6-2.44A3.49,3.49,0,0,0,6,5.5,3.45,3.45,0,0,0,6.35,7H6a3,3,0,0,0-3,3v2a1,1,0,0,0,1,1H5v6a3,3,0,0,0,3,3h8a3,3,0,0,0,3-3V13h1a1,1,0,0,0,1-1V10A3,3,0,0,0,18,7ZM11,20H8a1,1,0,0,1-1-1V13h4Zm0-9H5V10A1,1,0,0,1,6,9h5Zm0-4H9.5A1.5,1.5,0,1,1,11,5.5Zm2-1.5A1.5,1.5,0,1,1,14.5,7H13ZM17,19a1,1,0,0,1-1,1H13V13h4Zm2-8H13V9h5a1,1,0,0,1,1,1Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Gifts</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M21.71,15.58l-4.52-4.51a6.85,6.85,0,0,0,.14-1.4A7.67,7.67,0,0,0,6.42,2.72a1,1,0,0,0-.57.74,1,1,0,0,0,.28.88l4.35,4.34-1.8,1.8L4.34,6.13a1,1,0,0,0-.88-.27,1,1,0,0,0-.74.56,7.67,7.67,0,0,0,7,10.91,6.85,6.85,0,0,0,1.4-.14l4.51,4.52a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42l-4.9-4.9a1,1,0,0,0-.95-.26,5.88,5.88,0,0,1-1.48.2A5.67,5.67,0,0,1,4,9.67a6,6,0,0,1,.08-1L8,12.6a1,1,0,0,0,1.42,0L12.6,9.39A1,1,0,0,0,12.6,8L8.71,4.08a6.12,6.12,0,0,1,1-.08,5.67,5.67,0,0,1,5.66,5.67,5.88,5.88,0,0,1-.2,1.48,1,1,0,0,0,.26.95l4.9,4.9a1,1,0,0,0,1.42-1.42Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Tools</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M22,5.08A3.08,3.08,0,0,0,16.74,2.9L13.93,5.71,7.44,3.55a1,1,0,0,0-1,.24L4.06,6.15a1,1,0,0,0,.29,1.61l5.18,2.35-2.6,2.6-1.71-.86A1,1,0,0,0,4.06,12L2.29,13.81a1,1,0,0,0,0,1.41l6.49,6.49a1,1,0,0,0,1.41,0L12,19.94a1,1,0,0,0,.19-1.16l-.86-1.71,2.6-2.6,2.35,5.18a1,1,0,0,0,1.61.29l2.36-2.36a1,1,0,0,0,.24-1l-2.16-6.49L21.1,7.26A3.05,3.05,0,0,0,22,5.08Zm-2.32.77L16.44,9.09a1,1,0,0,0-.24,1l2.16,6.48-.9.9-2.35-5.17a1,1,0,0,0-.73-.57,1,1,0,0,0-.89.28L9.37,16.17a1,1,0,0,0-.19,1.15L10,19l-.56.56L4.41,14.52,5,14l1.71.86a1,1,0,0,0,1.15-.19L12,10.51a1,1,0,0,0-.29-1.62L6.5,6.54l.9-.9L13.88,7.8a1,1,0,0,0,1-.24l3.24-3.24a1.07,1.07,0,0,1,1.53,0,1,1,0,0,1,.32.76A1.06,1.06,0,0,1,19.68,5.85Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Travel</p>
-              </a>
-              <a
-                className="icon-nav-item mb-3"
-                href="/apps/e-commerce/customer/homepage#!"
-              >
-                <div className="icon-container mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={39}
-                    height={39}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M7.42,15.54a1,1,0,0,0,0,1.41,1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.41A1,1,0,0,0,7.42,15.54Zm0-8.49a1,1,0,0,0,0,1.41,1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.41A1,1,0,0,0,7.42,7.05Zm4.95,10a1,1,0,1,0,1,1A1,1,0,0,0,12.37,17Zm-6-6a1,1,0,1,0,1,1A1,1,0,0,0,6.37,11Zm6-6a1,1,0,1,0,1,1A1,1,0,0,0,12.37,5Zm3.54,2.05a1,1,0,1,0,1.41,0A1,1,0,0,0,15.91,7.05Zm6.3,0a11,11,0,1,0-7.85,15.74,3.87,3.87,0,0,0,2.5-1.65A4.2,4.2,0,0,0,17.47,18a5.65,5.65,0,0,1-.1-1,5,5,0,0,1,3-4.56,3.84,3.84,0,0,0,2.06-2.25A4,4,0,0,0,22.21,7.08Zm-1.7,2.44a1.9,1.9,0,0,1-1,1.09A7,7,0,0,0,15.37,17a7.3,7.3,0,0,0,.14,1.4,2.16,2.16,0,0,1-.31,1.65,1.79,1.79,0,0,1-1.21.8,8.72,8.72,0,0,1-1.62.15,9,9,0,0,1-9-9.28A9.05,9.05,0,0,1,11.85,3h.51a9,9,0,0,1,8.06,5A2,2,0,0,1,20.51,9.52ZM12.37,11a1,1,0,1,0,1,1A1,1,0,0,0,12.37,11Z"></path>
-                  </svg>
-                </div>
-                <p className="nav-label mb-0">Others</p>
-              </a>
+              ))}
             </div>
+
+            {/* CSS Keyframes */}
+            <style>
+              {`
+      @keyframes marquee {
+        0% {
+          transform: translateX(0); /* Bắt đầu */
+        }
+        100% {
+          transform: translateX(-100%); /* Trượt ra ngoài màn hình */
+        }
+      }
+    `}
+            </style>
           </div>
         </div>
       </section>
@@ -395,7 +315,7 @@ const HomeClient = () => {
                     />
                   </svg>
                   {/* <span class="fas fa-bolt text-warning fs-6"></span> Font Awesome fontawesome.com */}
-                  <h3 className="mx-2">Top Deals today</h3>
+                  <h3 className="mx-2">Sản phẩm giảm giá</h3>
                   <svg
                     className="svg-inline--fa fa-bolt text-warning fs-6"
                     aria-hidden="true"
@@ -532,28 +452,39 @@ const HomeClient = () => {
                                   {product.san_pham.ten_san_pham}
                                 </h6>
                               </a>
-                              <p className="fs-9">
-                                <span className="fa fa-star text-warning"></span>
-                                <span
-                                  className="fa-regular fa-star text-warning-light"
-                                  data-bs-theme="light"
-                                ></span>
-                                <span
-                                  className="fa-regular fa-star text-warning-light"
-                                  data-bs-theme="light"
-                                ></span>
-                                <span
-                                  className="fa-regular fa-star text-warning-light"
-                                  data-bs-theme="light"
-                                ></span>
-                                <span
-                                  className="fa-regular fa-star text-warning-light"
-                                  data-bs-theme="light"
-                                ></span>
-                                <span className="text-body-quaternary fw-semibold ms-1">
-                                  (6 people rated)
-                                </span>
-                              </p>
+                              {bestProducts.map((product) => (
+                                <div key={product.id}>
+                                  {/* Hiển thị đánh giá sản phẩm nếu có người đánh giá */}
+                                  {product.tong_khach_hang_danh_gia > 0 && (
+                                    <p className="fs-9">
+                                      {Array.from({
+                                        length: Math.floor(product.trung_binh_sao),
+                                      }).map((_, index) => (
+                                        <span
+                                          key={index}
+                                          className="fa fa-star text-warning"
+                                        ></span>
+                                      ))}
+                                      {product.trung_binh_sao % 1 !== 0 && (
+                                        <span className="fa fa-star-half-alt star-icon text-warning"></span> // Hiển thị nửa sao nếu trung_binh_sao là số thập phân
+                                      )}
+                                      {Array.from({
+                                        length: 5 - Math.ceil(product.trung_binh_sao),
+                                      }).map((_, index) => (
+                                        <span
+                                          key={index}
+                                          className="fa-regular fa-star text-warning-light"
+                                          data-bs-theme="light"
+                                        ></span>
+                                      ))}
+                                      <span className="text-body-quaternary fw-semibold ms-1">
+                                        ({product.tong_khach_hang_danh_gia}{" "}
+                                        người đánh giá)
+                                      </span>
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
                             </div>
                             <div>
                               <div className="align-items-center mb-1">
@@ -633,7 +564,7 @@ const HomeClient = () => {
 
           <div className="mb-6">
             <div className="d-flex flex-between-center mb-3">
-              <h3>Best Sellers</h3>
+              <h3>Sản phẩm bán chạy</h3>
               <a className="fw-bold d-none d-md-block" href="#!">
                 Explore more
                 <svg
@@ -665,948 +596,188 @@ const HomeClient = () => {
                   id="swiper-wrapper-8d218cf75451129a"
                   aria-live="polite"
                 >
-                  <div
-                    className="swiper-slide swiper-slide-active"
-                    role="group"
-                    aria-label="1 / 7"
-                    style={{ width: 184, marginRight: 16 }}
-                  >
-                    <div className="position-relative text-decoration-none product-card h-100">
-                      <div className="d-flex flex-column justify-content-between h-100">
-                        <div>
-                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                            <button
-                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              aria-label="Add to wishlist"
-                              data-bs-original-title="Add to wishlist"
-                            >
-                              <svg
-                                className="svg-inline--fa fa-heart d-block-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="fas"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                  {bestProducts
+                    .slice(currentIndex, currentIndex + 6)
+                    .map((product) => (
+                      <div
+                        key={product.id}
+                        className="swiper-slide"
+                        role="group"
+                        style={{ width: 184, marginRight: 16 }}
+                      >
+                        <div className="position-relative text-decoration-none product-card h-100">
+                          <div className="d-flex flex-column justify-content-between h-100">
+                            <div>
+                              <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                                <button
+                                  className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-placement="top"
+                                  aria-label="Add to wishlist"
+                                  data-bs-original-title="Add to wishlist"
+                                >
+                                  <svg
+                                    className="svg-inline--fa fa-heart d-block-hover"
+                                    data-fa-transform="down-1"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="fas"
+                                    data-icon="heart"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 512 512"
+                                    data-fa-i2svg
+                                    style={{
+                                      transformOrigin: "0.5em 0.5625em",
+                                    }}
+                                  >
+                                    <g transform="translate(256 256)">
+                                      <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                        <path
+                                          fill="currentColor"
+                                          d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                                          transform="translate(-256 -256)"
+                                        />
+                                      </g>
+                                    </g>
+                                  </svg>
+                                  {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                                  <svg
+                                    className="svg-inline--fa fa-heart d-none-hover"
+                                    data-fa-transform="down-1"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="far"
+                                    data-icon="heart"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 512 512"
+                                    data-fa-i2svg
+                                    style={{
+                                      transformOrigin: "0.5em 0.5625em",
+                                    }}
+                                  >
+                                    <g transform="translate(256 256)">
+                                      <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                        <path
+                                          fill="currentColor"
+                                          d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
+                                          transform="translate(-256 -256)"
+                                        />
+                                      </g>
+                                    </g>
+                                  </svg>
+                                  {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                                </button>
+                                <img
+                                  className="img-fluid"
+                                  src={`${baseUrl}${product.duong_dan_anh}`}
+                                  alt={product.ten_san_pham}
+                                />
+                              </div>
+                              <a
+                                className="stretched-link"
+                                href={`/chi-tiet-san-pham?id=${product?.id}`}
                               >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                                  {product.ten_san_pham}
+                                </h6>
+                              </a>
+                              <p className="fs-9">
+                                {/* Render các sao đầy đủ */}
+                                {Array.from({
+                                  length: Math.floor(product.trung_binh_sao),
+                                }).map((_, index) => (
+                                  <svg
+                                    key={`full-star-${index}`}
+                                    className="svg-inline--fa fa-star text-warning"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="fas"
+                                    data-icon="star"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 576 512"
+                                    data-fa-i2svg
+                                  >
                                     <path
                                       fill="currentColor"
-                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
-                                      transform="translate(-256 -256)"
+                                      d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
                                     />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                              <svg
-                                className="svg-inline--fa fa-heart d-none-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="far"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                  </svg>
+                                ))}
+
+                                {/* Render sao nửa nếu trung_binh_sao có phần thập phân */}
+                                {product.trung_binh_sao % 1 !== 0 && (
+                                  <svg
+                                    className="svg-inline--fa fa-star-half-stroke star-icon text-warning"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="fas"
+                                    data-icon="star-half-stroke"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 576 512"
+                                    data-fa-i2svg
+                                  >
                                     <path
                                       fill="currentColor"
-                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
-                                      transform="translate(-256 -256)"
+                                      d="M288 376.4l.1-.1 26.4 14.1 85.2 45.5-16.5-97.6-4.8-28.7 20.7-20.5 70.1-69.3-96.1-14.2-29.3-4.3-12.9-26.6L288.1 86.9l-.1 .3V376.4zm175.1 98.3c2 12-3 24.2-12.9 31.3s-23 8-33.8 2.3L288.1 439.8 159.8 508.3C149 514 135.9 513.1 126 506s-14.9-19.3-12.9-31.3L137.8 329 33.6 225.9c-8.6-8.5-11.7-21.2-7.9-32.7s13.7-19.9 25.7-21.7L195 150.3 259.4 18c5.4-11 16.5-18 28.8-18s23.4 7 28.8 18l64.3 132.3 143.6 21.2c12 1.8 22 10.2 25.7 21.7s.7 24.2-7.9 32.7L438.5 329l24.6 145.7z"
                                     />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                            </button>
-                            <img className="img-fluid" src={product25} alt />
+                                  </svg>
+                                )}
+
+                                {/* Render sao trống cho phần còn lại */}
+                                {Array.from({
+                                  length: 5 - Math.ceil(product.trung_binh_sao),
+                                }).map((_, index) => (
+                                  <svg
+                                    key={`empty-star-${index}`}
+                                    className="svg-inline--fa fa-star text-warning-light"
+                                    data-bs-theme="light"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="far"
+                                    data-icon="star"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 576 512"
+                                    data-fa-i2svg
+                                  >
+                                    <path
+                                      fill="currentColor"
+                                      d="M287.9 0c9.2 0 17.6 5.2 21.6 13.5l68.6 141.3 153.2 22.6c9 1.3 16.5 7.6 19.3 16.3s.5 18.1-5.9 24.5L433.6 328.4l26.2 155.6c1.5 9-2.2 18.1-9.7 23.5s-17.3 6-25.3 1.7l-137-73.2L151 509.1c-8.1 4.3-17.9 3.7-25.3-1.7s-11.2-14.5-9.7-23.5l26.2-155.6L31.1 218.2c-6.5-6.4-8.7-15.9-5.9-24.5s10.3-14.9 19.3-16.3l153.2-22.6L266.3 13.5C270.4 5.2 278.7 0 287.9 0zm0 79L235.4 187.2c-3.5 7.1-10.2 12.1-18.1 13.3L99 217.9 184.9 303c5.5 5.5 8.1 13.3 6.8 21L171.4 443.7l105.2-56.2c7.1-3.8 15.6-3.8 22.6 0l105.2 56.2L384.2 324.1c-1.3-7.7 1.2-15.5 6.8-21l85.9-85.1L358.6 200.5c-7.8-1.2-14.6-6.1-18.1-13.3L287.9 79z"
+                                    />
+                                  </svg>
+                                ))}
+
+                                {product.tong_khach_hang_danh_gia > 0 && (
+                                  <span className="text-body-quaternary fw-semibold ms-1">
+                                    ({product.tong_khach_hang_danh_gia} người
+                                    đánh giá)
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                            <h5 className="text-danger">
+                              {numberFormat.format(
+                                parseFloat(product.gia) *
+                                  (1 - product.sale_percentage / 100)
+                              )}{" "}
+                              VNĐ
+                            </h5>
+                            <div className="mt-1">
+                              {product.sale_percentage > 0 && (
+                                <h6 className="text-success lh-1 mb-0">
+                                  Giảm giá {parseFloat(product.sale_percentage)}
+                                  %
+                                </h6>
+                              )}
+                            </div>
                           </div>
-                          <a
-                            className="stretched-link"
-                            href="product-details.html"
-                          >
-                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
-                              RESPAWN 200 Racing Style Gaming Chair, in Gray RSP
-                              200 GRY
-                            </h6>
-                          </a>
-                          <p className="fs-9">
-                            <span className="fa fa-star text-warning"></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span className="text-body-quaternary fw-semibold ms-1">
-                              (6 people rated)
-                            </span>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                          </p>
-                        </div>
-                        <div>
-                          <h6 className="text-success lh-1 mb-0">35% off</h6>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                  <div
-                    className="swiper-slide swiper-slide-next"
-                    role="group"
-                    aria-label="2 / 7"
-                    style={{ width: 184, marginRight: 16 }}
-                  >
-                    <div className="position-relative text-decoration-none product-card h-100">
-                      <div className="d-flex flex-column justify-content-between h-100">
-                        <div>
-                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                            <button
-                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              aria-label="Add to wishlist"
-                              data-bs-original-title="Add to wishlist"
-                            >
-                              <svg
-                                className="svg-inline--fa fa-heart d-block-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="fas"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                              <svg
-                                className="svg-inline--fa fa-heart d-none-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="far"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                            </button>
-                            <img className="img-fluid" src={product27} alt />
-                          </div>
-                          <a
-                            className="stretched-link"
-                            href="product-details.html"
-                          >
-                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
-                              LEVOIT Humidifiers for Bedroom Large Room 6L Warm
-                              and Cool Mist for...
-                            </h6>
-                          </a>
-                          <p className="fs-9">
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning-light"
-                              data-bs-theme="light"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="far"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M287.9 0c9.2 0 17.6 5.2 21.6 13.5l68.6 141.3 153.2 22.6c9 1.3 16.5 7.6 19.3 16.3s.5 18.1-5.9 24.5L433.6 328.4l26.2 155.6c1.5 9-2.2 18.1-9.7 23.5s-17.3 6-25.3 1.7l-137-73.2L151 509.1c-8.1 4.3-17.9 3.7-25.3-1.7s-11.2-14.5-9.7-23.5l26.2-155.6L31.1 218.2c-6.5-6.4-8.7-15.9-5.9-24.5s10.3-14.9 19.3-16.3l153.2-22.6L266.3 13.5C270.4 5.2 278.7 0 287.9 0zm0 79L235.4 187.2c-3.5 7.1-10.2 12.1-18.1 13.3L99 217.9 184.9 303c5.5 5.5 8.1 13.3 6.8 21L171.4 443.7l105.2-56.2c7.1-3.8 15.6-3.8 22.6 0l105.2 56.2L384.2 324.1c-1.3-7.7 1.2-15.5 6.8-21l85.9-85.1L358.6 200.5c-7.8-1.2-14.6-6.1-18.1-13.3L287.9 79z"
-                              />
-                            </svg>
-                            {/* <span class="fa-regular fa-star text-warning-light" data-bs-theme="light"></span> Font Awesome fontawesome.com */}
-                          </p>
-                        </div>
-                        <div>
-                          <h6 className="text-success lh-1 mb-0">18% off</h6>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="swiper-slide"
-                    role="group"
-                    aria-label="3 / 7"
-                    style={{ width: 184, marginRight: 16 }}
-                  >
-                    <div className="position-relative text-decoration-none product-card h-100">
-                      <div className="d-flex flex-column justify-content-between h-100">
-                        <div>
-                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                            <button
-                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              aria-label="Add to wishlist"
-                              data-bs-original-title="Add to wishlist"
-                            >
-                              <svg
-                                className="svg-inline--fa fa-heart d-block-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="fas"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                              <svg
-                                className="svg-inline--fa fa-heart d-none-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="far"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                            </button>
-                            <img className="img-fluid" src={product26} alt />
-                          </div>
-                          <a
-                            className="stretched-link"
-                            href="product-details.html"
-                          >
-                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
-                              NETGEAR Nighthawk Pro Gaming XR500 Wi-Fi Router
-                              with 4 Ethernet Ports...
-                            </h6>
-                          </a>
-                          <p className="fs-9">
-                            <span className="fa fa-star text-warning"></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span className="text-body-quaternary fw-semibold ms-1">
-                              (6 people rated)
-                            </span>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                          </p>
-                        </div>
-                        <div>
-                          <h6 className="text-success lh-1 mb-0">15% off</h6>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="swiper-slide"
-                    role="group"
-                    aria-label="4 / 7"
-                    style={{ width: 184, marginRight: 16 }}
-                  >
-                    <div className="position-relative text-decoration-none product-card h-100">
-                      <div className="d-flex flex-column justify-content-between h-100">
-                        <div>
-                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                            <button
-                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              aria-label="Add to wishlist"
-                              data-bs-original-title="Add to wishlist"
-                            >
-                              <svg
-                                className="svg-inline--fa fa-heart d-block-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="fas"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                              <svg
-                                className="svg-inline--fa fa-heart d-none-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="far"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                            </button>
-                            <img className="img-fluid" src={product18} alt />
-                          </div>
-                          <a
-                            className="stretched-link"
-                            href="product-details.html"
-                          >
-                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
-                              Rachael Ray Cucina Bakeware Set Includes Nonstick
-                              Bread Baking Cookie Sheet...
-                            </h6>
-                          </a>
-                          <p className="fs-9">
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star-half-stroke star-icon text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star-half-stroke"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M288 376.4l.1-.1 26.4 14.1 85.2 45.5-16.5-97.6-4.8-28.7 20.7-20.5 70.1-69.3-96.1-14.2-29.3-4.3-12.9-26.6L288.1 86.9l-.1 .3V376.4zm175.1 98.3c2 12-3 24.2-12.9 31.3s-23 8-33.8 2.3L288.1 439.8 159.8 508.3C149 514 135.9 513.1 126 506s-14.9-19.3-12.9-31.3L137.8 329 33.6 225.9c-8.6-8.5-11.7-21.2-7.9-32.7s13.7-19.9 25.7-21.7L195 150.3 259.4 18c5.4-11 16.5-18 28.8-18s23.4 7 28.8 18l64.3 132.3 143.6 21.2c12 1.8 22 10.2 25.7 21.7s.7 24.2-7.9 32.7L438.5 329l24.6 145.7z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star-half-alt star-icon text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning-light"
-                              data-bs-theme="light"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="far"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M287.9 0c9.2 0 17.6 5.2 21.6 13.5l68.6 141.3 153.2 22.6c9 1.3 16.5 7.6 19.3 16.3s.5 18.1-5.9 24.5L433.6 328.4l26.2 155.6c1.5 9-2.2 18.1-9.7 23.5s-17.3 6-25.3 1.7l-137-73.2L151 509.1c-8.1 4.3-17.9 3.7-25.3-1.7s-11.2-14.5-9.7-23.5l26.2-155.6L31.1 218.2c-6.5-6.4-8.7-15.9-5.9-24.5s10.3-14.9 19.3-16.3l153.2-22.6L266.3 13.5C270.4 5.2 278.7 0 287.9 0zm0 79L235.4 187.2c-3.5 7.1-10.2 12.1-18.1 13.3L99 217.9 184.9 303c5.5 5.5 8.1 13.3 6.8 21L171.4 443.7l105.2-56.2c7.1-3.8 15.6-3.8 22.6 0l105.2 56.2L384.2 324.1c-1.3-7.7 1.2-15.5 6.8-21l85.9-85.1L358.6 200.5c-7.8-1.2-14.6-6.1-18.1-13.3L287.9 79z"
-                              />
-                            </svg>
-                            {/* <span class="fa-regular fa-star text-warning-light" data-bs-theme="light"></span> Font Awesome fontawesome.com */}
-                          </p>
-                        </div>
-                        <div>
-                          <h6 className="text-success lh-1 mb-0">20% off</h6>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="swiper-slide"
-                    role="group"
-                    aria-label="5 / 7"
-                    style={{ width: 184, marginRight: 16 }}
-                  >
-                    <div className="position-relative text-decoration-none product-card h-100">
-                      <div className="d-flex flex-column justify-content-between h-100">
-                        <div>
-                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                            <button
-                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              aria-label="Add to wishlist"
-                              data-bs-original-title="Add to wishlist"
-                            >
-                              <svg
-                                className="svg-inline--fa fa-heart d-block-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="fas"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                              <svg
-                                className="svg-inline--fa fa-heart d-none-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="far"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                            </button>
-                            <img className="img-fluid" src={product17} alt />
-                          </div>
-                          <a
-                            className="stretched-link"
-                            href="product-details.html"
-                          >
-                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
-                              Xbox Series S
-                            </h6>
-                          </a>
-                          <p className="fs-9">
-                            <span className="fa fa-star text-warning"></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span className="text-body-quaternary fw-semibold ms-1">
-                              (6 people rated)
-                            </span>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                          </p>
-                        </div>
-                        <div>
-                          <h6 className="text-success lh-1 mb-0">12% off</h6>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="swiper-slide"
-                    role="group"
-                    aria-label="6 / 7"
-                    style={{ width: 184, marginRight: 16 }}
-                  >
-                    <div className="position-relative text-decoration-none product-card h-100">
-                      <div className="d-flex flex-column justify-content-between h-100">
-                        <div>
-                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                            <button
-                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              aria-label="Add to wishlist"
-                              data-bs-original-title="Add to wishlist"
-                            >
-                              <svg
-                                className="svg-inline--fa fa-heart d-block-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="fas"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                              <svg
-                                className="svg-inline--fa fa-heart d-none-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="far"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                            </button>
-                            <img className="img-fluid" src={product24} alt />
-                          </div>
-                          <a
-                            className="stretched-link"
-                            href="product-details.html"
-                          >
-                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
-                              FURINNO Computer Writing Desk, Walnut
-                            </h6>
-                          </a>
-                          <p className="fs-9">
-                            <span className="fa fa-star text-warning"></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span
-                              className="fa-regular fa-star text-warning-light"
-                              data-bs-theme="light"
-                            ></span>
-                            <span className="text-body-quaternary fw-semibold ms-1">
-                              (6 people rated)
-                            </span>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                          </p>
-                        </div>
-                        <div>
-                          <h6 className="text-success lh-1 mb-0">16% off</h6>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="swiper-slide"
-                    role="group"
-                    aria-label="7 / 7"
-                    style={{ width: 184, marginRight: 16 }}
-                  >
-                    <div className="position-relative text-decoration-none product-card h-100">
-                      <div className="d-flex flex-column justify-content-between h-100">
-                        <div>
-                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                            <button
-                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              aria-label="Add to wishlist"
-                              data-bs-original-title="Add to wishlist"
-                            >
-                              <svg
-                                className="svg-inline--fa fa-heart d-block-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="fas"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                              <svg
-                                className="svg-inline--fa fa-heart d-none-hover"
-                                data-fa-transform="down-1"
-                                aria-hidden="true"
-                                focusable="false"
-                                data-prefix="far"
-                                data-icon="heart"
-                                role="img"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"
-                                data-fa-i2svg
-                                style={{ transformOrigin: "0.5em 0.5625em" }}
-                              >
-                                <g transform="translate(256 256)">
-                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
-                                    <path
-                                      fill="currentColor"
-                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
-                                      transform="translate(-256 -256)"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
-                            </button>
-                            <img className="img-fluid" src={product18} alt />
-                          </div>
-                          <a
-                            className="stretched-link"
-                            href="product-details.html"
-                          >
-                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
-                              Seagate Portable 2TB External Hard Drive Portable
-                              HDD
-                            </h6>
-                          </a>
-                          <p className="fs-9">
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="fas"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
-                              />
-                            </svg>
-                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
-                            <svg
-                              className="svg-inline--fa fa-star text-warning-light"
-                              data-bs-theme="light"
-                              aria-hidden="true"
-                              focusable="false"
-                              data-prefix="far"
-                              data-icon="star"
-                              role="img"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 576 512"
-                              data-fa-i2svg
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M287.9 0c9.2 0 17.6 5.2 21.6 13.5l68.6 141.3 153.2 22.6c9 1.3 16.5 7.6 19.3 16.3s.5 18.1-5.9 24.5L433.6 328.4l26.2 155.6c1.5 9-2.2 18.1-9.7 23.5s-17.3 6-25.3 1.7l-137-73.2L151 509.1c-8.1 4.3-17.9 3.7-25.3-1.7s-11.2-14.5-9.7-23.5l26.2-155.6L31.1 218.2c-6.5-6.4-8.7-15.9-5.9-24.5s10.3-14.9 19.3-16.3l153.2-22.6L266.3 13.5C270.4 5.2 278.7 0 287.9 0zm0 79L235.4 187.2c-3.5 7.1-10.2 12.1-18.1 13.3L99 217.9 184.9 303c5.5 5.5 8.1 13.3 6.8 21L171.4 443.7l105.2-56.2c7.1-3.8 15.6-3.8 22.6 0l105.2 56.2L384.2 324.1c-1.3-7.7 1.2-15.5 6.8-21l85.9-85.1L358.6 200.5c-7.8-1.2-14.6-6.1-18.1-13.3L287.9 79z"
-                              />
-                            </svg>
-                            {/* <span class="fa-regular fa-star text-warning-light" data-bs-theme="light"></span> Font Awesome fontawesome.com */}
-                          </p>
-                        </div>
-                        <div>
-                          <h6 className="text-success lh-1 mb-0">15% off</h6>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    ))}
                 </div>
                 <span
                   className="swiper-notification"
@@ -1616,12 +787,14 @@ const HomeClient = () => {
               </div>
               <div className="swiper-nav">
                 <div
-                  className="swiper-button-next"
+                  className={`swiper-button-next ${
+                    isLastSlide ? "swiper-button-disabled" : ""
+                  }`}
+                  onClick={handleNextClick}
                   tabIndex={0}
                   role="button"
                   aria-label="Next slide"
-                  aria-controls="swiper-wrapper-8d218cf75451129a"
-                  aria-disabled="false"
+                  aria-disabled={isLastSlide}
                 >
                   <svg
                     className="svg-inline--fa fa-chevron-right nav-icon"
@@ -1632,22 +805,23 @@ const HomeClient = () => {
                     role="img"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 320 512"
-                    data-fa-i2svg
                   >
                     <path
                       fill="currentColor"
                       d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"
                     />
                   </svg>
-                  {/* <span class="fas fa-chevron-right nav-icon"></span> Font Awesome fontawesome.com */}
                 </div>
+
                 <div
-                  className="swiper-button-prev swiper-button-disabled"
-                  tabIndex={-1}
+                  className={`swiper-button-prev ${
+                    isFirstSlide ? "swiper-button-disabled" : ""
+                  }`}
+                  onClick={handlePrevClick}
+                  tabIndex={0}
                   role="button"
                   aria-label="Previous slide"
-                  aria-controls="swiper-wrapper-8d218cf75451129a"
-                  aria-disabled="true"
+                  aria-disabled={isFirstSlide}
                 >
                   <svg
                     className="svg-inline--fa fa-chevron-left nav-icon"
@@ -1658,17 +832,16 @@ const HomeClient = () => {
                     role="img"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 320 512"
-                    data-fa-i2svg
                   >
                     <path
                       fill="currentColor"
                       d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"
                     />
                   </svg>
-                  {/* <span class="fas fa-chevron-left nav-icon"></span> Font Awesome fontawesome.com */}
                 </div>
               </div>
             </div>
+
             <a className="fw-bold d-md-none" href="#!">
               Explore more
               <svg
