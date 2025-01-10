@@ -179,7 +179,7 @@ const ListProducts = () => {
         },
       });
       console.log(response);
-      
+
       setProducts(response.data.data);
       setTotalProducts(response.data.total);
     } catch (error) {
@@ -261,6 +261,11 @@ const ListProducts = () => {
                   onSubmit={(e) => {
                     e.preventDefault();
                     handleSearchSubmit();
+                  }}
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    alignItems: "center"
                   }}
                 >
                   <input
@@ -469,7 +474,7 @@ const ListProducts = () => {
             </div>
           </div>
         </footer>
-      </div>
+      </div >
     </>
   );
 };
