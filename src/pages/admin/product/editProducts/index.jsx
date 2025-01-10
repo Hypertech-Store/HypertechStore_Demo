@@ -1,7 +1,7 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from 'react-router-dom';
 const EditProducts = () => {
   const breadcrumbTitles = {
     "admin/sua-san-pham": "Sửa sản phẩm", // Đây là URL không có "/"
@@ -111,6 +111,7 @@ const EditProducts = () => {
 
   //xử lý edit
 
+
   // Lấy productId từ URL path
   const { id: productId } = useParams();
   console.log(productId); // Kiểm tra productId
@@ -136,6 +137,7 @@ const EditProducts = () => {
   });
   const [imagePreview, setImagePreview] = useState(""); // Hình ảnh xem trước
 
+
   useEffect(() => {
     const fetchProductData = async () => {
       try {
@@ -153,21 +155,16 @@ const EditProducts = () => {
         if (data.sanPham?.danh_muc_id) {
           fetchSubCategories(data.sanPham.danh_muc_id); // Pass categoryId
         }
-        console.log(formData);
 
         setFormData({
-          danh_muc_id: data.sanPham?.danh_muc_id || "", // Set the default category ID
+          danh_muc_id: data.sanPham?.danh_muc_id || "",   // Set the default category ID
           danh_muc_con_id: data.sanPham?.danh_muc_con_id || "", // Set the default subcategory ID
-          ten_san_pham: data.sanPham?.ten_san_pham || "", // Other fields from product data
+          ten_san_pham: data.sanPham?.ten_san_pham || "",  // Other fields from product data
           mo_ta: data.sanPham?.mo_ta || "",
           gia: data.sanPham?.gia || "",
           so_luong_ton_kho: data.sanPham?.so_luong_ton_kho || 0,
           luot_xem: data.sanPham?.luot_xem || "0",
-
-          image:
-            formData.image ||
-            "http://127.0.0.1:8000/storage/" + data.sanPham?.duong_dan_anh,
-
+          image: "http://127.0.0.1:8000/storage/" + data.sanPham?.duong_dan_anh || "",
           _method: "PUT",
           id: data.sanPham?.id || "0",
         });
@@ -177,21 +174,21 @@ const EditProducts = () => {
         );
 
         if (productData.grouped_attributes) {
-          const initialOptions = Object.keys(
-            productData.grouped_attributes
-          ).map((key) => {
-            const attribute = attributes.find(
-              (attr) => attr.ten_thuoc_tinh === key
-            );
-            return {
-              attributeId: attribute?.id || "",
-              selectedValues:
-                productData.grouped_attributes[key]?.gia_tri_thuoc_tinh_id ||
-                [],
-            };
-          });
+          const initialOptions = Object.keys(productData.grouped_attributes).map(
+            (key) => {
+              const attribute = attributes.find(
+                (attr) => attr.ten_thuoc_tinh === key
+              );
+              return {
+                attributeId: attribute?.id || "",
+                selectedValues:
+                  productData.grouped_attributes[key]?.gia_tri_thuoc_tinh_id || [],
+              };
+            }
+          );
           setOptions(initialOptions);
         }
+
       } catch (error) {
         console.error("Error fetching product data:", error);
       }
@@ -258,6 +255,7 @@ const EditProducts = () => {
     }
   };
 
+
   const fetchSubCategories = async (categoryId) => {
     try {
       const response = await fetch(
@@ -281,6 +279,9 @@ const EditProducts = () => {
       console.error("Error fetching subcategories:", error);
     }
   };
+
+
+
 
   //xử lý set form data update
   const handleInputChange = (e) => {
@@ -316,6 +317,7 @@ const EditProducts = () => {
     }
   };
 
+
   const addOption = () => {
     setOptions((prev) => [...prev, { attributeId: "", selectedValues: [] }]);
   };
@@ -325,10 +327,10 @@ const EditProducts = () => {
       prev.map((option, i) =>
         i === index
           ? {
-              ...option,
-              attributeId,
-              selectedValues: [],
-            }
+            ...option,
+            attributeId,
+            selectedValues: [],
+          }
           : option
       )
     );
@@ -339,11 +341,11 @@ const EditProducts = () => {
       prev.map((option, index) =>
         index === optionIndex
           ? {
-              ...option,
-              selectedValues: option.selectedValues.includes(valueId)
-                ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
-                : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
-            }
+            ...option,
+            selectedValues: option.selectedValues.includes(valueId)
+              ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
+              : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
+          }
           : option
       )
     );
@@ -354,6 +356,7 @@ const EditProducts = () => {
 
     const form = new FormData();
     console.log(formData);
+    
 
     // Thêm các trường cơ bản
     form.append("danh_muc_id", formData.danh_muc_id);
@@ -406,13 +409,14 @@ const EditProducts = () => {
     }
   };
 
+
   return (
     <>
       <div className="content">
         <nav className="mb-3" aria-label="breadcrumb">
           <ol className="breadcrumb mb-0">
             <li className="breadcrumb-item">
-              <Link to="/admin">Bảng điều khiển</Link>
+              <Link to="/admin">Dashboard</Link>
             </li>
 
             <li className="breadcrumb-item active" aria-current="page">
@@ -502,7 +506,9 @@ const EditProducts = () => {
                 className="dropzone dropzone-multiple p-0 mb-5"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                onClick={() => document.getElementById("fileInput").click()} // Kích hoạt input khi click
+                onClick={() =>
+                  document.getElementById("fileInput").click()
+                } // Kích hoạt input khi click
                 id="my-awesome-dropzone"
                 data-dropzone="data-dropzone"
               >
@@ -615,8 +621,7 @@ const EditProducts = () => {
               </div>
               <div className="mb-6">
                 <h4 className="mb-2 text-body-highlight">Giá thông thường</h4>
-                <input
-                  className="form-control"
+                <input className="form-control"
                   type="text"
                   placeholder="$$$"
                   value={formData?.gia}
@@ -654,16 +659,10 @@ const EditProducts = () => {
                                 Thêm danh mục
                               </a>
                             </div>
-                            <select
-                              className="form-select mb-3"
-                              aria-label="Danh mục"
+                            <select className="form-select mb-3" aria-label="Danh mục"
                               onChange={(e) => {
                                 const categoryId = e.target.value;
-                                setFormData({
-                                  ...formData,
-                                  danh_muc_id: categoryId,
-                                  danh_muc_con_id: "",
-                                }); // Reset subcategory when category changes
+                                setFormData({ ...formData, danh_muc_id: categoryId, danh_muc_con_id: "" }); // Reset subcategory when category changes
                                 fetchSubCategories(categoryId); // Fetch subcategories for the selected category
                               }}
                             >
@@ -673,15 +672,13 @@ const EditProducts = () => {
                                   <option
                                     key={category.id}
                                     value={category.id}
-                                    selected={
-                                      category.id ===
-                                      productData?.sanPham?.danh_muc_id
-                                    }
+                                    selected={category.id === productData?.sanPham?.danh_muc_id}
                                   >
                                     {category.ten_danh_muc}
                                   </option>
                                 ))}
                             </select>
+
                           </div>
                         </div>
 
@@ -700,15 +697,10 @@ const EditProducts = () => {
                               </a>
                             </div>
 
-                            <select
-                              className="form-select mb-3"
-                              aria-label="Danh mục"
+                            <select className="form-select mb-3" aria-label="Danh mục"
                               onChange={(e) => {
                                 const subCategoryId = e.target.value;
-                                setFormData({
-                                  ...formData,
-                                  danh_muc_con_id: subCategoryId,
-                                }); // Update formData for subcategory
+                                setFormData({ ...formData, danh_muc_con_id: subCategoryId }); // Update formData for subcategory
                               }}
                             >
                               <option value="">Chọn danh mục con...</option>
@@ -717,15 +709,13 @@ const EditProducts = () => {
                                   <option
                                     key={category.id}
                                     value={category.id}
-                                    selected={
-                                      category.id ===
-                                      productData?.sanPham?.danh_muc_con_id
-                                    }
+                                    selected={category.id === productData?.sanPham?.danh_muc_con_id}
                                   >
                                     {category.ten_danh_muc_con}
                                   </option>
                                 ))}
                             </select>
+
                           </div>
                         </div>
                       </div>
@@ -781,32 +771,25 @@ const EditProducts = () => {
                                 {selectedAttribute && (
                                   <div className="product-variant-checkbox-menu">
                                     <h6>Chọn giá trị:</h6>
-                                    {selectedAttribute.gia_tri_thuoc_tinh.map(
-                                      (value) => (
-                                        <div
-                                          key={value.id}
-                                          className="form-check mb-2"
+                                    {selectedAttribute.gia_tri_thuoc_tinh.map((value) => (
+                                      <div key={value.id} className="form-check mb-2">
+                                        <input
+                                          className="form-check-input"
+                                          type="checkbox"
+                                          id={`value-${index}-${value.id}`}
+                                          checked={option.selectedValues.includes(value.id)}
+                                          onChange={() =>
+                                            handleValueChange(index, value.id)
+                                          }
+                                        />
+                                        <label
+                                          className="form-check-label"
+                                          htmlFor={`value-${index}-${value.id}`}
                                         >
-                                          <input
-                                            className="form-check-input"
-                                            type="checkbox"
-                                            id={`value-${index}-${value.id}`}
-                                            checked={option.selectedValues.includes(
-                                              value.id
-                                            )}
-                                            onChange={() =>
-                                              handleValueChange(index, value.id)
-                                            }
-                                          />
-                                          <label
-                                            className="form-check-label"
-                                            htmlFor={`value-${index}-${value.id}`}
-                                          >
-                                            {value.ten_gia_tri}
-                                          </label>
-                                        </div>
-                                      )
-                                    )}
+                                          {value.ten_gia_tri}
+                                        </label>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>
@@ -822,6 +805,7 @@ const EditProducts = () => {
                         Thêm lựa chọn
                       </button>
                     </div>
+
                   </div>
                 </div>
               </div>
