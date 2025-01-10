@@ -155,6 +155,8 @@ const EditProducts = () => {
         if (data.sanPham?.danh_muc_id) {
           fetchSubCategories(data.sanPham.danh_muc_id); // Pass categoryId
         }
+        console.log(formData);
+        
 
         setFormData({
           danh_muc_id: data.sanPham?.danh_muc_id || "",   // Set the default category ID
@@ -164,7 +166,7 @@ const EditProducts = () => {
           gia: data.sanPham?.gia || "",
           so_luong_ton_kho: data.sanPham?.so_luong_ton_kho || 0,
           luot_xem: data.sanPham?.luot_xem || "0",
-          image: "http://127.0.0.1:8000/storage/" + data.sanPham?.duong_dan_anh || "",
+          image: formData.image || "http://127.0.0.1:8000/storage/" + data.sanPham?.duong_dan_anh,
           _method: "PUT",
           id: data.sanPham?.id || "0",
         });
@@ -416,7 +418,7 @@ const EditProducts = () => {
         <nav className="mb-3" aria-label="breadcrumb">
           <ol className="breadcrumb mb-0">
             <li className="breadcrumb-item">
-              <Link to="/admin">Dashboard</Link>
+              <Link to="/admin">Bảng điều khiển</Link>
             </li>
 
             <li className="breadcrumb-item active" aria-current="page">
