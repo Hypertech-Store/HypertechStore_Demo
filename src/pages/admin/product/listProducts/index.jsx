@@ -172,6 +172,7 @@ const ListProducts = () => {
             id="products"
             data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
           >
+            
             <div className="mb-4">
               <div className="d-flex flex-wrap gap-3">
                 <div className="search-box">
@@ -179,14 +180,14 @@ const ListProducts = () => {
                     <input
                       className="form-control search-input search"
                       type="search"
-                      placeholder="Search products"
+                      placeholder="Tìm kiếm danh mục"
                       aria-label="Search"
                     />
                     <span className="fas fa-search search-box-icon" />
                   </form>
                 </div>
 
-                <div className="ms-xxl-auto">
+                <div className="ms-xxl-auto ms-auto">
                   <button
                     className="btn btn-primary"
                     onClick={handleAddProductClick}
