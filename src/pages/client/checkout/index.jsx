@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
@@ -29,11 +30,10 @@ const Checkout = () => {
   const [ngayKetThuc, setNgayKetThuc] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("");
   const [moTa, setMoTa] = useState("");
+
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isVoucherApplied, setIsVoucherApplied] = useState(false);
 
-  const [discount, setDiscount] = useState(0);
-  // const [totalAfterDiscount, setTotalAfterDiscount] = useState(0);
   // eslint-disable-next-line no-unused-vars
   const [vouchers, setVouchers] = useState([]);
   const [showVoucherForm, setShowVoucherForm] = useState(false);
@@ -48,6 +48,7 @@ const Checkout = () => {
     note: "",
     shippingAddress: "",
   });
+
   useEffect(() => {
     import("../../../assets/js/main.js")
       .then((module) => {
@@ -223,7 +224,7 @@ const Checkout = () => {
   useEffect(() => {
     let currentSubtotal = 0;
     products.forEach((product) => {
-      currentSubtotal += product.gia; // Tính tổng giá sản phẩm
+      currentSubtotal += product.tong_tien; // Tính tổng giá sản phẩm
     });
 
     // Chỉ trừ số tiền giảm giá khi voucher được áp dụng
@@ -371,12 +372,12 @@ const Checkout = () => {
       products: products.map((product) => ({
         san_pham_id: product.san_pham_id,
         bien_the_san_pham_id: product.bien_the_san_pham_id,
-        attributes: product.thuoc_tinh.map((item) => ({
+        attributes: product.bien_the.map((item) => ({
           gia_tri_thuoc_tinh_id: item.gia_tri_thuoc_tinh_id,
           ten_gia_tri: item.ten_gia_tri,
         })),
         so_luong: product.so_luong,
-        gia: product.gia,
+        gia: product.tong_tien,
       })),
     };
 
@@ -424,8 +425,7 @@ const Checkout = () => {
         // Redirect đến URL thanh toán VNPAY
         window.location.href = vnpayData.data;
         return;
-      }
-      else {
+      } else {
         const orderResponse = await fetch(
           "http://127.0.0.1:8000/api/donhang/orders",
           {
@@ -440,7 +440,6 @@ const Checkout = () => {
 
         console.log(orderResponse);
 
-
         if (!orderResponse.ok) {
           throw new Error("Gửi đơn hàng thất bại");
         }
@@ -449,7 +448,6 @@ const Checkout = () => {
         console.log(data);
 
         console.log("Đơn hàng đã được gửi:", data);
-
       }
 
       // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
@@ -466,7 +464,6 @@ const Checkout = () => {
         }
 
         console.log("Giỏ hàng đã được xóa cho khách hàng:", khachHangId);
-        
       }
 
       // Đóng spinner modal sau khi thanh toán thành công và mở modal thành công
@@ -496,17 +493,22 @@ const Checkout = () => {
     }
   };
 
-  // Hàm này sẽ được gọi khi trang thanh toán VNPAY nhận được thông tin từ returnUrl
   const handleVNPAYReturn = () => {
     // Lấy các tham số từ URL
     const urlParams = new URLSearchParams(window.location.search);
-    const vnp_ResponseCode = urlParams.get('vnp_ResponseCode');
-  
+    const vnp_ResponseCode = urlParams.get("vnp_ResponseCode");
+
+    // Kiểm tra nếu vnp_ResponseCode là NULL hoặc không có giá trị
+    if (!vnp_ResponseCode) {
+      console.error("Mã phản hồi không hợp lệ hoặc không có.");
+      return; // Dừng hàm nếu không có mã phản hồi
+    }
+
     // Kiểm tra mã phản hồi từ VNPAY
-    if (vnp_ResponseCode === '00') {
+    if (vnp_ResponseCode === "00") {
       // Lấy orderData từ localStorage
       const orderData = JSON.parse(localStorage.getItem("orderData"));
-  
+
       if (orderData) {
         // Gửi thông tin đơn hàng vào hệ thống
         fetch("http://127.0.0.1:8000/api/donhang/orders", {
@@ -525,7 +527,7 @@ const Checkout = () => {
           })
           .then((data) => {
             console.log("Đơn hàng đã được gửi:", data);
-  
+
             // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
             const khachHangId = orderData.khach_hang_id;
             if (khachHangId) {
@@ -541,9 +543,12 @@ const Checkout = () => {
             if (deleteCartResponse && !deleteCartResponse.ok) {
               throw new Error("Xóa giỏ hàng thất bại");
             }
-  
-            console.log("Giỏ hàng đã được xóa cho khách hàng:", orderData.khach_hang_id);
-  
+
+            console.log(
+              "Giỏ hàng đã được xóa cho khách hàng:",
+              orderData.khach_hang_id
+            );
+
             // Gửi email thông báo thanh toán thành công
             return fetch("http://127.0.0.1:8000/api/donhang/send-mail", {
               method: "POST",
@@ -563,19 +568,23 @@ const Checkout = () => {
             if (mailResponse && !mailResponse.ok) {
               throw new Error("Gửi email thất bại");
             }
-  
+
             console.log("Email thông báo thanh toán thành công đã được gửi.");
           })
           .then(() => {
             // Đóng spinner modal và hiển thị modal thành công
-            const spinnerModalElement = document.getElementById("paymentSpinnerModal");
+            const spinnerModalElement = document.getElementById(
+              "paymentSpinnerModal"
+            );
             if (spinnerModalElement) {
               const spinnerModal = new bootstrap.Modal(spinnerModalElement);
               spinnerModal.hide(); // Ẩn spinner modal
             }
-  
+
             // Mở modal thành công sau 3 giây
-            const successModalElement = document.getElementById("paymentSuccessModal");
+            const successModalElement = document.getElementById(
+              "paymentSuccessModal"
+            );
             if (successModalElement) {
               const successModal = new bootstrap.Modal(successModalElement);
               setTimeout(() => {
@@ -587,9 +596,11 @@ const Checkout = () => {
           })
           .catch((error) => {
             console.error("Lỗi:", error);
-  
+
             // Đóng modal spinner và hiển thị lỗi
-            const spinnerModalElement = document.getElementById("paymentSpinnerModal");
+            const spinnerModalElement = document.getElementById(
+              "paymentSpinnerModal"
+            );
             if (spinnerModalElement) {
               const spinnerModal = new bootstrap.Modal(spinnerModalElement);
               setTimeout(() => {
@@ -611,11 +622,9 @@ const Checkout = () => {
       alert("Thanh toán thất bại. Vui lòng thử lại.");
     }
   };
-  
+
   // Gọi hàm handleVNPAYReturn khi trang load
   window.onload = handleVNPAYReturn;
-  
-
 
   return (
     <>
@@ -951,38 +960,27 @@ const Checkout = () => {
                               <div className="d-flex align-items-center">
                                 <img
                                   className="me-2 ms-1"
-                                  src={`${baseUrl}${product.chi_tiet_san_pham.images}`}
+                                  src={`${baseUrl}${product.images}`}
                                   width={40}
-                                  alt={
-                                    product.chi_tiet_san_pham.ten_san_pham ||
-                                    "Sản phẩm"
-                                  }
+                                  alt={product.ten_san_pham || "Sản phẩm"}
                                 />
                                 <h6 className="fw-semibold text-body-highlight lh-base">
-                                  {product.chi_tiet_san_pham.ten_san_pham}{" "}
-                                  {/* Tên sản phẩm */}
-                                  {product.thuoc_tinh.length > 0 && (
-                                    <div>
-                                      {product.thuoc_tinh.map(
-                                        (thuocTinh, index) => (
-                                          <span key={index}>
-                                            <strong
-                                              style={{
-                                                color: "#dc2626",
-                                                fontWeight: "600",
-                                              }}
-                                            >
-                                              {thuocTinh.ten_gia_tri}
-                                            </strong>
-                                            {index <
-                                              product.thuoc_tinh.length - 1 &&
-                                              ", "}
-                                            {/* Thêm dấu phẩy nếu không phải phần tử cuối */}
-                                          </span>
-                                        )
-                                      )}
-                                    </div>
-                                  )}
+                                  {product.ten_san_pham} {/* Tên sản phẩm */}
+                                  <div>
+                                    <span>
+                                      <strong
+                                        style={{
+                                          color: "#dc2626",
+                                          fontWeight: "600",
+                                        }}
+                                      >
+                                        {product.bien_the &&
+                                        Array.isArray(product.bien_the)
+                                          ? product.bien_the.join(" - ")
+                                          : product.bien_the}
+                                      </strong>
+                                    </span>
+                                  </div>
                                 </h6>
                               </div>
                             </div>
@@ -1006,7 +1004,8 @@ const Checkout = () => {
                                   whiteSpace: "nowrap",
                                 }}
                               >
-                                {parseInt(product.gia).toLocaleString()} VNĐ
+                                {parseInt(product.tong_tien).toLocaleString()}{" "}
+                                VNĐ
                               </h5>{" "}
                               {/* Giá */}
                             </div>
@@ -1152,6 +1151,7 @@ const Checkout = () => {
                     <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
                   </svg>
                 </div>
+
                 <h1>Mua hàng thành công!</h1>
                 <p
                   style={{
@@ -1217,10 +1217,11 @@ const Checkout = () => {
                       </button>
                     </div>
                     <span
-                      className={`codeboxinput__dropdown--content1 ${errorMessage
-                        ? "error_codebox_input"
-                        : "success_codebox_input"
-                        }`}
+                      className={`codeboxinput__dropdown--content1 ${
+                        errorMessage
+                          ? "error_codebox_input"
+                          : "success_codebox_input"
+                      }`}
                     >
                       {errorMessage || successMessage}
                     </span>

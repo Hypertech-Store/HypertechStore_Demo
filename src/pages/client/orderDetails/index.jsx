@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { FadeLoader } from "react-spinners";
 const OrderDetails = () => {
   document.title = "Hypertech Store - Chi tiết đơn hàng ";
   // Lấy orderId từ URL
@@ -51,7 +51,21 @@ const OrderDetails = () => {
   }, [orderId]);
 
   // Hiển thị loading khi chưa có dữ liệu
-  if (loading) return <div>Đang tải...</div>;
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh", // Toàn màn hình
+          backgroundColor: "#f9f9f9", // Nền
+        }}
+      >
+        <FadeLoader speedMultiplier={0.8} color="#36d7b7" />
+      </div>
+    );
+  }
 
   // Hiển thị thông báo lỗi nếu có
   if (error) return <div>{error}</div>;

@@ -169,7 +169,7 @@ const HomeClient = () => {
                 >
                   <a
                     className="icon-nav-item d-flex flex-column justify-content-center align-items-center"
-                    href={`/cua-hang?danh-muc-con=${category.id}`}
+                    href={`/san-pham?danh-muc-con=${category.id}`}
                   >
                     <div className="icon-container mb-2">
                       <img
@@ -458,7 +458,9 @@ const HomeClient = () => {
                                   {product.tong_khach_hang_danh_gia > 0 && (
                                     <p className="fs-9">
                                       {Array.from({
-                                        length: Math.floor(product.trung_binh_sao),
+                                        length: Math.floor(
+                                          product.trung_binh_sao
+                                        ),
                                       }).map((_, index) => (
                                         <span
                                           key={index}
@@ -469,7 +471,8 @@ const HomeClient = () => {
                                         <span className="fa fa-star-half-alt star-icon text-warning"></span> // Hiển thị nửa sao nếu trung_binh_sao là số thập phân
                                       )}
                                       {Array.from({
-                                        length: 5 - Math.ceil(product.trung_binh_sao),
+                                        length:
+                                          5 - Math.ceil(product.trung_binh_sao),
                                       }).map((_, index) => (
                                         <span
                                           key={index}

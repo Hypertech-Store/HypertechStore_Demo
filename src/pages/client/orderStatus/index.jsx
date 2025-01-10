@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-
+import { FadeLoader } from "react-spinners";
 const Order = () => {
   document.title = "Hypertech Store - Đặt hàng";
   const location = useLocation();
@@ -62,7 +62,19 @@ const Order = () => {
 
   // Wait until orderData is available
   if (!orderData) {
-    return <div>Loading...</div>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh", // Toàn màn hình
+          backgroundColor: "#f9f9f9", // Nền
+        }}
+      >
+        <FadeLoader speedMultiplier={0.8} color="#36d7b7" />
+      </div>
+    );
   }
 
   // Get current order status from orderData
@@ -149,6 +161,13 @@ const Order = () => {
             <li className="breadcrumb-item">
               <Link to="/">Trang chủ</Link>
             </li>
+
+            <li className="breadcrumb-item">
+              <a href={`chi-tiet-don-hang/${orderData.id}`}>
+                Chi tiết đơn hàng
+              </a>
+            </li>
+
             <li className="breadcrumb-item active" aria-current="page">
               {currentTitle}
             </li>

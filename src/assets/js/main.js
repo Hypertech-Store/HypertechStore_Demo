@@ -7,6 +7,10 @@ window.addEventListener("load", () => {
   const wardInput = document.getElementById("ward");
   let sessionToken = crypto.randomUUID();
 
+  let suggestions = [];
+  let selectedIndex = -1; // Index của gợi ý đang được chọn
+
+  // Hàm debounce để giới hạn tần suất gọi API
   function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -33,23 +37,28 @@ window.addEventListener("load", () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "OK") {
+          suggestions = data.predictions;
           suggestionsContainer.innerHTML = "";
           suggestionsContainer.style.display = "block";
 
-          data.predictions.forEach((prediction) => {
+          suggestions.forEach((prediction, index) => {
             const div = document.createElement("div");
             div.className = "suggestion-item";
             div.textContent = prediction.description;
             div.addEventListener("click", () => {
-              addressInput.value = prediction.description;
-              suggestionsContainer.style.display = "none";
+              addressInput.value = prediction.description; // Hiển thị toàn bộ địa chỉ vào ô địa chỉ
+              suggestionsContainer.style.display = "none"; // Ẩn danh sách gợi ý
 
-              if (prediction.compound) {
-                cityInput.value = prediction.compound.province || "";
-                districtInput.value = prediction.compound.district || "";
-                wardInput.value = prediction.compound.commune || "";
-              }
+              // Phân tích địa chỉ từ trường terms của prediction
+              const terms = prediction.terms;
+
+              // Gán giá trị cho các trường city, district, ward
+              cityInput.value = terms[terms.length - 1]?.value || ""; // Tỉnh/Thành phố
+              districtInput.value = terms[terms.length - 2]?.value || ""; // Quận/Huyện
+              wardInput.value = terms[terms.length - 3]?.value || ""; // Phường/Xã
             });
+
+            div.classList.toggle("selected", index === selectedIndex); // Hiển thị gợi ý đã chọn
             suggestionsContainer.appendChild(div);
           });
         }
@@ -57,33 +66,78 @@ window.addEventListener("load", () => {
       .catch((error) => console.error("Error:", error));
   }, 300);
 
-  // Check if addressInput exists before adding the event listener
+  // Điều hướng với các phím mũi tên
+  const handleKeyDown = (e) => {
+    const suggestionItems = document.querySelectorAll(".suggestion-item");
+
+    if (e.key === "ArrowDown") {
+      if (selectedIndex < suggestions.length - 1) {
+        selectedIndex += 1;
+      } else {
+        selectedIndex = 0; // Nếu đã ở cuối, quay về đầu danh sách
+      }
+      updateSelectedSuggestion(suggestionItems);
+      e.preventDefault(); // Ngừng hành vi mặc định của phím
+    } else if (e.key === "ArrowUp") {
+      if (selectedIndex > 0) {
+        selectedIndex -= 1;
+      } else {
+        selectedIndex = suggestions.length - 1; // Nếu đã ở đầu, quay về cuối danh sách
+      }
+      updateSelectedSuggestion(suggestionItems);
+      e.preventDefault(); // Ngừng hành vi mặc định của phím
+    } else if (e.key === "Enter") {
+      if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+        const selectedPrediction = suggestions[selectedIndex];
+        addressInput.value = selectedPrediction.description; // Chọn gợi ý
+        suggestionsContainer.style.display = "none"; // Ẩn danh sách gợi ý
+
+        // Phân tích địa chỉ từ trường terms của selectedPrediction
+        const terms = selectedPrediction.terms;
+
+        // Gán giá trị cho các trường city, district, ward
+        cityInput.value = terms[terms.length - 1]?.value || ""; // Tỉnh/Thành phố
+        districtInput.value = terms[terms.length - 2]?.value || ""; // Quận/Huyện
+        wardInput.value = terms[terms.length - 3]?.value || ""; // Phường/Xã
+      }
+    }
+  };
+
+  // Cập nhật chỉ mục của gợi ý đã chọn
+  const updateSelectedSuggestion = (suggestionItems) => {
+    suggestionItems.forEach((item, index) => {
+      item.classList.toggle("selected", index === selectedIndex); // Làm nổi bật gợi ý đã chọn
+    });
+  };
+
+  // Lắng nghe sự kiện nhập liệu
   if (addressInput) {
     addressInput.addEventListener("input", (e) =>
       debouncedSearch(e.target.value)
     );
+    addressInput.addEventListener("keydown", handleKeyDown); // Thêm sự kiện phím vào input
   } else {
     console.error("Address input not found!");
   }
 
-  // Check if suggestionsContainer exists before attaching click event listener
+  // Lắng nghe sự kiện phím lên/xuống trên danh sách gợi ý
   if (suggestionsContainer) {
-    document.addEventListener("click", function (e) {
-      if (
-        !suggestionsContainer.contains(e.target) &&
-        e.target !== addressInput
-      ) {
-        suggestionsContainer.style.display = "none";
-      }
-    });
+    suggestionsContainer.addEventListener("keydown", handleKeyDown); // Phím mũi tên trên suggestions
   } else {
     console.error("Suggestions container not found!");
   }
 
+  // Ẩn danh sách gợi ý nếu người dùng nhấn bên ngoài
+  document.addEventListener("click", function (e) {
+    if (!suggestionsContainer.contains(e.target) && e.target !== addressInput) {
+      suggestionsContainer.style.display = "none";
+    }
+  });
+
+  // Kích hoạt hoặc vô hiệu hóa nút khi thay đổi giá trị địa chỉ
   const addressInputField = document.getElementById("address");
   const button = document.querySelector(".btn-phoenix-primary");
 
-  // Ensure the address input exists before attaching event listener
   if (addressInputField && button) {
     addressInputField.addEventListener("input", function (e) {
       const input = e.target;
@@ -103,5 +157,4 @@ window.addEventListener("load", () => {
       }
     });
   }
-  
 });
