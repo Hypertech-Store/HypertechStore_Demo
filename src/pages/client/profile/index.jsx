@@ -12,7 +12,7 @@ function Profile() {
   const [orders, setOrders] = useState([]);
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
   const [totalOrderPages, setTotalOrderPages] = useState(1);
-  const [totalOrder, setTotalOrder] = useState(1);
+  const [totalOrder, setTotalOrder] = useState(0);
   const ordersPerPage = 5; // Number of orders per page
   const [totalSpent, setTotalSpent] = useState(0); // Tổng tiền đã chi tiêu
   const [lastOrderDate, setLastOrderDate] = useState(""); // Thời gian đơn hàng cuối
@@ -83,7 +83,7 @@ function Profile() {
           const minutes = Math.floor(timeDifference / 60000); // thời gian tính theo phút
           if (minutes < 60) {
             timeAgo = `${minutes} phút trước`;
-          } else {
+          } else {  
             const hours = Math.floor(minutes / 60);
             if (hours < 24) {
               timeAgo = `${hours} giờ trước`;
@@ -175,7 +175,6 @@ function Profile() {
         submitData.append(key, formData[key]);
       }
       submitData.append("_method", "PUT");
-
       const response = await fetch(url, {
         method: "POST",
         body: submitData,
@@ -296,6 +295,7 @@ function Profile() {
         fetch(`http://127.0.0.1:8000/api/danh-sach-yeu-thich/destroy`, {
           method: "POST",
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
