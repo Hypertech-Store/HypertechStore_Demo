@@ -53,8 +53,8 @@ const HeaderClient = () => {
         const response = await axios.get(
           `http://127.0.0.1:8000/api/gio-hang/${userInfo.id}`
         );
-        setTotalProducts(response.data.total_products); // Cập nhật tổng sản phẩm
-        console.log("Tổng sản phẩm:", response.data.total_products);
+        setTotalProducts(response.data.tong_san_pham); // Cập nhật tổng sản phẩm
+        console.log("Tổng sản phẩm:", response.data.tong_san_pham);
       } catch (error) {
         console.error("Error fetching total products:", error);
       }

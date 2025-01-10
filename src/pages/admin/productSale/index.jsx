@@ -142,7 +142,7 @@ const Listsale = () => {
       .then((data) => {
         console.log("Sale details fetched:", data.data); // Log the entire fetched sale details
 
-        // Log product information with the name from san_pham.ten_san_pham
+        // alert("Thêm sản phẩm sale thành công");
         console.log(
           "Product Name (san_pham.ten_san_pham):",
           data.data.san_pham.ten_san_pham

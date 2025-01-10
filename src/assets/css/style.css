@@ -232,6 +232,10 @@
   color: #202124; /* Màu của icon */
 }
 
+.suggestion-item.selected {
+  background-color: #d0e6f6; /* Màu khi được chọn bằng phím */
+  color: #000; /* Đổi màu chữ (nếu cần) */
+}
 .address-container {
   position: relative;
   margin-bottom: 1.25rem;
@@ -516,7 +520,3 @@ button {
 .h-\[24px\] {
   height: 24px !important;
 }
-
-
-
-

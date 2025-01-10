@@ -30,6 +30,7 @@ import OrderStatus from "./pages/admin/orderStatus";
 // Client pages
 import HomeClient from "./pages/client/home";
 import Shop from "./pages/client/product";
+import Product from "./pages/client/shop";
 import ProductDetails from "./pages/client/productDetails";
 import Wishlist from "./pages/client/wishlist";
 import Cart from "./pages/client/cart";
@@ -37,6 +38,7 @@ import Shipping from "./pages/client/shipping";
 import OrderStatuss from "./pages/client/orderStatus";
 import Deals from "./pages/admin/deals";
 import Checkout from "./pages/client/checkout";
+import Invoice from "./pages/client/invoice";
 import OrderDetails from "./pages/client/orderDetails";
 import Profile from "./pages/client/profile";
 import Login from "./pages/client/login";
@@ -92,12 +94,14 @@ const Router = () => {
         <Route path="/" element={<LayoutClient />}>
           <Route index element={<HomeClient />} />
           <Route path="cua-hang" element={<Shop />} />
+          <Route path="san-pham" element={<Product />} />
           <Route path="san-pham-yeu-thich" element={<Wishlist />} />
           <Route path="gio-hang" element={<Cart />} />
           <Route path="chi-tiet-san-pham" element={<ProductDetails />} />
           <Route path="thong-tin-van-chuyen" element={<Shipping />} />
           <Route path="trang-thai-don-hang" element={<OrderStatuss />} />
           <Route path="thanh-toan" element={<Checkout />} />
+          <Route path="hoa-don" element={<Invoice />} />
           <Route
             path="/chi-tiet-don-hang/:orderId"
             element={<OrderDetails />}

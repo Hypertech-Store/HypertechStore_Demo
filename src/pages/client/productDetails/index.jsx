@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -28,10 +29,6 @@ const ProductDetails = () => {
     "cua-hang": "Cửa hàng",
     "chi-tiet-san-pham": "Chi tiết sản phẩm",
   };
-
-  // Kiểm tra giá trị của pathnames và breadcrumbTitles
-  console.log("Pathnames:", pathnames);
-  console.log("Breadcrumb Titles:", breadcrumbTitles);
 
   // eslint-disable-next-line no-unused-vars
   const [variantPrice, setVariantPrice] = useState(0); // lưu giá biến thể
@@ -396,6 +393,126 @@ const ProductDetails = () => {
     }
   };
 
+  const calculateFinalPrice = (variantPrice = 0) => {
+    let basePrice = parseFloat(productData?.sanPham?.gia) || 0; // Giá gốc
+    if (productData?.sale_theo_phan_tram) {
+      // Nếu có giảm giá
+      basePrice =
+        basePrice -
+        (basePrice * parseFloat(productData?.sale_theo_phan_tram || 0)) / 100; // Giá sau khi giảm
+    }
+    let finalPrice = basePrice + variantPrice;
+    return finalPrice;
+  };
+  // Dùng giá mặc định ban đầu (gốc hoặc đã giảm)
+  useEffect(() => {
+    const initialPrice = calculateFinalPrice(0); // Giá mặc định khi chưa có biến thể
+    setFinalPrice(initialPrice);
+  }, [productData]);
+
+  const handleAddToCart = async () => {
+    const userData = JSON.parse(localStorage.getItem("userInfo")); // Lấy thông tin người dùng từ localStorage
+
+    if (!userData || !userData.id) {
+      toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
+      return;
+    }
+
+    const selectedVariant = productData?.bienTheSanPhams?.find((variant) => {
+      const selectedAttributes = variant.gia_tri_thuoc_tinh || [];
+
+      // Kiểm tra xem sản phẩm đã có đủ các thuộc tính được chọn chưa
+      return selectedAttributes.every((attr) => {
+        return (
+          attr.ten_gia_tri === colorName ||
+          attr.ten_gia_tri === selectedDungLuong
+        );
+      });
+    });
+
+    if (selectedVariant) {
+      const stock = selectedVariant.so_luong_kho || 0;
+
+      if (stock === 0) {
+        // Nếu sản phẩm hết hàng
+        toast.error("Sản phẩm biến thể này đã hết hàng.");
+        return;
+      }
+
+      const totalPrice = finalPrice;
+
+      // Dữ liệu cho sản phẩm sẽ gửi lên API
+      const productDataToSend = {
+        khach_hang_id: userData.id,
+        san_pham_id: selectedVariant.san_pham_id,
+        so_luong: 1,
+        bien_the_san_pham_id: selectedVariant.id,
+        attributes: selectedVariant.gia_tri_thuoc_tinh.map((attr) => ({
+          gia_tri_thuoc_tinh_id: attr.id,
+          ten_gia_tri: attr.ten_gia_tri,
+        })),
+        gia: totalPrice,
+      };
+
+      // Lấy giỏ hàng hiện tại từ localStorage
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+      // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
+      const existingProductIndex = cart.findIndex(
+        (item) =>
+          item.san_pham_id === selectedVariant.san_pham_id &&
+          JSON.stringify(item.attributes) ===
+            JSON.stringify(productDataToSend.attributes)
+      );
+
+      if (existingProductIndex !== -1) {
+        // Cập nhật số lượng nếu sản phẩm đã có trong giỏ hàng
+        cart[existingProductIndex].so_luong += 1;
+
+        // Cập nhật lại giỏ hàng vào localStorage
+        localStorage.setItem("cart", JSON.stringify(cart));
+
+        toast.success("Sản phẩm đã được cập nhật số lượng trong giỏ hàng.");
+      } else {
+        // Nếu sản phẩm chưa có trong giỏ hàng, thêm mới
+        cart.push(productDataToSend);
+
+        // Lưu giỏ hàng vào localStorage
+        localStorage.setItem("cart", JSON.stringify(cart));
+
+        toast.success("Sản phẩm đã được thêm vào giỏ hàng!");
+      }
+
+      // Gửi dữ liệu lên API
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/gio-hang/them-gio-hang",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(productDataToSend),
+          }
+        );
+
+        if (response.ok) {
+          console.log(
+            "Sản phẩm đã được thêm vào giỏ hàng:",
+            await response.json()
+          );
+          navigate("/gio-hang");
+        } else {
+          toast.error("Có lỗi khi thêm sản phẩm vào giỏ hàng.");
+        }
+      } catch (error) {
+        toast.error("Không thể kết nối với máy chủ, vui lòng thử lại.");
+      }
+    } else {
+      toast.error("Vui lòng chọn đầy đủ thuộc tính của sản phẩm.");
+    }
+  };
+
   const handleDungLuongChange = (event) => {
     const selectedCapacity = event.target.value;
     setSelectedDungLuong(selectedCapacity);
@@ -415,6 +532,9 @@ const ProductDetails = () => {
         const variantPrice = parseFloat(selectedVariant.gia) || 0;
         setVariantPrice(variantPrice);
 
+        // Log the variant details
+        console.log("Biến thể đã chọn:", selectedVariant);
+
         // Log the price with currency format
         console.log(
           `Giá biến thể: ${new Intl.NumberFormat("vi-VN", {
@@ -425,102 +545,6 @@ const ProductDetails = () => {
 
         setFinalPrice(calculateFinalPrice(variantPrice)); // Tính giá cuối
       }
-    }
-  };
-
-  const calculateFinalPrice = (variantPrice = 0) => {
-    let basePrice = parseFloat(productData?.sanPham?.gia) || 0; // Giá gốc
-    if (productData?.sale_theo_phan_tram) {
-      // Nếu có giảm giá
-      basePrice =
-        basePrice -
-        (basePrice * parseFloat(productData?.sale_theo_phan_tram || 0)) / 100; // Giá sau khi giảm
-    }
-    let finalPrice = basePrice + variantPrice;
-    return finalPrice;
-  };
-  // Dùng giá mặc định ban đầu (gốc hoặc đã giảm)
-  useEffect(() => {
-    const initialPrice = calculateFinalPrice(0); // Giá mặc định khi chưa có biến thể
-    setFinalPrice(initialPrice);
-  }, [productData]);
-
-  const handleAddToCart = async () => {
-    // Lấy thông tin người dùng từ localStorage
-    const userData = JSON.parse(localStorage.getItem("userInfo")); // Sửa lại key lấy là "userInfo" thay vì "user"
-
-    // Kiểm tra xem người dùng có đăng nhập chưa
-    if (!userData || !userData.id) {
-      toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
-      return;
-    }
-
-    // Kiểm tra biến thể sản phẩm đã được chọn
-    const selectedVariant = productData?.bienTheSanPhams?.find(
-      (variant) =>
-        variant.gia_tri_thuoc_tinh?.some(
-          (attr) => attr.ten_gia_tri === colorName
-        ) &&
-        variant.gia_tri_thuoc_tinh?.some(
-          (attr) => attr.ten_gia_tri === selectedDungLuong
-        )
-    );
-
-    if (selectedVariant) {
-      const stock = selectedVariant.so_luong_kho || 0;
-
-      if (stock === 0) {
-        // Nếu sản phẩm hết hàng
-        toast.error("Sản phẩm biến thể này đã hết hàng.");
-      } else {
-        const totalPrice = finalPrice; // Tổng giá sản phẩm đã tính (bao gồm biến thể)
-
-        // Chuẩn bị dữ liệu gửi lên API
-        const productDataToSend = {
-          khach_hang_id: userData.id, // Lấy ID người dùng từ localStorage
-          san_pham_id: selectedVariant.san_pham_id,
-          so_luong: 1, // Giả sử người dùng mua 1 sản phẩm
-          bien_the_san_pham_id: selectedVariant.id,
-          attributes: selectedVariant.gia_tri_thuoc_tinh.map((attr) => ({
-            gia_tri_thuoc_tinh_id: attr.id,
-            ten_gia_tri: attr.ten_gia_tri,
-          })),
-          gia: totalPrice, // Sử dụng giá đã tính
-        };
-
-        try {
-          // Gửi dữ liệu lên API
-          const response = await fetch(
-            "http://127.0.0.1:8000/api/gio-hang/them-gio-hang",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(productDataToSend),
-            }
-          );
-
-          if (response.ok) {
-            const responseData = await response.json();
-            toast.success("Sản phẩm đã được thêm vào giỏ hàng!");
-            // Log dữ liệu khi thêm thành công
-            console.log("Sản phẩm đã được thêm vào giỏ hàng:", responseData);
-            navigate("/gio-hang");
-          } else {
-            const errorData = await response.json();
-            toast.error(
-              errorData.message ||
-                "Đã có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng."
-            );
-          }
-          // eslint-disable-next-line no-unused-vars
-        } catch (error) {
-          toast.error("Không thể kết nối với máy chủ, vui lòng thử lại.");
-        }
-      }
-    } else {
-      toast.error("Vui lòng chọn đầy đủ thuộc tính của sản phẩm.");
     }
   };
 

@@ -156,6 +156,7 @@ const ParameterLink = () => {
         {
           method: "POST",
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
           },
           body: JSON.stringify(requestData),
@@ -267,6 +268,7 @@ const ParameterLink = () => {
         {
           method: "DELETE",
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
           },
         }
