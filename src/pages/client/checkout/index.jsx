@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
+import { Link, useLocation } from "react-router-dom";
 
 import "../../../assets/css/style.css";
 import "../../../assets/js/main.js";
@@ -37,6 +38,18 @@ const Checkout = () => {
   // eslint-disable-next-line no-unused-vars
   const [vouchers, setVouchers] = useState([]);
   const [showVoucherForm, setShowVoucherForm] = useState(false);
+
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  const breadcrumbTitles = {
+    "thanh-toan": "Thanh toán", // URL chính, không có "/"
+  };
+
+  // Tách ra tên của các phần đường dẫn, không bao gồm id (phần cuối cùng là id đơn hàng)
+  const currentTitle =
+    breadcrumbTitles[pathnames[0]] ||
+    pathnames[pathnames.length - 1]?.toUpperCase();
 
   const handleEditClick = () => {
     navigate("/thong-tin-tai-khoan"); // Chuyển hướng đến trang thông tin tài khoản
@@ -266,6 +279,7 @@ const Checkout = () => {
         {
           method: "POST",
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -633,13 +647,14 @@ const Checkout = () => {
           <nav className="mb-3" aria-label="breadcrumb">
             <ol className="breadcrumb mb-0">
               <li className="breadcrumb-item">
-                <a href="#!">Page 1</a>
+                <Link to="/">Trang chủ</Link>
               </li>
               <li className="breadcrumb-item">
-                <a href="#!">Page 2</a>
+                <a href={`gio-hang`}>Giỏ hàng</a>
               </li>
+
               <li className="breadcrumb-item active" aria-current="page">
-                Default
+                {currentTitle}
               </li>
             </ol>
           </nav>
