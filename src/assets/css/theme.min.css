@@ -41785,3 +41785,50 @@ html:not(.navbar-vertical-collapsed)
   color: #2a83e9; /* Change text color on hover */
   cursor: pointer; /* Change cursor to pointer */
 }
+
+/* Nút bật/tắt thu nhỏ */
+.form-check-status[type="checkbox"] {
+  appearance: none; /* Loại bỏ giao diện mặc định */
+  -webkit-appearance: none; /* Hỗ trợ Safari */
+  width: 40px; /* Kích thước nhỏ hơn */
+  height: 20px;
+  background-color: #e0e0e0; /* Màu xám khi tắt */
+  border-radius: 10px; /* Bo tròn */
+  position: relative;
+  cursor: pointer;
+  outline: none; /* Loại bỏ viền xanh */
+  transition: background-color 0.3s ease-in-out; /* Hiệu ứng chuyển màu nền */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Nút tròn bên trong */
+.form-check-status[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 16px; /* Nút nhỏ hơn */
+  height: 16px;
+  background-color: #ffffff; /* Màu trắng */
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s ease-in-out; /* Hiệu ứng chuyển động cho nút tròn */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Khi bật (checked) */
+.form-check-status[type="checkbox"]:checked {
+  background-color: #4caf50; /* Màu xanh khi bật */
+}
+
+.form-check-status[type="checkbox"]:checked::before {
+  transform: translateX(20px); /* Dịch chuyển nút tròn sang bên phải */
+}
+
+/* Khi tắt (unchecked) - màu xám */
+.form-check-status[type="checkbox"]:not(:checked) {
+  background-color: #e0e0e0; /* Màu xám khi tắt */
+}
+
+.form-check-status[type="checkbox"]:not(:checked)::before {
+  transform: translateX(0); /* Nút tròn trở về vị trí ban đầu */
+}
