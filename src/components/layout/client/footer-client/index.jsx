@@ -15,43 +15,28 @@ const Footer = () => {
                 <h5 className="logo-text ms-2">hypertech store</h5>
               </div>
               <p className="text-body-tertiary mb-1 fw-semibold lh-sm fs-9">
-                hypertech store is an admin dashboard template with fascinating
-                features and amazing layout. The template is responsive to all
-                major browsers and is compatible with all available devices and
-                screen sizes.
+                Hypertech Store cửa hàng bán đồ công nghệ uy tín hàng đầu
               </p>
             </div>
             <div className="col-6 col-md-auto">
-              <h5 className="fw-bolder mb-3">About hypertech store</h5>
+              <h5 className="fw-bolder mb-3">Giới thiệu</h5>
               <div className="d-flex flex-column">
                 <a
                   className="text-body-tertiary fw-semibold fs-9 mb-1"
                   href="#!"
                 >
-                  Careers
+                  Cửa hàng
                 </a>
                 <a
                   className="text-body-tertiary fw-semibold fs-9 mb-1"
                   href="#!"
                 >
-                  Affiliate Program
-                </a>
-                <a
-                  className="text-body-tertiary fw-semibold fs-9 mb-1"
-                  href="#!"
-                >
-                  Privacy Policy
-                </a>
-                <a
-                  className="text-body-tertiary fw-semibold fs-9 mb-1"
-                  href="#!"
-                >
-                  Terms &amp; Conditions
+                  Chính sách bảo mật
                 </a>
               </div>
             </div>
             <div className="col-6 col-md-auto">
-              <h5 className="fw-bolder mb-3">Stay Connected</h5>
+              <h5 className="fw-bolder mb-3">Kết nối</h5>
               <div className="d-flex flex-column">
                 <a
                   className="text-body-tertiary fw-semibold fs-9 mb-1"
@@ -70,55 +55,39 @@ const Footer = () => {
               </div>
             </div>
             <div className="col-6 col-md-auto">
-              <h5 className="fw-bolder mb-3">Customer Service</h5>
+              <h5 className="fw-bolder mb-3">Dịch vụ khách hàng</h5>
               <div className="d-flex flex-column">
                 <a
                   className="text-body-tertiary fw-semibold fs-9 mb-1"
                   href="#!"
                 >
-                  Help Desk
+                  Trợ giúp
                 </a>
                 <a
                   className="text-body-tertiary fw-semibold fs-9 mb-1"
                   href="#!"
                 >
-                  Support, 24/7
+                  Hỗ trợ, 24/7
                 </a>
-                <a
-                  className="text-body-tertiary fw-semibold fs-9 mb-1"
-                  href="#!"
-                >
-                  Community of hypertech store
-                </a>
+
               </div>
             </div>
             <div className="col-6 col-md-auto">
-              <h5 className="fw-bolder mb-3">Payment Method</h5>
+              <h5 className="fw-bolder mb-3">Phương thức thanh toán</h5>
               <div className="d-flex flex-column">
                 <a
                   className="text-body-tertiary fw-semibold fs-9 mb-1"
                   href="#!"
                 >
-                  Cash on Delivery
+                  Thanh toán khi nhận hàng
                 </a>
                 <a
                   className="text-body-tertiary fw-semibold fs-9 mb-1"
                   href="#!"
                 >
-                  Online Payment
+                  Thanh toán qua VNPay
                 </a>
-                <a
-                  className="text-body-tertiary fw-semibold fs-9 mb-1"
-                  href="#!"
-                >
-                  PayPal
-                </a>
-                <a
-                  className="text-body-tertiary fw-semibold fs-9 mb-1"
-                  href="#!"
-                >
-                  Installment
-                </a>
+
               </div>
             </div>
           </div>
@@ -129,7 +98,7 @@ const Footer = () => {
         <div className="row g-0 justify-content-between align-items-center h-100">
           <div className="col-12 col-sm-auto text-center">
             <p className="mb-0 mt-2 mt-sm-0 text-body">
-              Thank you for creating with Hypertech Store
+              Cản ơn bạn đã đến với Hypertech Store
               <span className="d-none d-sm-inline-block" />
               <span className="d-none d-sm-inline-block mx-1">|</span>
               <br className="d-sm-none" />
