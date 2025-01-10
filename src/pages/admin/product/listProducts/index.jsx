@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
 const ListProducts = () => {
   const breadcrumbTitles = {
     "admin/danh-sach-san-pham": "Danh sách sản phẩm", // Đây là URL không có "/"
@@ -20,6 +21,7 @@ const ListProducts = () => {
   const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const productsPerPage = 10; // Số sản phẩm trên mỗi trang
   const link = "http://127.0.0.1:8000/storage/";
@@ -71,27 +73,88 @@ const ListProducts = () => {
     }
   };
 
+  const [categories2, setCategories2] = useState([]);
+  const [subCategories2, setSubCategories2] = useState([]);
+  const [selectedCategory2, setSelectedCategory2] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Lấy danh sách danh mục
+  useEffect(() => {
+    axios
+      .get("http://127.0.0.1:8000/api/danh-muc/getAll")
+      .then((response) => {
+        console.log(response);
+        setCategories2(response.data);
+      })
+      .catch((error) => console.error("Error fetching categories:", error));
+  }, []);
+
+  // Lấy danh mục con khi danh mục cha thay đổi
+  useEffect(() => {
+    console.log(selectedCategory2);
+
+    if (selectedCategory2) {
+      axios
+        .get(`http://127.0.0.1:8000/api/danh-muc-con/${selectedCategory2}`)
+        .then((response) => {
+          console.log(response.data.data);
+          setSubCategories2(response.data.data);
+        })
+        .catch((error) =>
+          console.error("Error fetching subcategories:", error)
+        );
+    } else {
+      setSubCategories2([]);
+    }
+  }, [selectedCategory2]);
+
+
+  const [selectedSubCategory2, setSelectedSubCategory2] = useState('');
+
+  // Hàm thay đổi danh mục
+  const handleCategoryChange = (e) => {
+    setSelectedCategory2(e.target.value);
+    setSelectedSubCategory2(''); // Reset danh mục con khi thay đổi danh mục
+  };
+
+  // Hàm thay đổi danh mục con
+  const handleSubCategoryChange = (e) => {
+    setSelectedSubCategory2(e.target.value);
+  };
+
+  // Hàm thay đổi từ khóa tìm kiếm
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const [isSearching, setIsSearching] = useState(false);
+
+
   // Lấy sản phẩm
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/san-pham/allProductAdmin?page=${currentPage}&limit=${productsPerPage}`
-        );
-        const data = await response.json();
-        if (data.status === "success" && Array.isArray(data.data.data)) {
-          setProducts(data.data.data);
-          setTotalProducts(data.data.total);
-        } else {
-          console.error("Failed to fetch products:", data);
+    if (!isSearching) {
+      const fetchProducts = async () => {
+        try {
+          const response = await fetch(
+            `http://127.0.0.1:8000/api/san-pham/allProductAdmin?page=${currentPage}&limit=${productsPerPage}`
+          );
+          const data = await response.json();
+          if (data.status === "success" && Array.isArray(data.data.data)) {
+            setProducts(data.data.data);
+            setTotalProducts(data.data.total);
+          } else {
+            console.error("Failed to fetch products:", data);
+          }
+        } catch (error) {
+          console.error("Error fetching products:", error);
         }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
+      };
 
-    fetchProducts();
-  }, [currentPage]);
+      fetchProducts();
+    }
+  }, [isSearching, currentPage]);
+
+
 
   const totalPages = Math.ceil(totalProducts / productsPerPage); // Tính tổng số trang
 
@@ -103,6 +166,26 @@ const ListProducts = () => {
     fetchCategories();
     fetchSubCategories();
   }, []);
+
+  const handleSearchSubmit = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/san-pham/tim-kiem', {
+        params: {
+          searchQuery,
+          categoryId: selectedCategory2 || "",
+          subCategoryId: selectedSubCategory2 || "",
+          page: currentPage, // You can change this based on the pagination logic
+          number_row: 10, // Adjust the number of rows per page
+        },
+      });
+      console.log(response);
+      
+      setProducts(response.data.data);
+      setTotalProducts(response.data.total);
+    } catch (error) {
+      console.error("Error fetching products", error);
+    }
+  };
 
   // Lấy tên danh mục theo ID
   const getCategoryNameById = (id) => {
@@ -172,20 +255,50 @@ const ListProducts = () => {
             id="products"
             data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
           >
-            
             <div className="mb-4">
               <div className="d-flex flex-wrap gap-3">
-                <div className="search-box">
-                  <form className="position-relative">
-                    <input
-                      className="form-control search-input search"
-                      type="search"
-                      placeholder="Tìm kiếm danh mục"
-                      aria-label="Search"
-                    />
-                    <span className="fas fa-search search-box-icon" />
-                  </form>
-                </div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSearchSubmit();
+                  }}
+                >
+                  <input
+                    className="form-control"
+                    type="search"
+                    placeholder="Tìm kiếm sản phẩm"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
+
+                  <select
+                    className="form-select"
+                    value={selectedCategory2}
+                    onChange={handleCategoryChange}
+                  >
+                    <option value="">Chọn danh mục...</option>
+                    {categories2.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.ten_danh_muc}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    className="form-select"
+                    value={selectedSubCategory2}
+                    onChange={handleSubCategoryChange}
+                  >
+                    <option value="">Chọn danh mục con...</option>
+                    {subCategories2.map((subCategory) => (
+                      <option key={subCategory.id} value={subCategory.id}>
+                        {subCategory.ten_danh_muc_con}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button type="submit" className="btn btn-primary" onClick={handleSearchSubmit}>Tìm kiếm</button>
+                </form>
 
                 <div className="ms-xxl-auto ms-auto">
                   <button
@@ -333,14 +446,6 @@ const ListProducts = () => {
                   </div>
                 </div>
 
-                {/* Hiển thị sản phẩm */}
-                <div className="row">
-                  {products.map((product) => (
-                    <div key={product.id} className="col-12 mb-3">
-                      <div className="product-item">{product.name}</div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
