@@ -135,6 +135,8 @@ const EditProducts = () => {
     id: "",
     grouped_attributes: "",
   });
+  const [imagePreview, setImagePreview] = useState(""); // Hình ảnh xem trước
+
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -162,9 +164,14 @@ const EditProducts = () => {
           gia: data.sanPham?.gia || "",
           so_luong_ton_kho: data.sanPham?.so_luong_ton_kho || 0,
           luot_xem: data.sanPham?.luot_xem || "0",
+          image: "http://127.0.0.1:8000/storage/" + data.sanPham?.duong_dan_anh || "",
           _method: "PUT",
           id: data.sanPham?.id || "0",
         });
+
+        setImagePreview(
+          "http://127.0.0.1:8000/storage/" + data.sanPham?.duong_dan_anh || ""
+        );
 
         if (productData.grouped_attributes) {
           const initialOptions = Object.keys(productData.grouped_attributes).map(
@@ -191,6 +198,34 @@ const EditProducts = () => {
       fetchProductData();
     }
   }, [productId, attributes]);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0]; // Lấy ảnh đầu tiên thả vào
+    if (file) {
+      setFormData({ image: file });
+      setImagePreview(URL.createObjectURL(file)); // Cập nhật hình ảnh xem trước
+    }
+  };
+
+  // Hàm xử lý sự kiện kéo thả trên khu vực dropzone
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  // Hàm xử lý khi người dùng chọn ảnh từ thiết bị
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, image: file });
+      setImagePreview(URL.createObjectURL(file)); // Cập nhật hình ảnh xem trước
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image: null });
+    setImagePreview("");
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -245,28 +280,7 @@ const EditProducts = () => {
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, image: file });
-      console.log("Selected file:", file);
-    }
-  };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      setFormData({ ...formData, image: file });
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
 
 
   //xử lý set form data update
@@ -341,6 +355,8 @@ const EditProducts = () => {
     e.preventDefault();
 
     const form = new FormData();
+    console.log(formData);
+    
 
     // Thêm các trường cơ bản
     form.append("danh_muc_id", formData.danh_muc_id);
@@ -404,7 +420,7 @@ const EditProducts = () => {
             </li>
 
             <li className="breadcrumb-item active" aria-current="page">
-              {currentTitle}
+              Sửa sản phẩm
             </li>
           </ol>
         </nav>
@@ -412,9 +428,6 @@ const EditProducts = () => {
           <div className="row g-3 flex-between-end mb-5">
             <div className="col-auto">
               <h2 className="mb-2">Sửa sản phẩm</h2>
-              <h5 className="text-body-tertiary fw-semibold">
-                Orders placed across your store
-              </h5>
             </div>
             <div className="col-auto">
               <button className="btn btn-primary mb-2 mb-sm-0" type="submit">
@@ -425,7 +438,7 @@ const EditProducts = () => {
           <div className="row g-5">
             <div className="col-12 col-xl-8">
               <h4 className="mb-3">Ảnh sản phẩm</h4>
-              <div
+              {/* <div
                 className="dropzone dropzone-multiple p-0 mb-5"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -476,6 +489,100 @@ const EditProducts = () => {
                   >
                     Kéo ảnh của bạn vào đây
                     <span className="text-body-secondary px-1">hoặc</span>
+                    <button className="btn btn-link p-0" type="button">
+                      Duyệt từ thiết bị
+                    </button>
+                    <br />
+                    <img
+                      className="mt-3 me-2"
+                      src={icon}
+                      width={40}
+                      alt="upload icon"
+                    />
+                  </div>
+                )}
+              </div> */}
+              <div
+                className="dropzone dropzone-multiple p-0 mb-5"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onClick={() =>
+                  document.getElementById("fileInput").click()
+                } // Kích hoạt input khi click
+                id="my-awesome-dropzone"
+                data-dropzone="data-dropzone"
+              >
+                <div className="fallback">
+                  <input
+                    id="fileInput"
+                    type="file"
+                    style={{ display: "none" }} // Ẩn input
+                    onChange={handleFileChange}
+                    multiple="multiple"
+                  />
+                </div>
+
+                {imagePreview ? (
+                  <div className="dz-preview d-flex flex-wrap">
+                    <div
+                      className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2 col-lg-12"
+                      style={{ height: 150 }}
+                    >
+                      <img
+                        className="dz-image"
+                        src={imagePreview} // Hiển thị ảnh xem trước nếu có
+                        alt="Preview"
+                        data-dz-thumbnail="data-dz-thumbnail"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                      <a
+                        className="dz-remove text-body-quaternary"
+                        href="#!"
+                        data-dz-remove="data-dz-remove"
+                        onClick={handleRemoveImage} // Xử lý khi loại bỏ ảnh
+                      >
+                        <span data-feather="x" />
+                      </a>
+                    </div>
+                  </div>
+                ) : formData.image ? (
+                  <div className="dz-preview d-flex flex-wrap">
+                    <div
+                      className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2 col-lg-12"
+                      style={{ height: 150 }}
+                    >
+                      <img
+                        className="dz-image"
+                        src={formData.image} // Hiển thị ảnh từ formData nếu không có imgPreview
+                        alt="Ảnh biến thể"
+                        data-dz-thumbnail="data-dz-thumbnail"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                      <a
+                        className="dz-remove text-body-quaternary"
+                        href="#!"
+                        data-dz-remove="data-dz-remove"
+                        onClick={handleRemoveImage} // Xử lý khi loại bỏ ảnh
+                      >
+                        <span data-feather="x" />
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="dz-message text-body-tertiary text-opacity-85"
+                    data-dz-message="data-dz-message"
+                  >
+                    Kéo ảnh của bạn vào đây
+                    <span className="text-body-secondary px-1">or</span>
                     <button className="btn btn-link p-0" type="button">
                       Duyệt từ thiết bị
                     </button>

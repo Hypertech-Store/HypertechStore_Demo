@@ -318,7 +318,7 @@ const ListValue = () => {
                               <img
                                 key={index} // Dùng index hoặc một thuộc tính duy nhất từ đối tượng link như ID
                                 src={`http://127.0.0.1:8000/storage/${link.duong_dan_hinh_anh}`}
-                                alt={`Hình ảnh sản phẩm ${index + 1}`}
+                                alt={`${item.bienTheSanPham.san_pham.ten_san_pham}`}
                                 style={{
                                   width: "50px",
                                   height: "50px",
@@ -534,10 +534,10 @@ const ListValue = () => {
                           className="dz-message text-body-tertiary text-opacity-85"
                           data-dz-message="data-dz-message"
                         >
-                          Drag your photo here
+                          Kéo ảnh của bạn vào đây
                           <span className="text-body-secondary px-1">or</span>
                           <button className="btn btn-link p-0" type="button">
-                            Browse from device
+                            Duyệt từ thiết bị
                           </button>
                           <br />
                           <img

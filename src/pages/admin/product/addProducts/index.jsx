@@ -476,7 +476,6 @@ const AddProducts = () => {
                     <div className="card-body">
                       <h4 className="card-title mb-4">Chi tiết</h4>
                       <div className="row gx-3">
-                        {/* Danh mục */}
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
@@ -503,8 +502,6 @@ const AddProducts = () => {
                             </select>
                           </div>
                         </div>
-
-                        {/* Danh mục con */}
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
