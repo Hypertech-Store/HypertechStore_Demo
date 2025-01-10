@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 import haha from "../../../assets/img/e-commerce/image-removebg-preview.png";
 import defaultAvatar from "../../../assets/img/team/image-default.png";
 
@@ -17,7 +18,7 @@ function Profile() {
   const [totalSpent, setTotalSpent] = useState(0); // Tổng tiền đã chi tiêu
   const [lastOrderDate, setLastOrderDate] = useState(""); // Thời gian đơn hàng cuối
   // eslint-disable-next-line no-unused-vars
-  const [totalOrders, setTotalOrders] = useState(0); // Tổng số đơn hàng
+  const [totalOrders, setTotalOrders] = useState(0);
 
   const [passwordVisible, setPasswordVisible] = useState({
     currentPassword: false,
@@ -260,6 +261,38 @@ function Profile() {
       })
       .catch((error) => console.error("Error fetching wishlist data:", error));
   }, [userId]);
+
+
+  const [reviews, setReviews] = useState([]);
+  const [reviewPerPage] = useState(10);
+  const [currentReviewPage, setCurrentReviewPage] = useState(1);
+  const [totalReviewPages, setTotalReviewPages] = useState(1);
+  const [totalReview, setTotalReview] = useState(1);
+  useEffect(() => {
+    // Fetch data for the current page
+    axios
+      .get(
+        `http://127.0.0.1:8000/api/danh-gia/khach-hang/${userId}?page=${currentReviewPage}&limit=${reviewPerPage}`
+      )
+      .then((response) => {
+        console.log(response);
+        setTotalReview(response.data.data.total);
+        
+        setReviews(response.data.data.data); // Dữ liệu của trang hiện tại
+        setTotalReviewPages(response.data.data.last_page); // Tổng số trang
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, [currentReviewPage]);
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalReviewPages) {
+      setCurrentPage(page);
+    }
+  };
+  console.log(reviews);
+
 
   useEffect(() => {
     return () => {
@@ -544,7 +577,7 @@ function Profile() {
                 >
                   <span className="fas fa-star me-2" />
                   Đánh giá
-                  <span className="text-body-tertiary fw-normal"> (24)</span>
+                  <span className="text-body-tertiary fw-normal"> ({totalReview})</span>
                 </a>
               </li>
               <li className="nav-item me-3">
@@ -960,9 +993,8 @@ function Profile() {
                   </div>
                   <div className="col-auto d-flex">
                     <button
-                      className={`page-link ${
-                        currentOrderPage === 1 ? "disabled" : ""
-                      }`}
+                      className={`page-link ${currentOrderPage === 1 ? "disabled" : ""
+                        }`}
                       data-list-pagination="prev"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage - 1)
@@ -990,9 +1022,8 @@ function Profile() {
                       ))}
                     </ul>
                     <button
-                      className={`page-link ${
-                        currentOrderPage === totalOrderPages ? "disabled" : ""
-                      }`}
+                      className={`page-link ${currentOrderPage === totalOrderPages ? "disabled" : ""
+                        }`}
                       data-list-pagination="next"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage + 1)
@@ -1022,554 +1053,117 @@ function Profile() {
                     <thead>
                       <tr>
                         <th
-                          className="white-space-nowrap align-middle"
+                          className="white-space-nowrap align-middle ps-0"
                           scope="col"
-                          style={{ minWidth: 220 }}
+                          style={{ width: "10%" }}
+                        >
+                          Hình ảnh
+                        </th>
+                        <th
+                          className="white-space-nowrap align-middle ps-0"
+                          scope="col"
+                          style={{ width: "30%" }}
                           data-sort="product"
                         >
-                          PRODUCT
+                          Sản phẩm
                         </th>
                         <th
                           className="align-middle"
                           scope="col"
                           data-sort="rating"
-                          style={{ maxWidth: "10%" }}
+                          style={{ width: "10%" }}
                         >
-                          RATING
+                          Đánh giá
                         </th>
                         <th
                           className="align-middle"
                           scope="col"
-                          style={{ minWidth: 480 }}
                           data-sort="review"
+                          style={{ width: "30%" }}
                         >
-                          REVIEW
+                          Nhận xét
                         </th>
                         <th
                           className="align-middle"
                           scope="col"
-                          style={{ maxWidth: "12%" }}
+                          style={{ width: "10%" }}
                           data-sort="status"
                         >
-                          STATUS
+                          Trạng thái
                         </th>
                         <th
                           className="text-end align-middle"
                           scope="col"
-                          style={{ maxWidth: "10%" }}
+                          style={{ width: "10%" }}
                           data-sort="date"
                         >
-                          DATE
-                        </th>
-                        <th
-                          className="text-end pe-0 align-middle"
-                          scope="col"
-                          style={{ width: "7%" }}
-                        >
-                          {" "}
+                          Ngày tạo
                         </th>
                       </tr>
                     </thead>
                     <tbody className="list" id="profile-review-table-body">
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            Fitbit Sense Advanced Smartwatch with Tools for
-                            Heart Health, Stress Management &amp; Skin
-                            Temperature Trends, Carbon/Graphite, One Size (S
-                            &amp; L Bands)
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            This Fitbit is fantastic! I was trying to be in
-                            better shape and needed some motivation, so I
-                            decided to treat myself to a new Fitbit.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            Approaved
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
+                      {reviews.map((review) => (
+                        <tr className="hover-actions-trigger btn-reveal-trigger position-static">
+                          <td className="align-middle product white-space-nowrap py-0 ps-0">
+                            <img
+                              src={`http://127.0.0.1:8000/storage/${review.san_pham.duong_dan_anh}`}
+                              width={50}
+                              alt="product"
                             />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">Just now</p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
+                          </td>
+                          <td className="align-middle product pe-3">
+                            {review.san_pham.ten_san_pham}
+                          </td>
+                          <td className="align-middle rating white-space-nowrap fs-10">
+                            {Array.from({ length: review.danh_gia }).map(
+                              (_, idx) => (
+                                <span
+                                  key={idx}
+                                  className="fa fa-star text-warning"
+                                />
+                              )
+                            )}
+                          </td>
+                          <td className="align-middle review pe-7">
+                            <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
+                              {review.binh_luan}
+                            </p>
+                            <br />
+                            <div>
+                              {Array.isArray(review.chi_tiet_danh_gias) &&
+                                review.chi_tiet_danh_gias.map((detail) => (
+                                  <img
+                                    key={detail.id}
+                                    src={`http://127.0.0.1:8000/storage/${detail.hinh_anh_duong_dan}`}
+                                    alt="Chi tiết đánh giá"
+                                    width={50}
+                                    className="me-2 mt-1"
+                                  />
+                                ))}
                             </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            iPhone 13 pro max-Pacific Blue-128GB storage
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            The order was delivered ahead of schedule. To give
-                            us additional time, you should leave the packaging
-                            sealed with plastic.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
-                            Pending
-                            <span
-                              className="ms-1"
-                              data-feather="clock"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Dec 9, 2:28 PM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            Apple MacBook Pro 13 inch-M1-8/256GB-space
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star-half-alt star-icon text-warning" />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            It's a Mac, after all. Once you've gone Mac, there's
-                            no going back. My first Mac lasted over nine years,
-                            and this is my second.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            Approaved
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Dec 4, 12:56 PM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            Apple iMac 24" 4K Retina Display M1 8 Core CPU, 7
-                            Core GPU, 256GB SSD, Green (MJV83ZP/A) 2021
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            Personally, I like the minimalist style, but I
-                            wouldn't choose it if I were searching for a
-                            computer that I would use frequently. It's not
-                            horrible in terms of speed and power
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            Approaved
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Nov 28, 7:28 PM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            Razer Kraken v3 x Wired 7.1 Surroung Sound Gaming
-                            headset
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            It performs exactly as expected. There are three of
-                            these in the family.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-secondary">
-                            Cancelled
-                            <span
-                              className="ms-1"
-                              data-feather="x"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Nov 24, 10:16 AM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            PlayStation 5 DualSense Wireless Controller
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            The controller is quite comfy for me. Despite its
-                            increased size, the controller still fits well in my
-                            hands.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            Approaved
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">Just now</p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            2021 Apple 12.9-inch iPad Pro (Wi‑Fi, 128GB) - Space
-                            Gray
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            The response time and service I received when
-                            contacted the designers were Phenomenal!
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
-                            Pending
-                            <span
-                              className="ms-1"
-                              data-feather="fas fa-stopwatch"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Nov 07, 9:00 PM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
+                          </td>
+                          <td className="align-middle status pe-9">
+                            {review.trang_thai === 1 ? (
+                              <span className="badge badge-phoenix fs-10 badge-phoenix-success">
+                                Đã duyệt
+                              </span>
+                            ) : review.trang_thai === 0 ? (
+                              <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
+                                Chưa duyệt
+                              </span>
+                            ) : review.trang_thai === 2 ? (
+                              <span className="badge badge-phoenix fs-10 badge-phoenix-secondary">
+                                Đã hủy
+                              </span>
+                            ) : null}
+                          </td>
+                          <td className="align-middle text-end date white-space-nowrap">
+                            <h6 className="text-body-highlight mb-0">
+                              {new Date(review.created_at).toLocaleString()}
+                            </h6>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -1736,9 +1330,8 @@ function Profile() {
                     </div>
                     <div className="col-auto d-flex">
                       <button
-                        className={`page-link ${
-                          currentPage === 1 ? "disabled" : ""
-                        }`}
+                        className={`page-link ${currentPage === 1 ? "disabled" : ""
+                          }`}
                         data-list-pagination="prev"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -1764,9 +1357,8 @@ function Profile() {
                         ))}
                       </ul>
                       <button
-                        className={`page-link ${
-                          currentPage === totalPages ? "disabled" : ""
-                        }`}
+                        className={`page-link ${currentPage === totalPages ? "disabled" : ""
+                          }`}
                         data-list-pagination="next"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}

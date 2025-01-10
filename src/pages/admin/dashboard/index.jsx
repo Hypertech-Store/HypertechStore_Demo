@@ -326,12 +326,6 @@ const Dashboard = () => {
 
   const totalPages = Math.ceil(totalProducts / 10);
 
-  // Xử lý thay đổi trang
-  // const handlePageChange = (newPage) => {
-  //   if (newPage >= 1 && newPage <= lastPage) {
-  //     setCurrentPage(newPage);
-  //   }
-  // };
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -507,11 +501,11 @@ const Dashboard = () => {
                               <span className="badge-label">
                                 {thongKeDonHang7Ngay?.ti_le_chenh_lech % 1 === 0
                                   ? `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
-                                      0
-                                    )}%`
+                                    0
+                                  )}%`
                                   : `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
-                                      1
-                                    )}%`}
+                                    1
+                                  )}%`}
                               </span>
                             </span>
                           </h5>
@@ -538,11 +532,11 @@ const Dashboard = () => {
                           <h6 className="text-body fw-semibold mb-0">
                             {thongKeDonHang7Ngay?.ti_le_hoan_thanh % 1 === 0
                               ? `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
-                                  0
-                                )}%`
+                                0
+                              )}%`
                               : `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
-                                  1
-                                )}%`}
+                                1
+                              )}%`}
                           </h6>
                         </div>
                         <div className="d-flex align-items-center">
@@ -552,13 +546,13 @@ const Dashboard = () => {
                           </h6>
                           <h6 className="text-body fw-semibold mb-0">
                             {thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh % 1 ===
-                            0
+                              0
                               ? `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
-                                  0
-                                )}%`
+                                0
+                              )}%`
                               : `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
-                                  1
-                                )}%`}
+                                1
+                              )}%`}
                           </h6>
                         </div>
                       </div>
@@ -577,13 +571,13 @@ const Dashboard = () => {
                               <span className="badge-label">
                                 {thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech %
                                   1 ===
-                                0
+                                  0
                                   ? `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
-                                      0
-                                    )}%`
+                                    0
+                                  )}%`
                                   : `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
-                                      1
-                                    )}%`}
+                                    1
+                                  )}%`}
                               </span>
                             </span>
                           </h5>
@@ -742,6 +736,20 @@ const Dashboard = () => {
                         <td>
                           <p className="fs-9 fw-semibold text-body-highlight mb-0">
                             {review.binh_luan}
+
+                            <br />
+                            <div>
+                              {Array.isArray(review.chi_tiet_danh_gias) &&
+                                review.chi_tiet_danh_gias.map((detail) => (
+                                  <img
+                                    key={detail.id}
+                                    src={`http://127.0.0.1:8000/storage/${detail.hinh_anh_duong_dan}`}
+                                    alt="Chi tiết đánh giá"
+                                    width={50}
+                                    className="me-2 mt-1"
+                                  />
+                                ))}
+                            </div>
                           </p>
                         </td>
                         <td className="align-middle text-start status ps-0">
@@ -817,9 +825,8 @@ const Dashboard = () => {
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
                         key={index}
-                        className={`page-item ${
-                          currentPage === index + 1 ? "active" : ""
-                        }`}
+                        className={`page-item ${currentPage === index + 1 ? "active" : ""
+                          }`}
                       >
                         <button
                           className="page-link"
