@@ -355,7 +355,7 @@ const listAdmin = () => {
                 <input
                   className="form-control search-input search"
                   type="search"
-                  placeholder="Search by name"
+                  placeholder="Tìm kiếm admin"
                   aria-label="Search"
                 />
                 <span className="fas fa-search search-box-icon" />

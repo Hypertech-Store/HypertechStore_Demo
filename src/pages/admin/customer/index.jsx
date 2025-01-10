@@ -73,7 +73,7 @@ const listCustomer = () => {
                 <input
                   className="form-control search-input search"
                   type="search"
-                  placeholder="Search customers"
+                  placeholder="Tìm kiếm khách hàng"
                   aria-label="Search"
                 />
                 <span className="fas fa-search search-box-icon" />
