@@ -1,6 +1,6 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 const AddProducts = () => {
   const breadcrumbTitles = {
     "admin/them-san-pham": "Thêm sản phẩm", // Đây là URL không có "/"
@@ -8,7 +8,7 @@ const AddProducts = () => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean);
-
+  const navigate = useNavigate();
   // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
@@ -317,9 +317,12 @@ const AddProducts = () => {
       );
 
       const result = await response.json();
-
+      console.log(result);
+      
       if (response.ok) {
         alert("Sản phẩm đã được tạo thành công!");
+        navigate("/admin/danh-sach-san-pham")
+
         console.log(result);
       } else {
         console.error("Lỗi:", result);
