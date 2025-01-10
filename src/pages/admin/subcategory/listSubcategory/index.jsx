@@ -17,7 +17,7 @@ const ListSubcategory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [subCategorysPerPage, setSubCategorysPerPage] = useState(10);
-  
+
   const [categories, setCategories] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
   const [imgSubCate, setImgSubCate] = useState(null);
@@ -175,6 +175,7 @@ const ListSubcategory = () => {
           .catch((error) => {
             console.error("Error fetching data:", error);
           });
+        setPreviewImage();
 
         const modal = document.getElementById("updateCustomer");
         if (modal) {
