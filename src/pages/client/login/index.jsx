@@ -19,6 +19,7 @@ const LoginPage = () => {
       navigate("/");
     }
   }, [navigate]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -57,6 +58,14 @@ const LoginPage = () => {
 
       const data = await response.json();
 
+      // Kiểm tra trạng thái tài khoản (trang_thai)
+      if (data.user.trang_thai === 0) {
+        toast.error(
+          "Tài khoản của bạn đã bị khóa, vui lòng liên hệ lại admin."
+        );
+        return; // Dừng nếu tài khoản bị khóa
+      }
+
       // Đăng nhập thành công
       const userData = {
         id: data.user.id,
@@ -67,19 +76,17 @@ const LoginPage = () => {
         dien_thoai: data.user.dien_thoai,
         dia_chi: data.user.dia_chi,
       };
-      // sessionStorage.setItem("userInfo", JSON.stringify(userData));
-      // sessionStorage.setItem("userToken", data.token || "token");
-      // sessionStorage.setItem("userId", data.user.id);
-
+      // Lưu thông tin người dùng vào localStorage
       localStorage.setItem("userInfo", JSON.stringify(userData));
       localStorage.setItem("userToken", data.token || "token");
       localStorage.setItem("userId", data.user.id);
 
       toast.success("Đăng nhập thành công!");
       setTimeout(() => {
-        // Dừng spinner sau 2s (demo)
-        setLoading(false);
+        setLoading(false); // Dừng spinner sau khi đăng nhập thành công
       }, 5000);
+
+      // Điều hướng đến trang chính
       navigate("/");
     } catch (err) {
       // Xử lý lỗi không mong muốn

@@ -8,6 +8,7 @@ const listCustomer = () => {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+
   const breadcrumbTitles = {
     "admin/danh-sach-khach-hang": "Danh sách khách hàng", // Đây là URL không có "/"
   };
@@ -22,7 +23,6 @@ const listCustomer = () => {
   const customersPerPage = 10;
 
   useEffect(() => {
-
     axios
       .get("http://127.0.0.1:8000/api/khach-hang/tai-khoan")
       .then((response) => {
@@ -32,6 +32,38 @@ const listCustomer = () => {
         console.error("Error fetching customer data:", error);
       });
   }, []);
+
+  const handleToggleStatus = async (customerId, newStatus) => {
+    try {
+      // Gửi yêu cầu PUT tới API
+      const response = await axios.put(
+        "http://127.0.0.1:8000/api/khach-hang/trang-thai",
+        {
+          khach_hang_id: customerId, // ID khách hàng
+          trang_thai: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
+        }
+      );
+
+      // Nếu cập nhật thành công, thay đổi trạng thái hiển thị ngay lập tức
+      if (response.data.success) {
+        // Cập nhật lại trạng thái của khách hàng trong state
+        setCustomers((prevState) => {
+          return prevState.map((customer) =>
+            customer.id === customerId
+              ? { ...customer, status: newStatus ? 1 : 0 } // Cập nhật trạng thái
+              : customer
+          );
+        });
+
+        alert(response.data.message);
+      } else {
+        alert("Cập nhật trạng thái thất bại.");
+      }
+    } catch (error) {
+      console.error("Đã xảy ra lỗi:", error);
+      alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+    }
+  };
 
   // Calculate total pages
   const totalPages = Math.ceil(customers.length / customersPerPage);
@@ -91,25 +123,28 @@ const listCustomer = () => {
               <table className="table table-sm fs-9 mb-0">
                 <thead>
                   <tr>
-                    <th className="align-middle" style={{ width: "10%" }}>
+                    <th className="align-middle" style={{ width: "7%" }}>
                       HÌNH ẢNH
                     </th>
-                    <th className="align-middle" style={{ width: "15%" }}>
+                    <th className="align-middle" style={{ width: "13%" }}>
                       KHÁCH HÀNG
                     </th>
-                    <th className="align-middle" style={{ width: "20%" }}>
+                    <th className="align-middle" style={{ width: "12%" }}>
                       EMAIL
                     </th>
-                    <th className="align-middle" style={{ width: "15%" }}>
+                    <th className="align-middle" style={{ width: "10%" }}>
                       SỐ ĐIỆN THOẠI
                     </th>
-                    <th className="align-middle" style={{ width: "30%" }}>
+                    <th className="align-middle" style={{ width: "8%" }}>
+                      NGÀY SINH
+                    </th>
+                    <th className="align-middle" style={{ width: "20%" }}>
                       ĐỊA CHỈ
                     </th>
                     <th className="align-middle" style={{ width: "10%" }}>
-                      NGÀY SINH
+                      TRẠNG THÁI
                     </th>
-                    <th className="align-middle" style={{ width: "5%" }}>
+                    <th className="align-middle" style={{ width: "7%" }}>
                       HÀNH ĐỘNG
                     </th>
                   </tr>
@@ -150,14 +185,26 @@ const listCustomer = () => {
                         {customer.dien_thoai}
                       </td>
                       <td className="align-middle white-space-nowrap">
-                        {customer.dia_chi}
-                      </td>
-                      <td className="align-middle white-space-nowrap">
                         {new Date(customer.ngay_sinh).toLocaleDateString(
                           "en-GB"
                         )}
                       </td>
                       <td className="align-middle white-space-nowrap">
+                        {customer.dia_chi}
+                      </td>
+                      <td className="align-middle white-space-nowrap ps-5">
+                        <input
+                          className="form-check-status ms-0 me-2"
+                          type="checkbox"
+                          id={`customer_${customer.id}`} // ID độc nhất dựa trên customer ID
+                          checked={customer.status === 1} // Nếu trạng thái là 1, checkbox sẽ bật
+                          onChange={(e) =>
+                            handleToggleStatus(customer.id, e.target.checked)
+                          } // Hàm xử lý sự kiện
+                        />
+                      </td>
+
+                      <td className="align-middle white-space-nowrap ps-4">
                         <button
                           className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                           type="button"
@@ -177,7 +224,6 @@ const listCustomer = () => {
                     </tr>
                   ))}
                 </tbody>
-
               </table>
             </div>
             {/* Pagination outside the table */}
@@ -196,8 +242,7 @@ const listCustomer = () => {
               </div>
               <div className="col-auto d-flex">
                 <button
-                  className={`page-link ${currentPage === 1 ? "disabled" : ""
-                    }`}
+                  className={`page-link ${currentPage === 1 ? "disabled" : ""}`}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
@@ -220,8 +265,9 @@ const listCustomer = () => {
                   ))}
                 </ul>
                 <button
-                  className={`page-link ${currentPage === totalPages ? "disabled" : ""
-                    }`}
+                  className={`page-link ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
@@ -229,7 +275,6 @@ const listCustomer = () => {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </div>
