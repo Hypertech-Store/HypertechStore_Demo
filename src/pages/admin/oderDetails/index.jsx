@@ -66,33 +66,24 @@ const OrderDetails = () => {
 
   // Hàm lọc trạng thái theo trang_thai_id
   function getFilteredStatusList(currentStatusId) {
-    if (currentStatusId === 1) {
-      // Chỉ hiển thị trạng thái 2, 3 và ẩn trạng thái 1, 8, 9
-      return orderStatusList.filter(
-        (status) => status.id !== 1 && status.id !== 8 && status.id !== 9
-      );
-    } else if (currentStatusId === 2) {
-      return []; // Không hiển thị trạng thái nào
-    } else if ([3, 4, 5, 6, 7].includes(currentStatusId)) {
-      if (currentStatusId === 3) {
-        return orderStatusList.filter((status) => [4, 5, 6, 7].includes(status.id));
-      } else if (currentStatusId === 4) {
-        return orderStatusList.filter((status) => [5, 6, 7].includes(status.id));
-      } else if (currentStatusId === 5) {
-        return orderStatusList.filter((status) => [6, 7].includes(status.id));
-      } else if (currentStatusId === 6) {
-        return orderStatusList.filter((status) => status.id === 7);
-      } else if (currentStatusId === 7) {
-        return []; // Không hiển thị trạng thái nào
-      }
-    } else if (currentStatusId === 8) {
-      return orderStatusList.filter((status) => status.id === 9);
-    } else if (currentStatusId === 9) {
-      return []; // Không hiển thị trạng thái nào
-    }
-    
-    return orderStatusList;
+    const statusMap = {
+      1: [2, 3],           // Chỉ hiển thị trạng thái 2, 3
+      2: [],               // Không hiển thị trạng thái nào
+      3: [4, 5, 6, 7],     // Hiển thị trạng thái 4, 5, 6, 7
+      4: [5, 6, 7],        // Hiển thị trạng thái 5, 6, 7
+      5: [6, 7],           // Hiển thị trạng thái 6, 7
+      6: [7],              // Hiển thị trạng thái 7
+      7: [],               // Không hiển thị trạng thái nào
+      8: [9],              // Chỉ hiển thị trạng thái 9
+      9: []                // Không hiển thị trạng thái nào
+    };
+  
+    // Trả về danh sách trạng thái dựa trên statusMap hoặc tất cả trạng thái nếu không có ánh xạ
+    return statusMap[currentStatusId]
+      ? orderStatusList.filter((status) => statusMap[currentStatusId].includes(status.id))
+      : orderStatusList;
   }
+  
   
   
 
