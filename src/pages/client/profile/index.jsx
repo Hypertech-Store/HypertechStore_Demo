@@ -373,19 +373,19 @@ function Profile() {
 
   const handleCancelOrder = (orderId, currentStatusId) => {
     const newStatusId = 2; // Trạng thái "Đã hủy"
-  
+
     if (currentStatusId !== 1) {
       alert("Chỉ có thể hủy đơn hàng khi ở trạng thái mới.");
       return;
     }
-  
+
     // Yêu cầu nhập lý do hủy
     const reason = prompt("Vui lòng nhập lý do hủy đơn hàng:");
     if (!reason) {
       alert("Lý do hủy không được để trống.");
       return;
     }
-  
+
     // Đẩy lý do hủy lên request
     fetch(`http://127.0.0.1:8000/api/don-hang/update/${orderId}`, {
       method: "PUT",
@@ -403,12 +403,12 @@ function Profile() {
           prevOrders.map((order) =>
             order.id === orderId
               ? {
-                  ...order,
-                  trang_thai_don_hang_id: newStatusId,
-                  trang_thai_don_hang: getStatusName(newStatusId),
-                  ly_do_huy_don: reason,
-                  nguoi_huy: "client_" + userId,
-                }
+                ...order,
+                trang_thai_don_hang_id: newStatusId,
+                trang_thai_don_hang: getStatusName(newStatusId),
+                ly_do_huy_don: reason,
+                nguoi_huy: "client_" + userId,
+              }
               : order
           )
         );
@@ -418,7 +418,7 @@ function Profile() {
         alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
       });
   };
-  
+
 
   // Hàm để lấy class theo trạng thái đơn hàng
   function getBadgeClass(statusId) {
@@ -972,17 +972,17 @@ function Profile() {
                                   Trạng thái
                                 </a>
                                 {order.trang_thai_don_hang_id === 1 && (
-                                    <>
-                                      <div className="dropdown-divider" />
-                                      <a
-                                        className="dropdown-item text-danger"
-                                        href="#!"
-                                        onClick={() => handleCancelOrder(order.id, order.trang_thai_don_hang_id)}
-                                      >
-                                        Hủy đơn
-                                      </a>
-                                    </>
-                                  )}
+                                  <>
+                                    <div className="dropdown-divider" />
+                                    <a
+                                      className="dropdown-item text-danger"
+                                      href="#!"
+                                      onClick={() => handleCancelOrder(order.id, order.trang_thai_don_hang_id)}
+                                    >
+                                      Hủy đơn
+                                    </a>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </td>
