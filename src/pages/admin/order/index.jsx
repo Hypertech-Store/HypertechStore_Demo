@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+
 const Order = () => {
   const [orders, setOrders] = useState([]);
   const [orderStatusList, setOrderStatusList] = useState([]);
@@ -33,7 +34,7 @@ const Order = () => {
   }
 
   const breadcrumbTitles = {
-    "admin/don-hang": "Danh sách đơn hàng", // Đây là URL không có "/"
+    "admin/don-hang": "Đơn hàng", // Đây là URL không có "/"
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
@@ -128,6 +129,11 @@ const Order = () => {
       });
   }
 
+  const handleViewDetail = () => {
+    // Chuyển trang đến 'admin/chi-tiet-don-hang'
+    window.location.href = "/admin/chi-tiet-don-hang";
+  };
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
@@ -144,7 +150,7 @@ const Order = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0 mt-3">Danh sách đơn hàng</h2>
+            <h2 className="mb-0 mt-3">Đơn hàng</h2>
           </div>
           <div className="col-auto ms-auto mt-3">
             <div className="search-box">
@@ -238,11 +244,11 @@ const Order = () => {
                     </th>
 
                     <th
-                      className="align-middle pe-0"
+                      className="align-middle pe-0 ps-6"
                       scope="col"
                       style={{ width: "5%" }}
                     >
-                      {" "}
+                      Hành động
                     </th>
                   </tr>
                 </thead>
@@ -339,33 +345,15 @@ const Order = () => {
                         {order.dia_chi_giao_hang}
                       </td>
 
-                      {/* <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
-                        <div className="btn-reveal-trigger position-static">
-                          <button
-                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            data-boundary="window"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                            data-bs-reference="parent"
-                          >
-                            <span className="fas fa-ellipsis-h fs-10" />
-                          </button>
-                          <div className="dropdown-menu dropdown-menu-end py-2">
-                            <a className="dropdown-item" href="#!">
-                              View
-                            </a>
-                            <a className="dropdown-item" href="#!">
-                              Export
-                            </a>
-                            <div className="dropdown-divider" />
-                            <a className="dropdown-item text-danger" href="#!">
-                              Remove
-                            </a>
-                          </div>
-                        </div>
-                      </td> */}
+                      <td className="align-middle white-space-nowrap ps-4">
+                        <button
+                          className="btn btn-outline-info btn-sm"
+                          type="button"
+                          onClick={handleViewDetail} // Gọi hàm chuyển trang
+                        >
+                          Xem chi tiết
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
