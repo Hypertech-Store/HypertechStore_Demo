@@ -238,8 +238,8 @@ const listAdmin = () => {
       setDiaChi(data.dia_chi);
       setImagePreview(data.anh_nguoi_dung);
       setMatKhau(data.mat_khau);
-      setImageOld(data.anh_nguoi_dung)
-      setImage(data.anh_nguoi_dung)
+      setImageOld(data.anh_nguoi_dung);
+      setImage(data.anh_nguoi_dung);
     } catch (error) {
       console.error("Error fetching admin details:", error); // Log any error
     }
@@ -274,7 +274,6 @@ const listAdmin = () => {
         }
       );
 
-
       if (response.ok) {
         const data = await response.json();
 
@@ -305,7 +304,6 @@ const listAdmin = () => {
     }
   };
 
-
   useEffect(() => {
     const modalElement = document.getElementById("editAdmin");
 
@@ -331,7 +329,39 @@ const listAdmin = () => {
     };
   }, []);
 
- 
+  const handleToggleStatus = async (adminId, newStatus) => {
+    try {
+      // Gửi yêu cầu PUT tới API để cập nhật trạng thái
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/quan-tri-viens/trang-thai`,
+        {
+          quan_tri_vien_id: adminId, // ID quản trị viên
+          trang_thai: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
+        }
+      );
+
+      // Kiểm tra phản hồi từ server
+      if (response.data.success) {
+        // Cập nhật lại trạng thái của quản trị viên trong state ngay lập tức
+        setQuanTriViens((prevState) => {
+          return prevState.map((admin) =>
+            admin.id === adminId
+              ? { ...admin, trang_thai: newStatus ? 1 : 0 } // Cập nhật trạng thái thành 1 hoặc 0
+              : admin
+          );
+        });
+
+        // Thông báo cập nhật thành công
+        alert(response.data.message);
+      } else {
+        alert("Cập nhật trạng thái thất bại.");
+      }
+    } catch (error) {
+      console.error("Đã xảy ra lỗi:", error);
+      alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+    }
+  };
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
@@ -390,14 +420,13 @@ const listAdmin = () => {
                     <th
                       className="white-space-nowrap fs-9 align-middle ps-2"
                       scope="col"
-                      style={{ width: "8%" }}
                     >
                       STT
                     </th>
                     <th
                       className="white-space-nowrap fs-9 align-middle ps-2"
                       scope="col"
-                      style={{ width: "12%" }}
+                      style={{ width: "5%" }}
                     >
                       HÌNH ẢNH
                     </th>
@@ -411,24 +440,24 @@ const listAdmin = () => {
                     <th
                       className="white-space-nowrap fs-9 align-middle ps-2"
                       scope="col"
-                      style={{ width: "18%" }}
+                      style={{ width: "15%" }}
                     >
                       EMAIL
                     </th>
                     <th
                       className="white-space-nowrap fs-9 align-middle"
                       scope="col"
-                      style={{ width: "15%" }}
+                      style={{ width: "12%" }}
                     >
                       SỐ ĐIỆN THOẠI
                     </th>
-                    {/* <th
+                    <th
                       className="white-space-nowrap fs-9 align-middle ps-2"
                       scope="col"
                       style={{ width: "13%" }}
                     >
                       TÊN NGƯỜI DÙNG
-                    </th> */}
+                    </th>
                     <th
                       className="white-space-nowrap fs-9 align-middle"
                       scope="col"
@@ -436,13 +465,13 @@ const listAdmin = () => {
                     >
                       ĐỊA CHỈ
                     </th>
-                    {/* <th
+                    <th
                       className="white-space-nowrap fs-9 align-middle"
                       scope="col"
                       style={{ width: "10%" }}
                     >
-                      NGÀY TẠO
-                    </th> */}
+                      TRẠNG THÁI
+                    </th>
                     <th className="align-middle">HÀNH ĐỘNG</th>
                   </tr>
                 </thead>
@@ -479,22 +508,30 @@ const listAdmin = () => {
                       <td className="tags align-middle review pb-2">
                         {admin.so_dien_thoai}
                       </td>
-                      {/* <td className="tags align-middle review pb-2 ps-2">
+                      <td className="tags align-middle review pb-2 ps-2">
                         <span className="fw-semibold text-body-highlight admin-username">
                           {admin.ten_dang_nhap}
                         </span>
-                      </td> */}
+                      </td>
                       <td className="tags align-middle review pb-2">
                         <span className="fw-semibold text-body-highlight admin-address">
                           {admin.dia_chi}
                         </span>
                       </td>
-                      {/* <td className="tags align-middle review pb-2">
-                        {new Date(admin.created_at).toLocaleDateString()}
-                      </td> */}
+                      <td className="align-middle white-space-nowrap ps-5">
+                        <input
+                          className="form-check-status ms-0 me-2"
+                          type="checkbox"
+                          id={`customer_${admin.id}`} // ID độc nhất dựa trên admin ID
+                          checked={admin.trang_thai === 1} // Nếu trạng thái là 1, checkbox sẽ bật
+                          onChange={(e) =>
+                            handleToggleStatus(admin.id, e.target.checked)
+                          } // Hàm xử lý sự kiện
+                        />
+                      </td>
                       <td className="align-middle white-space-nowrap">
                         <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                          className="btn btn-outline-warning"
                           type="button"
                           data-bs-toggle="modal"
                           data-bs-target="#editAdmin"
@@ -504,7 +541,7 @@ const listAdmin = () => {
                           onClick={() => handleEditClick(admin.id)}
                           disabled={adminRole !== "0"}
                         >
-                          <span className="fa-solid fa-pen-to-square fs-9" />
+                          Cập nhật
                         </button>
                       </td>
                     </tr>
