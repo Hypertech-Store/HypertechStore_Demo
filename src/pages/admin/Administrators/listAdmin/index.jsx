@@ -29,11 +29,12 @@ const listAdmin = () => {
   const [diaChi, setDiaChi] = useState("");
   const [imagePreview, setImagePreview] = useState("");
   const [image, setImage] = useState(""); // If you allow image updates
-
-
+  const [imageOld, setImageOld] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [adminPerPage, setAdminPerPage] = useState(10);
+
+  const adminRole = localStorage.getItem("customRole");
 
   useEffect(() => {
     // Fetch data for the current page
@@ -149,7 +150,7 @@ const listAdmin = () => {
     formData.append("email", email || "");
     formData.append("role", role || ""); // Role có thể là "" nếu không được chọn
     formData.append("trang_thai", trangThai || ""); // Trang Thai có thể là "" nếu không được chọn
-    formData.append("image", image || "");
+    formData.append("image", image || imageOld || "");
     formData.append("dia_chi", diaChi || "");
     formData.append("so_dien_thoai", soDienThoai || "");
 
@@ -239,6 +240,8 @@ const listAdmin = () => {
       setDiaChi(data.dia_chi);
       setImagePreview(data.anh_nguoi_dung);
       setMatKhau(data.mat_khau);
+      setImageOld(data.anh_nguoi_dung)
+      setImage(data.anh_nguoi_dung)
     } catch (error) {
       console.error("Error fetching admin details:", error); // Log any error
     }
@@ -247,6 +250,9 @@ const listAdmin = () => {
   const handleUpdate = async (adminId) => {
     setIsUpdating(true);
     const formData = new FormData();
+
+    console.log(image);
+
     formData.append("email", email);
     formData.append("ho_ten", hoTen);
     formData.append("mat_khau", matKhau);
@@ -256,10 +262,7 @@ const listAdmin = () => {
     formData.append("dia_chi", diaChi);
     formData.append("so_dien_thoai", soDienThoai);
     formData.append("_method", "PUT");
-
-    if (image) {
-      formData.append("image", image); // File image từ input
-    }
+    formData.append("image", image || imageOld);
 
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/quan-tri-viens/update/${adminId}`, {
@@ -270,9 +273,10 @@ const listAdmin = () => {
         body: formData,
       });
 
+
       if (response.ok) {
         const data = await response.json();
-        
+
         axios
           .get(
             `http://127.0.0.1:8000/api/quan-tri-viens/getAll?page=${currentPage}&limit=${adminPerPage}`
@@ -300,35 +304,30 @@ const listAdmin = () => {
     }
   };
 
+  useEffect(() => {
+    const modalElement = document.getElementById("editAdmin");
 
-  const handleDelete = async (id) => {
-    const confirmation = window.confirm("Bạn có chắc chắn muốn xóa?");
-    if (!confirmation) return;
+    const resetFormData = () => {
+      setAdminId(null);
+      setHoTen("");
+      setTenDangNhap("");
+      setEmail("");
+      setSoDienThoai("");
+      setRole("");
+      setTrangThai("");
+      setDiaChi("");
+      setMatKhau("");
+      setImagePreview("");
+      setImage(null);
+    };
 
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/quan-tri-viens/delete/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+    // Lắng nghe sự kiện đóng modal
+    modalElement?.addEventListener("hidden.bs.modal", resetFormData);
 
-      if (response.ok) {
-        alert("Xóa thành công!");
-
-        // Cập nhật danh sách quanTriViens sau khi xóa thành công
-        setQuanTriViens((prevQuanTriViens) => {
-          return prevQuanTriViens.filter(
-            (quanTriVien) => quanTriVien.id !== id
-          );
-        });
-      } else {
-        alert("Lỗi khi xóa: " + response.statusText);
-      }
-    } catch (error) {
-      alert("Lỗi kết nối tới server: " + error.message);
-    }
-  };
+    return () => {
+      modalElement?.removeEventListener("hidden.bs.modal", resetFormData);
+    };
+  }, []);
 
   return (
     <div className="content">
@@ -501,19 +500,10 @@ const listAdmin = () => {
                           aria-haspopup="true"
                           aria-expanded="false"
                           data-bs-reference="parent"
-                          onClick={() => {
-                            // Set the selected customer by using the customer object directly
-                            handleEditClick(admin.id);
-                          }}
+                          onClick={() => handleEditClick(admin.id)}
+                          disabled={adminRole !== "0"}
                         >
                           <span className="fa-solid fa-pen-to-square fs-9" />
-                        </button>
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          onClick={() => handleDelete(admin.id)}
-                        >
-                          <span className="fa-solid fa-trash fs-9" />
                         </button>
                       </td>
                     </tr>

@@ -13,6 +13,10 @@ const HeaderAdmin = () => {
   const adminId = localStorage.getItem("adminId");
   const adminName = localStorage.getItem("adminName");
   const adminAvatar = localStorage.getItem("adminAvatar");
+  const adminRole= localStorage.getItem("customRole");
+
+  console.log(adminRole);
+  
   const link = "http://127.0.0.1:8000/storage/";
 
   // console.log(adminId);
