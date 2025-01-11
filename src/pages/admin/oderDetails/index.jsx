@@ -8,8 +8,6 @@ const OrderDetails = () => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean);
   const adminId = localStorage.getItem("adminId");
-  console.log(adminId);
-  
 
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
@@ -69,8 +67,10 @@ const OrderDetails = () => {
   // Hàm lọc trạng thái theo trang_thai_id
   function getFilteredStatusList(currentStatusId) {
     if (currentStatusId === 1) {
-      // Chỉ cho phép chuyển sang trạng thái 2 và 3, ẩn trạng thái 8 và 9
-      return orderStatusList.filter((status) => [2, 3].includes(status.id));
+      // Chỉ hiển thị trạng thái 2, 3 và ẩn trạng thái 1, 8, 9
+      return orderStatusList.filter(
+        (status) => status.id !== 1 && status.id !== 8 && status.id !== 9
+      );
     } else if (currentStatusId === 2) {
       return []; // Không hiển thị trạng thái nào
     } else if ([3, 4, 5, 6, 7].includes(currentStatusId)) {
@@ -86,14 +86,14 @@ const OrderDetails = () => {
         return []; // Không hiển thị trạng thái nào
       }
     } else if (currentStatusId === 8) {
-      return []; // Luôn ẩn trạng thái 8 và 9
+      return orderStatusList.filter((status) => status.id === 9);
     } else if (currentStatusId === 9) {
-      return []; // Luôn ẩn trạng thái 8 và 9
+      return []; // Không hiển thị trạng thái nào
     }
     
-    // Ẩn trạng thái 8 và 9 với mọi trường hợp còn lại
-    return orderStatusList.filter((status) => status.id !== 8 && status.id !== 9);
+    return orderStatusList;
   }
+  
   
 
   function handleChangeStatus(orderId, newStatusId) {
