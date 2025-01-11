@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import soldout from "../../../assets/img/e-commerce/outstock.png";
 
 import { FadeLoader } from "react-spinners";
 const Shop = () => {
@@ -260,6 +261,19 @@ const Shop = () => {
                             <div className="d-flex flex-column justify-content-between h-100">
                               <div>
                                 <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                                  {product.trang_thai_ton_kho === 0 && (
+                                    <div className="sold-out-overlay">
+                                      {/* Bạn có thể dùng một hình ảnh biểu tượng hoặc văn bản */}
+                                      <img
+                                        src={soldout}
+                                        alt="Sold Out"
+                                        style={{
+                                          width: "90%",
+                                          objectFit: "contain",
+                                        }}
+                                      />
+                                    </div>
+                                  )}
                                   {label && (
                                     <div
                                       style={{

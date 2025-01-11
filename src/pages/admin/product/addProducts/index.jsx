@@ -135,7 +135,11 @@ const AddProducts = () => {
       );
       const data = await response.json();
       if (response.ok) {
-        setCategories(data); // Đảm bảo API trả về danh sách phù hợp
+        // Lọc các danh mục có trang_thai = 1
+        const filteredCategories = data.filter(
+          (category) => category.trang_thai === 1
+        );
+        setCategories(filteredCategories); // Set các danh mục đã lọc vào state
       } else {
         console.error("Failed to fetch categories:", data);
       }
@@ -177,10 +181,10 @@ const AddProducts = () => {
       prev.map((option, i) =>
         i === index
           ? {
-            ...option,
-            attributeId,
-            selectedValues: [],
-          }
+              ...option,
+              attributeId,
+              selectedValues: [],
+            }
           : option
       )
     );
@@ -191,11 +195,11 @@ const AddProducts = () => {
       prev.map((option, index) =>
         index === optionIndex
           ? {
-            ...option,
-            selectedValues: option.selectedValues.includes(valueId)
-              ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
-              : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
-          }
+              ...option,
+              selectedValues: option.selectedValues.includes(valueId)
+                ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
+                : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
+            }
           : option
       )
     );
@@ -318,10 +322,10 @@ const AddProducts = () => {
 
       const result = await response.json();
       console.log(result);
-      
+
       if (response.ok) {
         alert("Sản phẩm đã được tạo thành công!");
-        navigate("/admin/danh-sach-san-pham")
+        navigate("/admin/danh-sach-san-pham");
 
         console.log(result);
       } else {
@@ -469,7 +473,6 @@ const AddProducts = () => {
                   onChange={handleInputChange}
                 />
               </div>
-
             </div>
 
             <div className="col-12 col-xl-4">
@@ -635,7 +638,7 @@ const AddProducts = () => {
               </div>
             </div>
           </div>
-        </form >
+        </form>
         <footer className="footer position-absolute">
           <div className="row g-0 justify-content-between align-items-center h-100">
             <div className="col-12 col-sm-auto text-center">
@@ -655,7 +658,7 @@ const AddProducts = () => {
             </div>
           </div>
         </footer>
-      </div >
+      </div>
     </>
   );
 };
