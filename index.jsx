@@ -1,1349 +1,3007 @@
-/* eslint-disable no-undef */
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { IoClose } from "react-icons/io5";
+/* eslint-disable no-unused-vars */
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
-import "../../../assets/css/style.css";
-import "../../../assets/js/main.js";
-import { TbEdit } from "react-icons/tb";
-const Checkout = () => {
-  document.title = "Hypertech Store - Thanh toán";
-  const baseUrl = "http://127.0.0.1:8000/storage/";
-  const navigate = useNavigate(); // Hook dùng để điều hướng
-  const [products, setProducts] = useState([]); // State để lưu danh sách sản phẩm
-  const [shippingOptions, setShippingOptions] = useState([]);
-  const [shippingCost, setShippingCost] = useState(0);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [voucherData, setVoucherData] = useState(null); // Dữ liệu voucher từ API
-  const [errorMessage, setErrorMessage] = useState(""); // Trạng thái lưu thông báo lỗi
-  const [successMessage, setSuccessMessage] = useState(""); // Trạng thái lưu thông báo thành công
-  // eslint-disable-next-line no-unused-vars
-  const [selectedOption, setSelectedOption] = useState(null);
-  // State để kiểm tra tình trạng hiện tại của button (đang hiển thị SVG ban đầu hay SVG thay thế)
-  // eslint-disable-next-line no-unused-vars
-  const [isClicked, setIsClicked] = useState(false);
-  const [subtotal, setSubtotal] = useState(0);
-  const [total, setTotal] = useState(0);
-  const [discountCode, setDiscountCode] = useState("");
-  // eslint-disable-next-line no-unused-vars
-  const [giaTriGiamGia, setGiaTriGiamGia] = useState(0);
-  const [ngayKetThuc, setNgayKetThuc] = useState("");
-  const [selectedPayment, setSelectedPayment] = useState("");
-  const [moTa, setMoTa] = useState("");
+import { toast } from "react-toastify"; // Thư viện toast cho thông báo
+import PacmanLoader from "react-spinners/PacmanLoader";
+import { useNavigate } from "react-router-dom"; // Import hook điều hướng
+import products1 from "../../../assets/img/products/2.png";
+import products2 from "../../../assets/img/products/16.png";
+import products3 from "../../../assets/img/products/10.png";
+import products4 from "../../../assets/img/products/1.png";
+import products5 from "../../../assets/img/products/3.png";
+import products6 from "../../../assets/img/products/5.png";
+import products7 from "../../../assets/img/products/6.png";
+import icon from "../../../assets/img/icons/image-icon.png";
+import soldout from "../../../assets/img/e-commerce/outstock.png";
 
-  const [discountAmount, setDiscountAmount] = useState(0);
-  const [isVoucherApplied, setIsVoucherApplied] = useState(false);
+const ProductDetails = () => {
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
+  const navigate = useNavigate();
+  const productId = queryParams.get("id");
+  const khachHangIdFromStorage = localStorage.getItem("userId");
+  const [productData, setProductData] = useState(null);
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean); // Tách các phần của URL
+  const [bestSellingProducts, setBestSellingProducts] = useState([]);
 
-  // eslint-disable-next-line no-unused-vars
-  const [vouchers, setVouchers] = useState([]);
-  const [showVoucherForm, setShowVoucherForm] = useState(false);
-
-  const handleEditClick = () => {
-    navigate("/thong-tin-tai-khoan"); // Chuyển hướng đến trang thông tin tài khoản
+  // Tiêu đề cho từng phần của URL
+  const breadcrumbTitles = {
+    "cua-hang": "Cửa hàng",
+    "chi-tiet-san-pham": "Chi tiết sản phẩm",
   };
-  const [userInfo, setUserInfo] = useState({
-    fullName: "",
-    address: "",
-    phoneNumber: "",
-    note: "",
-    shippingAddress: "",
+
+  // eslint-disable-next-line no-unused-vars
+  const [variantPrice, setVariantPrice] = useState(0); // lưu giá biến thể
+  const [remainingTime, setRemainingTime] = useState("");
+  const [ngayKetThucSale, setNgayKetThucSale] = useState(null);
+  const [images, setImages] = useState([]);
+  const [colorAttribute, setColorAttribute] = useState("");
+  const [colorName, setColorName] = useState("");
+  const [dungLuongOptions, setDungLuongOptions] = useState([]);
+
+  const [selectedDungLuong, setSelectedDungLuong] = useState(null); // Dung lượng được chọn
+  const [finalPrice, setFinalPrice] = useState(0);
+  const [dungLuongName, setDungLuongName] = useState(""); // State for the attribute name "Dung lượng"
+  const [colorVariants, setColorVariants] = useState([]);
+  const [otherAttributes, setOtherAttributes] = useState([]);
+  const [danhGias, setDanhGias] = useState([]);
+  const [daMua, setDaMua] = useState(false); // Lưu trạng thái đã mua hay chưa
+
+  // eslint-disable-next-line no-unused-vars
+  const [isAttributesComplete, setIsAttributesComplete] = useState(false);
+  const baseUrl = "http://127.0.0.1:8000/storage/";
+  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
+  const [totalPages, setTotalPages] = useState(1); // Tổng số trang
+
+  const [formData, setFormData] = useState({
+    rating: 0, // Điểm đánh giá
+    reviewText: "", // Nội dung đánh giá
+    images: [], // Mảng hình ảnh tải lên
   });
 
-  useEffect(() => {
-    import("../../../assets/js/main.js")
-      .then((module) => {
-        if (module.default) {
-          module.default(); // Gọi hàm mặc định nếu có
-        }
-      })
-      .catch((error) => console.error("Error loading main.js:", error));
-  }, []);
-
-  // Giả sử thông tin đã lưu trong localStorage (hoặc có thể dùng localStorage)
-  useEffect(() => {
-    // Lấy thông tin user từ localStorage
-    const userInfoStored = localStorage.getItem("userInfo");
-    if (userInfoStored) {
-      const userInfo = JSON.parse(userInfoStored);
-      setUserInfo(userInfo); // Cập nhật state cho thông tin user
-
-      // Log ra toàn bộ thông tin user
-      console.log("User Info:", userInfo);
-    } else {
-      setUserInfo(null);
-      console.log("No user info found in localStorage.");
-    }
-
-    // Lấy danh sách sản phẩm từ localStorage
-    const productsStored = localStorage.getItem("selectedProducts");
-    if (productsStored) {
-      const products = JSON.parse(productsStored);
-      if (Array.isArray(products) && products.length > 0) {
-        setProducts(products); // Cập nhật state với danh sách sản phẩm
-        console.log("Selected Products retrieved:", products); // Log danh sách sản phẩm
-      } else {
-        console.log("Selected products array is empty or invalid.");
-      }
-    } else {
-      console.log("No selected products found in localStorage.");
-    }
-
-    // Kiểm tra nếu mã giảm giá đã được áp dụng trước đó (từ localStorage)
-    const voucherApplied = localStorage.getItem("voucherApplied");
-    if (!voucherApplied) {
-      setDiscountAmount(0); // Nếu không có mã giảm giá, set giảm giá về 0
-    } else {
-      const storedDiscountAmount = localStorage.getItem("discountAmount");
-      if (storedDiscountAmount) {
-        setDiscountAmount(parseFloat(storedDiscountAmount));
-        setSuccessMessage("Áp dụng mã giảm giá thành công!");
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    // Fetch data from the API
-    fetch("http://127.0.0.1:8000/api/get-all-hinh-thuc-van-chuyen")
-      .then((response) => response.json())
-      .then((data) => setShippingOptions(data))
-      .catch((error) => console.error("Error fetching shipping data:", error));
-  }, []);
-
-  const handleShippingChange = (e, option) => {
-    console.log("Selected shipping option:", option);
-    setShippingCost(Number(e.target.value));
+  const handleStarClick = (index) => {
+    setFormData({ ...formData, rating: index + 1 });
   };
 
-  const getDeliveryDate = (option) => {
-    let date = new Date();
-    if (option) {
-      if (option.ten_van_chuyen === "Ship hỏa tốc") {
-        // Giao ngay trong ngày
-        return date.toLocaleDateString();
-      } else if (option.ten_van_chuyen === "Ship nhanh") {
-        // Giao trong 5 ngày
-        date.setDate(date.getDate() + 5); // Cố định 5 ngày
-        return date.toLocaleDateString();
-      }
+  // Hiển thị sao đã chọn
+  const renderStars = () => {
+    let stars = [];
+    for (let i = 0; i < 5; i++) {
+      stars.push(
+        <span
+          key={i}
+          onClick={() => handleStarClick(i)}
+          style={{
+            fontSize: 32,
+            cursor: "pointer",
+            color: i < formData.rating ? "#FFD700" : "#D3D3D3", // Màu vàng cho sao đã chọn
+          }}
+        >
+          &#9733; {/* Biểu tượng sao */}
+        </span>
+      );
     }
-    return "Chưa chọn hình thức vận chuyển"; // Trả về nếu chưa chọn hình thức vận chuyển
+    return stars;
   };
 
-  // Fetch voucher data từ API
-  useEffect(() => {
-    const fetchVouchers = async () => {
-      try {
-        if (subtotal <= 0) {
-          console.log("Subtotal must be greater than 0 to fetch voucher.");
-          setShowVoucherForm(false);
-          return;
-        }
-
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/phieu-giam-gia/phieu-giam-gia-phu-hop",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ gia_tri_don_hang: subtotal }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Vouchers data fetched: ", data);
-
-        const voucher = data.data[0]; // Lấy voucher đầu tiên trong mảng
-
-        // Kiểm tra nếu số lượt sử dụng = 0 thì không hiển thị voucher
-        if (voucher.so_luot_su_dung === 0) {
-          setShowVoucherForm(false); // Ẩn voucher form
-          return;
-        }
-
-        setVoucherData(voucher); // Lưu voucher vào trạng thái
-
-        const minimumOrderValue = parseFloat(
-          voucher.gia_tri_don_hang_toi_thieu
-        );
-        const today = new Date();
-        const startDate = new Date(voucher.ngay_bat_dau);
-        const endDate = new Date(voucher.ngay_ket_thuc);
-
-        // Kiểm tra ngày bắt đầu và ngày kết thúc
-        if (
-          subtotal > minimumOrderValue &&
-          today >= startDate &&
-          today <= endDate
-        ) {
-          // Tính toán tiền giảm
-          const discountAmount = (subtotal * voucher.gia_tri_giam_gia) / 100;
-          setGiaTriGiamGia(voucher.gia_tri_giam_gia); // Tỷ lệ giảm giá
-          setNgayKetThuc(voucher.ngay_ket_thuc); // Ngày hết hạn
-          setMoTa(voucher.mo_ta); // Mô tả giảm giá
-          setDiscountAmount(discountAmount); // Tiền giảm
-          setShowVoucherForm(true); // Hiển thị voucher form
-        } else {
-          setShowVoucherForm(false); // Ẩn voucher form
-        }
-      } catch (error) {
-        console.error("Error fetching vouchers:", error);
-      }
-    };
-
-    // Chỉ gọi fetchVouchers nếu có subtotal và voucher đã được áp dụng trước đó
-    if (subtotal > 0) {
-      fetchVouchers();
-    }
-  }, [subtotal]);
-
-  // Hàm thay đổi giá trị trong input
-  const handleInputChange = (event) => {
-    setDiscountCode(event.target.value);
-  };
-
-  const handleSvgClick = () => {
-    if (isClicked) {
-      // Nếu đã nhấn, xóa mã giảm giá và đặt trạng thái về chưa nhấn
-      setDiscountCode("");
-      setIsClicked(false);
-    } else {
-      // Nếu chưa nhấn, hiển thị mã giảm giá và đặt trạng thái là đã nhấn
-      if (voucherData) {
-        setDiscountCode(voucherData.ma_giam_gia);
-      }
-      setIsClicked(true);
+  // Xử lý thay đổi khi người dùng chọn tệp
+  const handleFileChange = (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      setFormData({
+        ...formData,
+        images: [...formData.images, ...Array.from(files)],
+      });
+      console.log("Selected files:", files);
     }
   };
 
-  // Tính toán subtotal và total
-  useEffect(() => {
-    let currentSubtotal = 0;
-    products.forEach((product) => {
-      currentSubtotal += product.tong_tien; // Tính tổng giá sản phẩm
+  // Xử lý sự kiện kéo thả tệp vào khu vực dropzone
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      setFormData({
+        ...formData,
+        images: [...formData.images, ...Array.from(files)],
+      });
+      console.log("Dropped files:", files);
+    }
+  };
+
+  // Xử lý sự kiện kéo tệp qua khu vực dropzone
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // Xử lý xóa hình ảnh
+  const handleRemoveImage = (index) => {
+    setFormData({
+      ...formData,
+      images: formData.images.filter((_, i) => i !== index),
+    });
+  };
+
+  // Gửi yêu cầu đánh giá lên API
+  const handleSubmitReview = async () => {
+    const { rating, reviewText, images } = formData;
+
+    const formDataToSubmit = new FormData();
+    formDataToSubmit.append("san_pham_id", productId);
+    formDataToSubmit.append("khach_hang_id", khachHangIdFromStorage);
+    formDataToSubmit.append("danh_gia", rating);
+    formDataToSubmit.append("binh_luan", reviewText);
+
+    // Gửi từng hình ảnh lên server
+    images.forEach((image) => {
+      formDataToSubmit.append("image[]", image);
     });
 
-    // Chỉ trừ số tiền giảm giá khi voucher được áp dụng
-    const discount = isVoucherApplied ? discountAmount : 0;
-    const currentTotal = currentSubtotal - discount + shippingCost;
-
-    setSubtotal(currentSubtotal);
-    setTotal(currentTotal);
-  }, [products, shippingCost, discountAmount, isVoucherApplied]);
-
-  useEffect(() => {
-    // Fetching data from the API
-    fetch("http://127.0.0.1:8000/api/phuong-thuc-thanh-toan")
-      .then((response) => response.json())
-      .then((data) => setPaymentMethods(data))
-      .catch((error) =>
-        console.error("Error fetching payment methods:", error)
-      );
-  }, []);
-
-  // Hàm kiểm tra và áp dụng mã giảm giá
-  const handleApplyVoucher = async () => {
     try {
-      if (!userInfo || !discountCode) {
-        throw new Error("Vui lòng nhập mã giảm giá và xác định khách hàng.");
-      }
-
-      const customerId = userInfo.id; // Lấy customerId từ userInfo
-
-      if (!customerId) {
-        throw new Error(
-          "Không tìm thấy thông tin khách hàng trong phiên làm việc."
-        );
-      }
-
-      // Gửi yêu cầu API để kiểm tra mã giảm giá
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/phieu-giam-gia/check-phieu-giam-gia",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            khach_hang_id: customerId,
-            ma_giam_gia: discountCode,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Lỗi phản hồi từ API:", errorText);
-        throw new Error("Mã giảm giá không hợp lệ.");
-      }
+      const response = await fetch("http://127.0.0.1:8000/api/danh-gia", {
+        method: "POST",
+        body: formDataToSubmit,
+      });
 
       const data = await response.json();
 
-      if (data.success) {
-        setErrorMessage(""); // Xóa thông báo lỗi
-        setSuccessMessage("Áp dụng mã giảm giá thành công!");
-
-        // Tính toán số tiền giảm giá
-        const discount =
-          (subtotal * parseFloat(data.data.gia_tri_giam_gia)) / 100;
-        setDiscountAmount(discount); // Lưu số tiền giảm giá vào state
-        setIsVoucherApplied(true); // Đánh dấu mã giảm giá đã được áp dụng
+      if (response.ok) {
+        alert("Review submitted successfully!");
       } else {
-        throw new Error("Mã giảm giá không hợp lệ.");
+        alert("Error submitting review: " + data.message);
       }
     } catch (error) {
-      console.error("Lỗi:", error.message);
-      setSuccessMessage(""); // Xóa thông báo thành công
-      setErrorMessage(error.message); // Hiển thị lỗi
-      setIsVoucherApplied(false); // Đảm bảo không trừ số tiền giảm giá
-      setDiscountAmount(0); // Reset tiền giảm giá về 0
+      console.error("Error submitting review:", error);
+      alert("Error submitting review");
     }
   };
 
-  const goToCart = () => {
-    navigate("/cua-hang"); // Điều hướng đến trang giỏ hàng
-    window.location.reload(); // Forces the page to refresh
-  };
+  // Đánh giá sao
+  // const handleRatingClick = (ratingValue) => {
+  //   setFormData({
+  //     ...formData,
+  //     rating: ratingValue,
+  //   });
+  // };
 
-  const handlePaymentMethodChange = (event) => {
-    setSelectedPayment(event.target.value);
-  };
+  useEffect(() => {
+    // Hàm để gọi API
+    const fetchDanhGias = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/danh-gia/san-pham/${productId}?page=${currentPage}`
+        );
+        if (!response.ok) {
+          throw new Error("Lỗi khi lấy dữ liệu");
+        }
+        const data = await response.json();
+        console.log(data);
 
-  const generateRandomOrderCode = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < 10; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const address = document.getElementById("address").value;
-
-    if (!userInfo || !userInfo.id) {
-      console.error("Không có thông tin khách hàng.");
-      return;
-    }
-
-    const khachHangId = userInfo.id;
-
-    const selectedShippingOption = shippingOptions.find(
-      (option) => Number(option.gia_van_chuyen) === Number(shippingCost)
-    );
-
-    if (!selectedShippingOption) {
-      console.error("Không tìm thấy phương thức vận chuyển phù hợp.");
-      return;
-    }
-
-    console.log("shippingCost (Number):", Number(shippingCost));
-    console.log(
-      "shippingOptions (gia_van_chuyen as Number):",
-      shippingOptions.map((opt) => Number(opt.gia_van_chuyen))
-    );
-    console.log("Selected shipping option:", selectedShippingOption);
-
-    const selectedPaymentMethod = paymentMethods.find(
-      (method) => method.ten_phuong_thuc === selectedPayment
-    );
-
-    if (!selectedPaymentMethod) {
-      console.error("Không tìm thấy phương thức thanh toán phù hợp.");
-      return;
-    }
-
-    const orderCode = generateRandomOrderCode();
-
-    const orderData = {
-      ma_don_hang: orderCode, // Thêm mã đơn hàng ngẫu nhiên
-      khach_hang_id: khachHangId,
-      phuong_thuc_thanh_toan_id: selectedPaymentMethod.id,
-      hinh_thuc_van_chuyen_id: selectedShippingOption.id,
-      tong_tien: total,
-      ma_giam_gia: discountCode || null,
-      dia_chi_giao_hang: address,
-      products: products.map((product) => ({
-        san_pham_id: product.san_pham_id,
-        bien_the_san_pham_id: product.bien_the_san_pham_id,
-        attributes: product.bien_the.map((item) => ({
-          gia_tri_thuoc_tinh_id: item.gia_tri_thuoc_tinh_id,
-          ten_gia_tri: item.ten_gia_tri,
-        })),
-        so_luong: product.so_luong,
-        gia: product.tong_tien,
-      })),
+        setDanhGias(data); // Lưu dữ liệu vào state
+        setTotalPages(Math.ceil(data?.summary.tong_danh_gia / 5)); // Làm tròn lên để tính số trang
+        console.log("Dữ liệu nhận từ API:", data);
+      } catch (error) {
+        console.error("Lỗi:", error);
+      }
     };
 
-    localStorage.setItem("orderData", JSON.stringify(orderData));
+    fetchDanhGias();
+  }, [currentPage]); // Gọi lại mỗi khi trang thay đổi
 
-    // Log dữ liệu orderData trước khi gửi yêu cầu
-    console.log("Order Data:", orderData);
-
-    const spinnerModalElement = document.getElementById("paymentSpinnerModal");
-    if (!spinnerModalElement) {
-      console.error("Không tìm thấy modal spinner trong DOM.");
-      return; // Dừng nếu modal không tồn tại
-    }
-
-    // eslint-disable-next-line no-undef
-    const spinnerModal = new bootstrap.Modal(
-      document.getElementById("paymentSpinnerModal")
-    );
-    spinnerModal.show();
-
-    try {
-      if (selectedPaymentMethod.id === 2) {
-        // Thanh toán bằng VNPAY
-        const vnpayResponse = await fetch(
-          "http://127.0.0.1:8000/api/thanh-toan/vppay/create",
+  useEffect(() => {
+    // Kiểm tra xem khách hàng đã mua sản phẩm chưa
+    const kiemTraMuaSanPham = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/san-pham/kiem-tra-mua-san-pham/${productId}`,
           {
             method: "POST",
             headers: {
-              Accept: "application/json",
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: total,
-              ma_don_hang: orderCode,
+              khach_hang_id: khachHangIdFromStorage, // Gửi ID khách hàng từ FE
             }),
           }
         );
 
-        const vnpayData = await vnpayResponse.json();
+        const data = await response.json();
 
-        if (!vnpayResponse.ok || vnpayData.code !== "00") {
-          throw new Error("Gửi yêu cầu thanh toán VNPAY thất bại");
+        console.log(data);
+
+        if (data.da_mua === false) {
+          setDaMua(false);
+          console.log(daMua);
+        } else {
+          setDaMua(true); // Khách hàng chưa mua sản phẩm
+        }
+      } catch (error) {
+        console.error("Lỗi khi kiểm tra sản phẩm đã mua:", error);
+      }
+    };
+
+    kiemTraMuaSanPham();
+  }, [productId, khachHangIdFromStorage]);
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/san-pham/detail/${productId}`
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Redirect đến URL thanh toán VNPAY
-        window.location.href = vnpayData.data;
-        return;
+        const data = await response.json();
+        console.log("Product data:", data);
+        setProductData(data);
+        console.log(productData?.bestSellingProducts);
+
+        setNgayKetThucSale(data.sale?.ngay_ket_thuc_sale || null);
+
+        if (data.hinh_anh_bien_the_san_pham) {
+          const imageLinks = data.hinh_anh_bien_the_san_pham.flatMap((item) =>
+            item.hinh_anh.map(
+              (image) => `${baseUrl}${image.duong_dan_hinh_anh}`
+            )
+          );
+          setImages(imageLinks);
+        }
+
+        // Xử lý thuộc tính "Màu sắc"
+        const colorAttributeData = data.gia_tri_thuoc_tinh?.find(
+          (item) => item.thuoc_tinh_san_pham?.ten_thuoc_tinh === "Màu sắc"
+        );
+        setColorAttribute(
+          colorAttributeData?.thuoc_tinh_san_pham?.ten_thuoc_tinh || "Màu sắc"
+        );
+        setColorName(colorAttributeData?.gia_tri || "Chưa chọn màu");
+
+        // Hiển thị các biến thể màu sắc (nếu có)
+        if (data.hinh_anh_bien_the_san_pham) {
+          const colorVariantsData = data.hinh_anh_bien_the_san_pham.flatMap(
+            (item) =>
+              item.hinh_anh.map((image) => ({
+                colorName: image.ten_gia_tri,
+                imageUrl: `${baseUrl}${image.duong_dan_hinh_anh}`,
+              }))
+          );
+          setColorVariants(colorVariantsData);
+        }
+
+        // Xử lý thuộc tính "Dung lượng"
+        const capacityAttributeData = data.grouped_attributes?.["Dung lượng"];
+        if (capacityAttributeData) {
+          setDungLuongOptions(capacityAttributeData.ten_gia_tri || []);
+          setDungLuongName("Dung lượng");
+        }
+
+        // Xử lý các thuộc tính khác (không phải Màu sắc và Dung lượng)
+        const otherAttributesData = Object.keys(
+          data.grouped_attributes || {}
+        ).filter((key) => key !== "Màu sắc" && key !== "Dung lượng");
+        setOtherAttributes(otherAttributesData);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+
+    if (productId) {
+      fetchProductData();
+    }
+  }, [productId]);
+
+  // Dependency on `productId` and `baseUrl`
+
+  useEffect(() => {
+    if (productData) {
+      document.title = `${productData?.sanPham?.ten_san_pham}`;
+    }
+  }, [productData]); // Mỗi khi productData thay đổi, cập nhật lại tiêu đề trang
+
+  useEffect(() => {
+    // Hàm tính thời gian đếm ngược
+    const calculateRemainingTime = () => {
+      if (!ngayKetThucSale) return;
+
+      const endTime = new Date(
+        new Date(ngayKetThucSale).toLocaleString("en-US", {
+          timeZone: "Asia/Ho_Chi_Minh",
+        })
+      ).getTime();
+      const now = new Date().getTime();
+      const timeLeft = endTime - now;
+
+      if (timeLeft > 0) {
+        const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24)); // Số ngày
+        const hours = Math.floor(
+          (timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        ); // Số giờ còn lại
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)); // Số phút
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000); // Số giây
+
+        setRemainingTime(`${days}d ${hours}h ${minutes}m ${seconds}s`);
       } else {
-        const orderResponse = await fetch(
-          "http://127.0.0.1:8000/api/donhang/orders",
+        setRemainingTime(null); // Nếu hết hạn, xóa thời gian
+      }
+    };
+
+    // Cập nhật mỗi giây nếu `ngayKetThucSale` tồn tại
+    if (ngayKetThucSale) {
+      const timer = setInterval(calculateRemainingTime, 1000);
+      return () => clearInterval(timer); // Xóa bộ đếm khi unmounted
+    }
+  }, [ngayKetThucSale]);
+
+  useEffect(() => {
+    // Kiểm tra xem tất cả các thuộc tính đã được chọn hay chưa
+    const isColorSelected = colorName && colorName !== "Chưa chọn màu";
+    const isDungLuongSelected = selectedDungLuong && selectedDungLuong !== "";
+    const areOtherAttributesSelected = otherAttributes.every(
+      (attribute) =>
+        productData.grouped_attributes[attribute]?.ten_gia_tri.length > 0
+    );
+
+    setIsAttributesComplete(
+      isColorSelected && isDungLuongSelected && areOtherAttributesSelected
+    );
+  }, [colorName, selectedDungLuong, otherAttributes, productData]);
+  // State để lưu chỉ số ảnh hiện tại
+  const [activeImageIndex, setActiveImageIndex] = useState(0); // Mặc định là ảnh chính
+
+  // Thêm ảnh chính vào đầu danh sách
+  const imageArray = [productData?.sanPham?.duong_dan_anh, ...images];
+
+  const handleImageClick = (index, color = "") => {
+    if (index === 0) {
+      setActiveImageIndex(0);
+      setColorName("");
+      setVariantPrice(0); // No variant price
+    } else {
+      setActiveImageIndex(index);
+      setColorName(color);
+
+      if (selectedDungLuong) {
+        const selectedVariant = productData?.bienTheSanPhams?.find(
+          (variant) =>
+            variant.gia_tri_thuoc_tinh?.some(
+              (attr) => attr.ten_gia_tri === color
+            ) &&
+            variant.gia_tri_thuoc_tinh?.some(
+              (attr) => attr.ten_gia_tri === selectedDungLuong
+            )
+        );
+
+        if (selectedVariant) {
+          const variantPrice = parseFloat(selectedVariant.gia) || 0;
+          setVariantPrice(variantPrice);
+
+          // Format price with currency
+          console.log(
+            `Giá biến thể: ${new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(variantPrice)}`
+          );
+
+          setFinalPrice(calculateFinalPrice(variantPrice)); // Tính giá cuối
+        }
+      }
+    }
+  };
+
+  const calculateFinalPrice = (variantPrice = 0) => {
+    let basePrice = parseFloat(productData?.sanPham?.gia) || 0; // Giá gốc
+    if (productData?.sale_theo_phan_tram) {
+      // Nếu có giảm giá
+      basePrice =
+        basePrice -
+        (basePrice * parseFloat(productData?.sale_theo_phan_tram || 0)) / 100; // Giá sau khi giảm
+    }
+    let finalPrice = basePrice + variantPrice;
+    return finalPrice;
+  };
+  // Dùng giá mặc định ban đầu (gốc hoặc đã giảm)
+  useEffect(() => {
+    const initialPrice = calculateFinalPrice(0); // Giá mặc định khi chưa có biến thể
+    setFinalPrice(initialPrice);
+  }, [productData]);
+
+  const handleAddToCart = async () => {
+    const userData = JSON.parse(localStorage.getItem("userInfo")); // Lấy thông tin người dùng từ localStorage
+
+    if (!userData || !userData.id) {
+      toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
+      return;
+    }
+
+    const selectedVariant = productData?.bienTheSanPhams?.find((variant) => {
+      const selectedAttributes = variant.gia_tri_thuoc_tinh || [];
+
+      // Kiểm tra xem sản phẩm đã có đủ các thuộc tính được chọn chưa
+      return selectedAttributes.every((attr) => {
+        return (
+          attr.ten_gia_tri === colorName ||
+          attr.ten_gia_tri === selectedDungLuong
+        );
+      });
+    });
+
+    if (selectedVariant) {
+      // Lấy so_luong_kho từ biến thể sản phẩm
+      const stockQuantity = selectedVariant.so_luong_kho || 0; // Kiểm tra số lượng kho
+
+      // Kiểm tra trang_thai_ton_kho từ sanPham
+      const stockStatus = productData?.sanPham?.trang_thai_ton_kho || 0; // Kiểm tra trạng thái tồn kho
+
+      // Kiểm tra nếu biến thể sản phẩm hết hàng
+      if (stockQuantity === 0) {
+        toast.error("Sản phẩm biến thể này đã hết hàng.");
+        return;
+      }
+
+      // Kiểm tra nếu sản phẩm hết hàng
+      if (stockStatus === 0) {
+        toast.error("Sản phẩm này đã hết hàng.");
+        return;
+      }
+
+      const totalPrice = finalPrice;
+
+      // Dữ liệu cho sản phẩm sẽ gửi lên API
+      const productDataToSend = {
+        khach_hang_id: userData.id,
+        san_pham_id: selectedVariant.san_pham_id,
+        so_luong: 1,
+        bien_the_san_pham_id: selectedVariant.id,
+        attributes: selectedVariant.gia_tri_thuoc_tinh.map((attr) => ({
+          gia_tri_thuoc_tinh_id: attr.id,
+          ten_gia_tri: attr.ten_gia_tri,
+        })),
+        gia: totalPrice,
+      };
+
+      // Lấy giỏ hàng hiện tại từ localStorage
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+      // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
+      const existingProductIndex = cart.findIndex(
+        (item) =>
+          item.san_pham_id === selectedVariant.san_pham_id &&
+          JSON.stringify(item.attributes) ===
+            JSON.stringify(productDataToSend.attributes)
+      );
+
+      if (existingProductIndex !== -1) {
+        // Cập nhật số lượng nếu sản phẩm đã có trong giỏ hàng
+        cart[existingProductIndex].so_luong += 1;
+
+        // Cập nhật lại giỏ hàng vào localStorage
+        localStorage.setItem("cart", JSON.stringify(cart));
+
+        toast.success("Sản phẩm đã được cập nhật số lượng trong giỏ hàng.");
+      } else {
+        // Nếu sản phẩm chưa có trong giỏ hàng, thêm mới
+        cart.push(productDataToSend);
+
+        // Lưu giỏ hàng vào localStorage
+        localStorage.setItem("cart", JSON.stringify(cart));
+
+        toast.success("Sản phẩm đã được thêm vào giỏ hàng!");
+      }
+
+      // Gửi dữ liệu lên API
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/gio-hang/them-gio-hang",
           {
             method: "POST",
             headers: {
-              Accept: "application/json",
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(orderData),
+            body: JSON.stringify(productDataToSend),
           }
         );
 
-        console.log(orderResponse);
-
-        if (!orderResponse.ok) {
-          throw new Error("Gửi đơn hàng thất bại");
-        }
-
-        const data = await orderResponse.json();
-        console.log(data);
-
-        console.log("Đơn hàng đã được gửi:", data);
-      }
-
-      // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
-      if (khachHangId) {
-        const deleteCartResponse = await fetch(
-          `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${khachHangId}`,
-          {
-            method: "DELETE",
-          }
-        );
-
-        if (!deleteCartResponse.ok) {
-          throw new Error("Xóa giỏ hàng thất bại");
-        }
-
-        console.log("Giỏ hàng đã được xóa cho khách hàng:", khachHangId);
-      }
-
-      // Đóng spinner modal sau khi thanh toán thành công và mở modal thành công
-      setTimeout(() => {
-        spinnerModal.hide(); // Ẩn spinner modal
-        const successModalElement = document.getElementById(
-          "paymentSuccessModal"
-        );
-        if (successModalElement) {
-          // eslint-disable-next-line no-undef
-          const successModal = new bootstrap.Modal(
-            document.getElementById("paymentSuccessModal")
+        if (response.ok) {
+          console.log(
+            "Sản phẩm đã được thêm vào giỏ hàng:",
+            await response.json()
           );
-          successModal.show();
+          navigate("/gio-hang");
         } else {
-          console.error("Không tìm thấy modal thành công trong DOM.");
+          toast.error("Có lỗi khi thêm sản phẩm vào giỏ hàng.");
         }
-      }, 3000); // Đợi 3 giây để hiển thị spinner trước khi hiển thị thành công
-    } catch (error) {
-      console.error("Lỗi gửi đơn hàng:", error);
-
-      // Đóng modal spinner và hiển thị lỗi (nếu có lỗi)
-      setTimeout(() => {
-        spinnerModal.hide(); // Ẩn spinner modal
-        alert("Đã có lỗi xảy ra khi gửi đơn hàng, vui lòng thử lại sau.");
-      }, 3000); // Đợi 3 giây trước khi ẩn spinner
-    }
-  };
-
-  const handleVNPAYReturn = () => {
-    // Lấy các tham số từ URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const vnp_ResponseCode = urlParams.get("vnp_ResponseCode");
-
-    // Kiểm tra mã phản hồi từ VNPAY
-    if (vnp_ResponseCode === "00") {
-      // Lấy orderData từ localStorage
-      const orderData = JSON.parse(localStorage.getItem("orderData"));
-
-      if (orderData) {
-        // Gửi thông tin đơn hàng vào hệ thống
-        fetch("http://127.0.0.1:8000/api/donhang/orders", {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(orderData),
-        })
-          .then((orderResponse) => {
-            if (!orderResponse.ok) {
-              throw new Error("Gửi đơn hàng thất bại");
-            }
-            return orderResponse.json();
-          })
-          .then((data) => {
-            console.log("Đơn hàng đã được gửi:", data);
-
-            // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
-            const khachHangId = orderData.khach_hang_id;
-            if (khachHangId) {
-              return fetch(
-                `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${khachHangId}`,
-                {
-                  method: "DELETE",
-                }
-              );
-            }
-          })
-          .then((deleteCartResponse) => {
-            if (deleteCartResponse && !deleteCartResponse.ok) {
-              throw new Error("Xóa giỏ hàng thất bại");
-            }
-
-            console.log(
-              "Giỏ hàng đã được xóa cho khách hàng:",
-              orderData.khach_hang_id
-            );
-
-            // Gửi email thông báo thanh toán thành công
-            return fetch("http://127.0.0.1:8000/api/donhang/send-mail", {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                khach_hang_id: orderData.khach_hang_id,
-                order_id: orderData.ma_don_hang,
-                total: orderData.tong_tien,
-                payment_time: new Date().toISOString(),
-              }),
-            });
-          })
-          .then((mailResponse) => {
-            if (mailResponse && !mailResponse.ok) {
-              throw new Error("Gửi email thất bại");
-            }
-
-            console.log("Email thông báo thanh toán thành công đã được gửi.");
-          })
-          .then(() => {
-            // Đóng spinner modal và hiển thị modal thành công
-            const spinnerModalElement = document.getElementById(
-              "paymentSpinnerModal"
-            );
-            if (spinnerModalElement) {
-              const spinnerModal = new bootstrap.Modal(spinnerModalElement);
-              spinnerModal.hide(); // Ẩn spinner modal
-            }
-
-            // Mở modal thành công sau 3 giây
-            const successModalElement = document.getElementById(
-              "paymentSuccessModal"
-            );
-            if (successModalElement) {
-              const successModal = new bootstrap.Modal(successModalElement);
-              setTimeout(() => {
-                successModal.show();
-              }, 3000); // Đợi 3 giây để hiển thị spinner trước khi mở modal thành công
-            } else {
-              console.error("Không tìm thấy modal thành công trong DOM.");
-            }
-          })
-          .catch((error) => {
-            console.error("Lỗi:", error);
-
-            // Đóng modal spinner và hiển thị lỗi
-            const spinnerModalElement = document.getElementById(
-              "paymentSpinnerModal"
-            );
-            if (spinnerModalElement) {
-              const spinnerModal = new bootstrap.Modal(spinnerModalElement);
-              setTimeout(() => {
-                spinnerModal.hide(); // Ẩn spinner modal
-                alert("Đã có lỗi xảy ra, vui lòng thử lại sau.");
-              }, 3000); // Đợi 3 giây trước khi ẩn spinner
-            }
-          })
-          .finally(() => {
-            // Xóa orderData khỏi localStorage sau khi xử lý xong
-            localStorage.removeItem("orderData");
-          });
-      } else {
-        console.error("Không tìm thấy thông tin đơn hàng trong cache.");
+      } catch (error) {
+        toast.error("Không thể kết nối với máy chủ, vui lòng thử lại.");
       }
     } else {
-      console.error("Thanh toán không thành công, mã lỗi:", vnp_ResponseCode);
-      // Xử lý khi thanh toán không thành công
-      alert("Thanh toán thất bại. Vui lòng thử lại.");
+      toast.error("Vui lòng chọn đầy đủ thuộc tính của sản phẩm.");
     }
   };
 
-  // Gọi hàm handleVNPAYReturn khi trang load
-  window.onload = handleVNPAYReturn;
+  const handleDungLuongChange = (event) => {
+    const selectedCapacity = event.target.value;
+    setSelectedDungLuong(selectedCapacity);
+
+    if (colorName) {
+      const selectedVariant = productData?.bienTheSanPhams?.find(
+        (variant) =>
+          variant.gia_tri_thuoc_tinh?.some(
+            (attr) => attr.ten_gia_tri === colorName
+          ) &&
+          variant.gia_tri_thuoc_tinh?.some(
+            (attr) => attr.ten_gia_tri === selectedCapacity
+          )
+      );
+
+      if (selectedVariant) {
+        const variantPrice = parseFloat(selectedVariant.gia) || 0;
+        setVariantPrice(variantPrice);
+
+        // Log the variant details
+        console.log("Biến thể đã chọn:", selectedVariant);
+
+        // Log the price with currency format
+        console.log(
+          `Giá biến thể: ${new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          }).format(variantPrice)}`
+        );
+
+        setFinalPrice(calculateFinalPrice(variantPrice)); // Tính giá cuối
+      }
+    }
+  };
+
+  if (!productData || !productData.grouped_attributes) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "70vh",
+        }}
+      >
+        <PacmanLoader speedMultiplier={0.8} color="#36d7b7" />
+      </div>
+    ); // Show the loader while waiting for data
+  }
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString); // Tạo đối tượng Date từ chuỗi
+    const options = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    };
+    // Sử dụng UTC để định dạng theo múi giờ UTC
+    return date.toLocaleString("vi-VN", { timeZone: "UTC", ...options });
+  };
 
   return (
     <>
-      <section className="pt-5 pb-9">
-        <div className="container-small">
-          <nav className="mb-3" aria-label="breadcrumb">
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <a href="#!">Page 1</a>
-              </li>
-              <li className="breadcrumb-item">
-                <a href="#!">Page 2</a>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Default
-              </li>
-            </ol>
-          </nav>
-          <h2 className="mb-5">Thanh toán</h2>
+      <div>
+        <section>
+          <section className="py-0">
+            <div className="container-small">
+              <nav className="mb-3" aria-label="breadcrumb">
+                <ol className="breadcrumb mb-0">
+                  {/* Trang chủ */}
+                  <li className="breadcrumb-item">
+                    <Link to="/">Trang chủ</Link>
+                  </li>
+                  {/* Thêm "Cửa hàng" nếu đang ở trang "Chi tiết sản phẩm" */}
+                  {pathnames.includes("chi-tiet-san-pham") && (
+                    <li className="breadcrumb-item">
+                      <Link to="/cua-hang">Cửa hàng</Link>
+                    </li>
+                  )}
+                  {/* Chi tiết sản phẩm */}
+                  {pathnames.map((pathname, index) => {
+                    const to = `/${pathnames.slice(0, index + 1).join("/")}`;
+                    const title = breadcrumbTitles[pathname] || pathname;
+                    const isLast = index === pathnames.length - 1;
 
-          <div className="row justify-content-between">
-            <div className="col-lg-7 col-xl-6 mt-2">
-              <form>
-                <div className="card mt-3 mt-lg-0">
-                  <div className="card-body">
-                    <div className="d-flex align-items-end">
-                      <h3 className="mb-0 me-3">Người đặt hàng</h3>
-                      <button
-                        className="btn btn-link p-0"
-                        type="button"
-                        onClick={handleEditClick}
+                    return isLast ? (
+                      <li
+                        key={to}
+                        className="breadcrumb-item active"
+                        aria-current="page"
                       >
-                        <TbEdit style={{ height: "1.3em", width: "1.3em" }} />
-                      </button>
-                    </div>
-                    <table className="table table-borderless mt-4">
-                      <tbody>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="user"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5 className="lh-sm me-4">Họ tên</h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">:</td>
-                          <td className="py-2 px-3">
-                            <h5 className="lh-sm fw-normal text-body-secondary">
-                              {userInfo.ho_ten}
-                            </h5>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="home"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5 className="lh-sm me-3">Địa chỉ</h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">:</td>
-                          <td className="py-2 px-3">
-                            <h5
-                              className="lh-lg fw-normal text-body-secondary"
-                              style={{
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {userInfo.dia_chi}
-                            </h5>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="mail"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5 className="lh-sm me-4">Email</h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">: </td>
-                          <td className="py-2 px-3">
-                            <h5 className="lh-sm fw-normal text-body-secondary">
-                              {userInfo.email}
-                            </h5>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="phone"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5
-                                className="lh-sm me-4"
-                                style={{
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                Số điện thoại
-                              </h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">: </td>
-                          <td className="py-2 px-3">
-                            <h5 className="lh-sm fw-normal text-body-secondary">
-                              {userInfo.dien_thoai}
-                            </h5>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div className="card mt-lg-3">
-                  <div className="card-body">
-                    <div className="d-flex align-items-end">
-                      <h3 className="mb-0 me-3">Địa chỉ nhận hàng</h3>
-                    </div>
-                    <div className="row g-3 mt-3">
-                      <div className="col-12">
-                        <input
-                          className="form-control mt-1"
-                          id="address"
-                          name="address"
-                          type="text"
-                          required
-                          placeholder="Tỉnh/Thành Phố, Quận/Huyện, Phường Xã"
-                          autoComplete="off"
-                        />
+                        {title}
+                      </li>
+                    ) : null;
+                  })}
+                </ol>
+              </nav>
+              <div
+                className="row g-5 mb-5 mb-lg-8"
+                data-product-details="data-product-details"
+              >
+                <div className="col-12 col-lg-6">
+                  <div className="row g-3 mb-3">
+                    <div className="col-12 col-md-2 col-lg-12 col-xl-2">
+                      <div
+                        className="swiper-products-thumb swiper theme-slider overflow-visible swiper-initialized swiper-vertical swiper-backface-hidden swiper-thumbs"
+                        id="swiper-products-thumb"
+                      >
                         <div
-                          id="suggestions"
-                          className="suggestions col-12"
-                        ></div>
-                      </div>
-
-                      <div className="col-4">
-                        <input
-                          className="form-control mt-1"
-                          id="city"
-                          name="city"
-                          required
-                          type="text"
-                          placeholder="Tỉnh/Thành Phố"
-                        />
-                      </div>
-                      <div className="col-4">
-                        <input
-                          className="form-control mt-1"
-                          id="district"
-                          name="district"
-                          required
-                          type="text"
-                          placeholder="Quận/Huyện"
-                        />
-                      </div>
-                      <div className="col-4">
-                        <input
-                          className="form-control mt-1"
-                          id="ward"
-                          name="ward"
-                          required
-                          type="text"
-                          placeholder="Phường/Xã"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="card mt-lg-3">
-                  <div className="card-body">
-                    <h3 className="mb-6">Hình thức vận chuyển</h3>
-                    <div className="row gy-6 mb-6">
-                      {shippingOptions.map((option) => (
-                        <div key={option.id} className="col-12 col-md-6">
-                          <div className="d-flex flex-wrap align-items-center mb-3">
-                            <div className="form-check mb-0">
-                              <input
-                                className="form-check-input"
-                                type="radio"
-                                name="shippingRadio"
-                                id={`shipping_${option.id}`}
-                                value={option.gia_van_chuyen}
-                                onChange={(e) =>
-                                  handleShippingChange(e, option)
-                                }
-                                checked={
-                                  shippingCost === Number(option.gia_van_chuyen)
-                                }
-                              />
-                              <label
-                                className="form-check-label fs-8 text-body"
-                                htmlFor={`shipping_${option.id}`}
-                              >
-                                {option.ten_van_chuyen}
-                              </label>
-                            </div>
-                            <span className="d-inline-block text-body-emphasis fw-bold ms-2">
-                              {new Intl.NumberFormat("vi-VN", {
-                                style: "decimal", // Use 'decimal' style to format the number without currency symbol
-                                minimumFractionDigits: 0, // Optional: you can remove decimal places
-                              }).format(option.gia_van_chuyen)}{" "}
-                              VNĐ
-                            </span>
-                          </div>
-                          <div className="ps-4">
-                            <h6 className="text-body-tertiary mb-2">
-                              Dự kiến giao hàng: {getDeliveryDate(option)}
-                            </h6>
-                            <h6 className="text-info lh-base mb-0">
-                              {option.mo_ta}
-                            </h6>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="col-lg-5 col-xl-6 mt-2">
-              <div className="card mt-3 mt-lg-0">
-                <div className="card-body">
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      backgroundColor: "#f3f4f6",
-                      padding: "8px",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      gap: "8px",
-                    }}
-                    data-bs-toggle="modal"
-                    data-bs-target="#addDealModal"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                    data-bs-reference="parent"
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      <svg
-                        width={20}
-                        height={20}
-                        viewBox="0 0 20 20"
-                        fill="#dc2626"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clipPath="url(#clip0_21_9220)">
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M5.11702 17.6577C3.28369 17.6577 1.78369 16.1577 1.78369 14.3244V13.491C1.78369 12.991 2.20036 12.6577 2.61702 12.491C3.61702 12.1577 4.28369 11.241 4.28369 10.1577C4.28369 9.07438 3.61702 8.15771 2.61702 7.82438C2.20036 7.65771 1.78369 7.32438 1.78369 6.82438V5.99105C1.78369 4.15771 3.28369 2.65771 5.11702 2.65771H15.117C16.9504 2.65771 18.4504 4.15771 18.4504 5.99105V6.82438C18.4504 7.32438 18.0337 7.65771 17.617 7.82438C16.617 8.15771 15.9504 9.07438 15.9504 10.1577C15.9504 11.241 16.617 12.1577 17.617 12.491C18.0337 12.6577 18.4504 12.991 18.4504 13.491V14.3244C18.4504 16.1577 16.9504 17.6577 15.117 17.6577H5.11702ZM7.61702 8.49105C8.11702 8.49105 8.45036 8.15771 8.45036 7.65771C8.45036 7.15771 8.11702 6.82438 7.61702 6.82438C7.11702 6.82438 6.78369 7.15771 6.78369 7.65771C6.78369 8.15771 7.11702 8.49105 7.61702 8.49105ZM13.4504 12.6577C13.4504 13.1577 13.117 13.491 12.617 13.491C12.117 13.491 11.7837 13.1577 11.7837 12.6577C11.7837 12.1577 12.117 11.8244 12.617 11.8244C13.117 11.8244 13.4504 12.1577 13.4504 12.6577ZM13.0337 8.07438C13.2837 7.82438 13.2837 7.40771 13.0337 7.15771C12.7837 6.90771 12.367 6.90771 12.117 7.15771L7.11702 12.1577C6.86702 12.4077 6.86702 12.8244 7.11702 13.0744C7.36702 13.3244 7.78369 13.3244 8.03369 13.0744L13.0337 8.07438Z"
-                            fill
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_21_9220">
-                            <rect width={20} height={20} fill="white" />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                      <p
-                        style={{
-                          margin: 0,
-                          fontWeight: "600",
-                        }}
-                      >
-                        Chọn hoặc nhập ưu đãi
-                      </p>
-                    </div>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width={21}
-                      height={20}
-                      viewBox="0 0 21 20"
-                      fill="#6b7280"
-                    >
-                      <path
-                        d="M7.8499 4.20694C8.14982 3.92125 8.62456 3.93279 8.91025 4.23271L13.9116 9.48318C14.1875 9.77285 14.1875 10.2281 13.9116 10.5178L8.91025 15.7682C8.62456 16.0681 8.14982 16.0797 7.8499 15.794C7.54998 15.5083 7.53844 15.0336 7.82413 14.7336L12.3327 10.0005L7.82413 5.26729C7.53844 4.96737 7.54998 4.49264 7.8499 4.20694Z"
-                        fill
-                      />
-                    </svg>
-                  </div>
-
-                  <div className="d-flex align-items-center justify-content-between mt-3">
-                    <h3 className="mb-0">Thông tin đơn hàng</h3>
-                    <button
-                      className="btn btn-link pe-0"
-                      type="button"
-                      onClick={goToCart} // Gọi goToCart khi nhấn vào nút
-                    >
-                      Tiếp tục mua sắm
-                      <span className="fas fa-chevron-right icon-small" />
-                    </button>
-                  </div>
-                  <div className="border-dashed border-bottom border-translucent mt-4">
-                    <div className="ms-n2">
-                      {products.length > 0 &&
-                        products.map((product, index) => (
-                          <div
-                            className="row align-items-center mb-2 g-3"
-                            key={index}
-                          >
-                            <div className="col-8 col-md-7 col-lg-8">
-                              <div className="d-flex align-items-center">
+                          className="swiper-wrapper"
+                          id="swiper-wrapper-56b3ffd4b36810b60"
+                          aria-live="polite"
+                          style={{ transform: "translate3d(0px, 0px, 0px)" }}
+                        >
+                          {/* Duyệt qua các ảnh khác (các ảnh con) */}
+                          {images.map((image, index) => (
+                            <div
+                              key={index}
+                              className={`swiper-slide ${
+                                activeImageIndex === index + 1 // Chỉnh lại logic tính toán active
+                                  ? "swiper-slide-thumb-active"
+                                  : ""
+                              }`}
+                              role="group"
+                              aria-label={`${index + 2} / ${imageArray.length}`}
+                              style={{ height: 84, marginBottom: 16 }}
+                              onClick={() =>
+                                handleImageClick(
+                                  index + 1, // Cập nhật chỉ số chính xác khi chọn ảnh con
+                                  colorVariants[index]?.colorName || "",
+                                  true
+                                )
+                              } // Gọi với isVariant = true cho các ảnh con
+                            >
+                              <div className="product-thumb-container p-2 p-sm-3 p-xl-2">
                                 <img
-                                  className="me-2 ms-1"
-                                  src={`${baseUrl}${product.images}`}
-                                  width={40}
-                                  alt={product.ten_san_pham || "Sản phẩm"}
+                                  src={image}
+                                  alt={`Product Image ${index + 2}`}
                                 />
-                                <h6 className="fw-semibold text-body-highlight lh-base">
-                                  {product.ten_san_pham} {/* Tên sản phẩm */}
-                                  <div>
-                                    <span>
-                                      <strong
-                                        style={{
-                                          color: "#dc2626",
-                                          fontWeight: "600",
-                                        }}
-                                      >
-                                        {product.bien_the &&
-                                        Array.isArray(product.bien_the)
-                                          ? product.bien_the.join(" - ")
-                                          : product.bien_the}
-                                      </strong>
-                                    </span>
-                                  </div>
-                                </h6>
                               </div>
                             </div>
-                            <div className="col-1 col-md-3 col-lg-2">
-                              <h6
-                                className="fs-10 mb-0"
-                                style={{ marginLeft: "-3pc" }}
-                              >
-                                x{product.so_luong}
-                              </h6>{" "}
-                              {/* Số lượng */}
-                            </div>
-
-                            <div
-                              className="col-2 ps-0"
-                              style={{ marginLeft: "-3pc" }}
-                            >
-                              <h5
-                                className="mb-0 fw-semibold text-end"
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-10 col-lg-12 col-xl-10">
+                      <div className="d-flex align-items-center border border-translucent rounded-3 text-center p-5 h-100">
+                        <div
+                          className="swiper theme-slider swiper-initialized swiper-horizontal swiper-backface-hidden"
+                          data-thumb-target="swiper-products-thumb"
+                          data-products-swiper='{"slidesPerView":1,"spaceBetween":16,"thumbsEl":".swiper-products-thumb"}'
+                        >
+                          {productData?.sanPham?.trang_thai_ton_kho === 0 && (
+                            <div className="sold-out-overlay">
+                              {/* Bạn có thể dùng một hình ảnh biểu tượng hoặc văn bản */}
+                              <img
+                                src={soldout}
+                                alt="Sold Out"
                                 style={{
-                                  whiteSpace: "nowrap",
+                                  width: "90%",
+                                  objectFit: "contain",
                                 }}
-                              >
-                                {parseInt(product.tong_tien).toLocaleString()}{" "}
-                                VNĐ
-                              </h5>{" "}
-                              {/* Giá */}
+                              />
+                            </div>
+                          )}
+
+                          <div
+                            className="swiper-wrapper"
+                            id="swiper-wrapper-25b87b05eda6d6e9"
+                            aria-live="polite"
+                          >
+                            <div
+                              className="swiper-slide swiper-slide-active"
+                              role="group"
+                              aria-label={`${activeImageIndex + 1} / ${
+                                imageArray.length
+                              }`}
+                              style={{ width: 411 }}
+                            >
+                              {/* Hiển thị ảnh active */}
+                              <img
+                                className="w-100"
+                                src={`${
+                                  imageArray[activeImageIndex]?.startsWith(
+                                    "http"
+                                  )
+                                    ? imageArray[activeImageIndex]
+                                    : baseUrl + imageArray[activeImageIndex]
+                                }`}
+                                alt={`Product image ${activeImageIndex + 1}`}
+                              />
                             </div>
                           </div>
-                        ))}
+                          <span
+                            className="swiper-notification"
+                            aria-live="assertive"
+                            aria-atomic="true"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="border-dashed border-bottom border-translucent mt-4">
-                    {/* Subtotal after discount */}
-                    <div className="d-flex justify-content-between mb-2">
-                      <h5 className="text-body fw-semibold">Tổng tiền</h5>
-                      <h5 className="text-body fw-semibold">
-                        {subtotal.toLocaleString()} VNĐ
-                      </h5>
-                    </div>
-
-                    {/* Discount */}
-                    <div className="d-flex justify-content-between mb-2">
-                      <h5 className="text-body fw-semibold">Giảm giá</h5>
-                      <h5 className="text-danger fw-semibold">
-                        {isVoucherApplied && discountAmount > 0
-                          ? `- ${discountAmount.toLocaleString()} VNĐ` // Hiển thị giảm giá
-                          : "0"}
-                      </h5>
-                    </div>
-
-                    {/* Shipping cost */}
-                    <div className="d-flex justify-content-between mb-3">
-                      <h5 className="text-body fw-semibold">Phí vận chuyển</h5>
-                      <h5 className="text-body fw-semibold">
-                        {shippingCost > 0
-                          ? `${shippingCost.toLocaleString()} VNĐ`
-                          : "0"}
-                      </h5>
-                    </div>
-                  </div>
-
-                  {/* Total */}
-                  <div className="d-flex justify-content-between border-dashed-y pt-3">
-                    <h4 className="mb-0">Cần thanh toán</h4>
-                    <h4 className="mb-0">{total.toLocaleString()} VNĐ</h4>
-                  </div>
-                </div>
-              </div>
-              <div className="card mt-lg-3">
-                <div className="card-body">
-                  <div className="cart-title mb-4">
-                    <h3 className="mb-5">Phương thức thanh toán</h3>
-                  </div>
-                  <div className="payment-methods">
-                    {paymentMethods.map((method) => (
-                      <div
-                        className="method-item d-flex align-items-center mb-3"
-                        key={method.id}
+                  <div className="d-flex">
+                    <button className="btn btn-lg btn-outline-warning rounded-pill w-100 me-3 px-2 px-sm-4 fs-9 fs-sm-8">
+                      <svg
+                        className="svg-inline--fa fa-heart me-2"
+                        aria-hidden="true"
+                        focusable="false"
+                        data-prefix="far"
+                        data-icon="heart"
+                        role="img"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 512 512"
+                        data-fa-i2svg
                       >
-                        <input
-                          type="radio"
-                          id={method.ten_phuong_thuc}
-                          name="paymentMethod"
-                          value={method.ten_phuong_thuc}
-                          className="form-check-input me-3"
-                          onChange={handlePaymentMethodChange} // Xử lý sự kiện thay đổi lựa chọn
-                          checked={selectedPayment === method.ten_phuong_thuc} // Kiểm tra xem phương thức thanh toán này đã được chọn chưa
+                        <path
+                          fill="currentColor"
+                          d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
                         />
-                        <label
-                          htmlFor={method.ten_phuong_thuc}
-                          className="d-flex align-items-center"
-                        >
-                          <img
-                            className="me-3"
-                            src={`${baseUrl}${method.anh_phuong_thuc}`}
-                            alt={method.ten_phuong_thuc}
-                            width="30"
-                          />
-                          <span>{method.ten_phuong_thuc}</span>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="card mt-lg-4">
-                <button
-                  className="btn btn-primary"
-                  type="button" // Đặt type là "button" thay vì "submit"
-                  onClick={handleSubmit} // Gắn sự kiện click với hàm handleSubmit
-                >
-                  Thanh toán
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Spinner Modal */}
-
-        <div
-          className="modal fade"
-          id="paymentSpinnerModal"
-          tabIndex={-1}
-          aria-labelledby="paymentSpinnerModalLabel"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content bg-transparent border-0 text-center">
-              <div className="d-flex justify-content-center">
-                <div className="spinner-border text-light" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              </div>
-
-              <div className="mt-3 text-white fw-bold">
-                Đang xử lý thanh toán ...
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="modal fade"
-          id="paymentSuccessModal"
-          tabIndex={-1}
-          aria-labelledby="paymentSuccessModalLabel"
-          aria-hidden="true"
-          style={{ width: "100%", height: "100%" }}
-        >
-          <div
-            className="modal-dialog modal-fullscreen d-flex justify-content-center align-items-center m-0"
-            role="document"
-          >
-            <div className="modal-content bg-white m-0 p-5 d-flex justify-content-center align-items-center">
-              <div className="text-center">
-                <div className="mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="text-success"
-                    width={75}
-                    height={75}
-                    fill="currentColor"
-                    viewBox="0 0 16 16"
-                  >
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-                  </svg>
-                </div>
-
-                <h1>Mua hàng thành công!</h1>
-                <p
-                  style={{
-                    wordBreak: "break-word",
-                    whiteSpace: "normal",
-                    maxWidth: "70%",
-                    margin: "0 auto",
-                  }}
-                  className="mt-2"
-                >
-                  Đơn hàng của bạn đã được xử lý thành công. Email xác nhận có
-                  thông tin chi tiết về đơn hàng đã được gửi đến hộp thư đến của
-                  bạn. Cảm ơn bạn đã mua sắm với chúng tôi!
-                </p>
-                <button className="btn btn-primary mt-4" onClick={goToCart}>
-                  Tiếp tục mua sắm
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-popup-promotion"></div>
-        <div
-          className="modal fade"
-          id="addDealModal"
-          data-bs-backdrop="static"
-          data-bs-keyboard="false"
-          tabIndex={-1}
-          aria-labelledby="addDealModal"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog modal-lg modal-dialog-centered">
-            <div className="modal-content bg-body-highlight p-5">
-              <div className="modal-body px-0 promotion-popup">
-                <div className="promotion-top">
-                  <p className="title-use-promotion">Sử dụng mã giảm giá</p>
-
-                  <IoClose
-                    className="iconcart-close-popup"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  />
-                </div>
-                <div className="codeboxinput__dropdown--content">
-                  <div className="codeboxinput__dropdown--content-normal">
-                    <div className="input-group mb-3">
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Nhập mã giảm giá/ Phiếu mua hàng"
-                        maxLength={10}
-                        value={discountCode} // Giá trị ô input là discountCode
-                        onChange={handleInputChange}
-                      />
-                      <button
-                        className="btn btn-phoenix-primary"
-                        disabled={!discountCode}
-                        style={{ marginLeft: "0px" }}
-                        onClick={handleApplyVoucher} // Gọi sự kiện khi nhấn nút
-                      >
-                        Áp dụng
-                      </button>
-                    </div>
-                    <span
-                      className={`codeboxinput__dropdown--content1 ${
-                        errorMessage
-                          ? "error_codebox_input"
-                          : "success_codebox_input"
-                      }`}
+                      </svg>
+                      {/* <span class="me-2 far fa-heart"></span> Font Awesome fontawesome.com */}
+                      Add to wishlist
+                    </button>
+                    <button
+                      className="btn btn-lg btn-warning rounded-pill w-100 fs-9 fs-sm-8"
+                      onClick={handleAddToCart}
                     >
-                      {errorMessage || successMessage}
-                    </span>
+                      <svg
+                        className="svg-inline--fa fa-cart-shopping me-2"
+                        aria-hidden="true"
+                        focusable="false"
+                        data-prefix="fas"
+                        data-icon="cart-shopping"
+                        role="img"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 576 512"
+                        data-fa-i2svg
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"
+                        />
+                      </svg>
+                      Add to cart
+                    </button>
                   </div>
                 </div>
-                {!showVoucherForm ? (
-                  <div className="popup-promotion-code-box--empty">
-                    <i className="popup-promotion-code-box__empty-voucher" />
-                    <h1 className="title-empty-promotion">Mã giảm giá trống</h1>
-                    <p className="caution-empty-promotion">
-                      {" "}
-                      Vui lòng nhập mã giảm có thể sử dụng vào thanh bên trên{" "}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="cursor-pointer relative z-10 flex">
-                    <div className="flex h-fit w-full gap-2 rounded-l-2 bg-bgWhiteDefault p-2">
-                      <div className="flex h-11 min-w-11 items-center justify-center rounded-[48px] bg-red-red-2">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width={32}
-                          height={32}
-                          viewBox="0 0 32 32"
-                          fill="none"
-                        >
-                          <path
-                            d="M26.7233 5.71704L30.1623 19.6235C30.2881 20.1317 29.9874 20.6484 29.4902 20.7771L9.27562 26.0109C8.63108 26.1775 7.94958 25.968 7.5026 25.4644L2.82365 20.1972C2.41971 19.7426 2.2641 19.113 2.40813 18.5162L4.07575 11.6065C4.23523 10.9458 4.73739 10.4291 5.38137 10.2626L25.5959 5.02928C26.0926 4.90054 26.5975 5.20828 26.7233 5.71704Z"
-                            fill="#EF4444"
-                          />
-                          <path
-                            d="M28.8525 11.6417V26.1156C28.8525 26.6046 28.4651 27.0004 27.9878 27.0004H7.0735C6.4091 27.0004 5.79823 26.6255 5.48534 26.0253L2.2119 19.7457C1.92937 19.2036 1.92937 18.5537 2.2119 18.0122L5.48534 11.732C5.79823 11.1318 6.40855 10.7568 7.0735 10.7568H27.9878C28.4656 10.7568 28.8525 11.1532 28.8525 11.6417Z"
-                            fill="white"
-                          />
-                          <path
-                            d="M7.83626 18.8781C7.83626 19.5766 7.28278 20.143 6.59962 20.143C5.91646 20.143 5.36353 19.5766 5.36353 18.8781C5.36353 18.1796 5.91701 17.6133 6.59962 17.6133C7.28223 17.6133 7.83626 18.1796 7.83626 18.8781Z"
-                            fill="#FEE2E2"
-                          />
-                          <path
-                            d="M16.4658 13.9346C15.3241 13.9346 14.3954 14.8843 14.3954 16.0526C14.3954 17.2209 15.3236 18.1712 16.4658 18.1712C17.6081 18.1712 18.5363 17.2215 18.5363 16.0526C18.5363 14.8838 17.6076 13.9346 16.4658 13.9346ZM16.4658 16.759C16.0845 16.759 15.7755 16.4434 15.7755 16.0526C15.7755 15.6619 16.084 15.3462 16.4658 15.3462C16.8477 15.3462 17.1562 15.6624 17.1562 16.0526C17.1562 16.4428 16.8472 16.759 16.4658 16.759Z"
-                            fill="#EF4444"
-                          />
-                          <path
-                            d="M22.5611 15.033L17.0401 23.5069C16.832 23.8265 16.4055 23.9213 16.0832 23.7022C15.7659 23.486 15.6804 23.0478 15.8917 22.7237L21.4128 14.2498C21.6219 13.9251 22.0501 13.8365 22.3696 14.0533C22.6869 14.2701 22.7725 14.7083 22.5611 15.033Z"
-                            fill="#EF4444"
-                          />
-                          <path
-                            d="M21.9868 19.585C20.8451 19.585 19.9164 20.5347 19.9164 21.703C19.9164 22.8713 20.8446 23.8216 21.9868 23.8216C23.1291 23.8216 24.0573 22.8718 24.0573 21.7036C24.0573 20.5353 23.1286 19.585 21.9868 19.585ZM21.9868 22.4094C21.6055 22.4094 21.2965 22.0937 21.2965 21.703C21.2965 21.3123 21.605 20.9966 21.9868 20.9966C22.3687 20.9966 22.6766 21.3128 22.6772 21.703C22.6772 22.0932 22.3681 22.4094 21.9868 22.4094Z"
-                            fill="#EF4444"
-                          />
-                        </svg>
-                      </div>
-                      <div className="grid w-full">
-                        <span className="f1-semibold text-textOnWhitePrimary">
-                          Giảm ngay {discountAmount.toLocaleString("vi-VN")} VNĐ
-                          áp dụng đến{" "}
-                          {new Date(ngayKetThuc).toLocaleDateString("vi-VN")}
-                        </span>
-                        <span className="truncate f2-regular text-textOnWhiteSecondary">
-                          {moTa}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="relative flex w-[47px] items-center justify-center rounded-r-2 border-l border-dashed border-bgGrayDefault bg-bgWhiteDefault">
-                      <div className="absolute left-[-6px] top-[-6px] h-2.5 w-2.5 rounded-full bg-bgGrayDefault" />
-                      <div className="absolute bottom-[-6px] left-[-6px] h-2.5 w-2.5 rounded-full bg-bgGrayDefault" />
-                      <button className="flex h-[24px] w-[24px] items-center justify-center rounded-full cursor-pointer bg-red-red-2">
-                        {!isClicked ? (
-                          // Hiển thị SVG ban đầu khi chưa nhấn
+                <div className="col-12 col-lg-6">
+                  <div className="d-flex flex-column justify-content-between h-100">
+                    <div>
+                      <div className="d-flex flex-wrap">
+                        <div className="me-2">
                           <svg
-                            width={14}
-                            height={14}
-                            viewBox="0 0 14 14"
-                            fill="none"
+                            className="svg-inline--fa fa-star text-warning"
+                            aria-hidden="true"
+                            focusable="false"
+                            data-prefix="fas"
+                            data-icon="star"
+                            role="img"
                             xmlns="http://www.w3.org/2000/svg"
-                            onClick={handleSvgClick} // Gọi hàm khi nhấn vào SVG
+                            viewBox="0 0 576 512"
+                            data-fa-i2svg
                           >
                             <path
-                              d="M7.67742 0.677419C7.67742 0.303291 7.37413 0 7 0C6.62587 0 6.32258 0.303291 6.32258 0.677419V6.32258H0.677419C0.303291 6.32258 0 6.62587 0 7C0 7.37413 0.303291 7.67742 0.677419 7.67742H6.32258V13.3226C6.32258 13.6967 6.62587 14 7 14C7.37413 14 7.67742 13.6967 7.67742 13.3226V7.67742H13.3226C13.6967 7.67742 14 7.37413 14 7C14 6.62587 13.6967 6.32258 13.3226 6.32258H7.67742V0.677419Z"
-                              fill="#DC2626"
-                            />
-                            <path
-                              d="M7.67742 0.677419C7.67742 0.303291 7.37413 0 7 0C6.62587 0 6.32258 0.303291 6.32258 0.677419V6.32258H0.677419C0.303291 6.32258 0 6.62587 0 7C0 7.37413 0.303291 7.67742 0.677419 7.67742H6.32258V13.3226C6.32258 13.6967 6.62587 14 7 14C7.37413 14 7.67742 13.6967 7.67742 13.3226V7.67742H13.3226C13.6967 7.67742 14 7.37413 14 7C14 6.62587 13.6967 6.32258 13.3226 6.32258H7.67742V0.677419Z"
-                              fill="#DC2626"
-                              fillOpacity="0.2"
+                              fill="currentColor"
+                              d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
                             />
                           </svg>
-                        ) : (
-                          // Hiển thị SVG đã nhấn cùng ô input
+                          {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                          <svg
+                            className="svg-inline--fa fa-star text-warning"
+                            aria-hidden="true"
+                            focusable="false"
+                            data-prefix="fas"
+                            data-icon="star"
+                            role="img"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 576 512"
+                            data-fa-i2svg
+                          >
+                            <path
+                              fill="currentColor"
+                              d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                            />
+                          </svg>
+                          {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                          <svg
+                            className="svg-inline--fa fa-star text-warning"
+                            aria-hidden="true"
+                            focusable="false"
+                            data-prefix="fas"
+                            data-icon="star"
+                            role="img"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 576 512"
+                            data-fa-i2svg
+                          >
+                            <path
+                              fill="currentColor"
+                              d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                            />
+                          </svg>
+                          {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                          <svg
+                            className="svg-inline--fa fa-star text-warning"
+                            aria-hidden="true"
+                            focusable="false"
+                            data-prefix="fas"
+                            data-icon="star"
+                            role="img"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 576 512"
+                            data-fa-i2svg
+                          >
+                            <path
+                              fill="currentColor"
+                              d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                            />
+                          </svg>
+                          {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                          <svg
+                            className="svg-inline--fa fa-star text-warning"
+                            aria-hidden="true"
+                            focusable="false"
+                            data-prefix="fas"
+                            data-icon="star"
+                            role="img"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 576 512"
+                            data-fa-i2svg
+                          >
+                            <path
+                              fill="currentColor"
+                              d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                            />
+                          </svg>
+                          {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                        </div>
+                        <p className="text-primary fw-semibold mb-2">
+                          6548 People rated and reviewed{" "}
+                        </p>
+                      </div>
+                      <h3 className="mb-3 lh-sm">
+                        {productData?.sanPham?.ten_san_pham}
+                      </h3>
+                      {productData?.bestSellingProducts?.map((product) => {
+                        // Kiểm tra product.id với sanPham.id
+                        if (
+                          product.id === productData?.sanPham?.id &&
+                          product.top_bestseller
+                        ) {
+                          return (
+                            <div
+                              className="d-flex flex-wrap align-items-start mb-3"
+                              key={product.id}
+                            >
+                              <span className="badge text-bg-success fs-9 rounded-pill me-2 fw-semibold">
+                                #{product.top_bestseller} Sản phẩm bán chạy
+                              </span>
+                            </div>
+                          );
+                        }
+                        return null; // Không hiển thị gì nếu id không khớp
+                      })}
 
-                          <svg
-                            width={24}
-                            height={24}
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            onClick={handleSvgClick} // Trở về trạng thái SVG ban đầu khi nhấn
-                          >
-                            <circle
-                              cx={12}
-                              cy={12}
-                              r={11}
-                              fill="var(--red-red-7)"
-                            />
-                            <path
-                              d="M11.3701 15.3163L17.7202 8.85485C18.0922 8.47634 18.0922 7.86263 17.7202 7.4841C17.3483 7.10557 16.7452 7.10556 16.3732 7.48407L10.6966 13.2602L8.82526 11.356C8.45328 10.9774 7.85018 10.9774 7.4782 11.356C7.10622 11.7345 7.10622 12.3482 7.47821 12.7267L10.0231 15.3163C10.395 15.6948 10.9981 15.6948 11.3701 15.3163Z"
-                              fill="white"
-                            />
-                          </svg>
+                      <div className="d-flex flex-wrap align-items-center">
+                        {productData?.sale_theo_phan_tram ? (
+                          <>
+                            <h1 className="me-3">
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              })
+                                .format(
+                                  parseFloat(productData?.sanPham?.gia) *
+                                    (1 -
+                                      parseFloat(
+                                        productData?.sale_theo_phan_tram
+                                      ) /
+                                        100) +
+                                    variantPrice
+                                )
+                                .replace("₫", "VNĐ")}
+                            </h1>
+                            <p className="text-body-quaternary text-decoration-line-through fs-6 mb-0 me-3">
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              })
+                                .format(parseFloat(productData?.sanPham?.gia))
+                                .replace("₫", "VNĐ")}
+                            </p>
+                            <p className="text-warning fw-bolder fs-6 mb-0">
+                              Sale {""}
+                              {parseFloat(
+                                productData?.sale_theo_phan_tram
+                              ).toFixed(0)}
+                              %
+                            </p>
+                          </>
+                        ) : (
+                          <h1>
+                            {new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            })
+                              .format(
+                                parseFloat(productData?.sanPham?.gia) +
+                                  variantPrice
+                              )
+                              .replace("₫", "VNĐ")}
+                          </h1>
                         )}
-                      </button>
-                      <div className="absolute right-[-3px] top-2 grid">
-                        <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
-                        <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
-                        <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
-                        <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
-                        <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
-                        <div className="mb-[1px] h-1.5 w-1.5 rounded-full bg-bgGrayDefault" />
+                      </div>
+
+                      <p className="mb-2 text-body-secondary mt-2">
+                        {productData?.sanPham?.mo_ta}
+
+                        {/* <a className="fw-bold" href="#!">
+                            {""}Xem thêm
+                          </a> */}
+                      </p>
+                      {remainingTime && (
+                        <p className="text-danger-dark fw-bold mb-5 mb-lg-0">
+                          Special offer ends in {remainingTime} hours
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      {/* Màu sắc */}
+                      {colorAttribute === "Màu sắc" && (
+                        <div className="mb-3">
+                          <p className="fw-semibold mb-2 text-body">
+                            <span>{colorAttribute}: </span>
+                            <span className="text-body-emphasis">
+                              {colorName || "Chưa chọn màu"}
+                            </span>
+                          </p>
+                          <div className="d-flex product-color-variants">
+                            {colorVariants.map((variant, index) => (
+                              <div
+                                key={index}
+                                className={`rounded-1 border border-translucent me-2 ${
+                                  activeImageIndex === index + 1 ? "active" : ""
+                                }`}
+                                onClick={() =>
+                                  handleImageClick(index + 1, variant.colorName)
+                                }
+                                style={{ padding: "5px", borderWidth: "3px" }}
+                              >
+                                <img
+                                  src={variant.imageUrl}
+                                  alt={variant.colorName}
+                                  width={30}
+                                  height={30}
+                                  style={{
+                                    width: "30px",
+                                    height: "30px",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Dung lượng */}
+                      {dungLuongName === "Dung lượng" && (
+                        <div className="row g-3 g-sm-5 align-items-end">
+                          <div className="col-12 col-sm-auto">
+                            <p className="fw-semibold mb-2 text-body">
+                              {dungLuongName}
+                            </p>
+                            <div className="d-flex align-items-center">
+                              {dungLuongOptions.length > 0 ? (
+                                dungLuongOptions.map((option, index) => (
+                                  <div
+                                    key={index}
+                                    className={`d-flex align-items-center me-3 rounded-1 border cursor-pointer ${
+                                      selectedDungLuong === option
+                                        ? "border border-primary"
+                                        : "border border-1"
+                                    }`} // Ensure `option.name` is compared with selectedDungLuong
+                                    onClick={() =>
+                                      handleDungLuongChange({
+                                        target: { value: option },
+                                      })
+                                    }
+                                    style={{
+                                      padding: "7px 10px",
+                                      borderWidth: "3px",
+                                      fontSize: "13px",
+                                    }}
+                                  >
+                                    <span>{option}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-muted">
+                                  No capacity options available
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hiển thị các thuộc tính khác nếu có */}
+                      {otherAttributes.length > 0 && (
+                        <div className="mb-3">
+                          {otherAttributes.map((attribute) => (
+                            <div key={attribute}>
+                              <p className="fw-semibold mb-2 text-body">
+                                <span>{attribute}: </span>
+                                <span className="text-body-emphasis">
+                                  {productData.grouped_attributes[
+                                    attribute
+                                  ]?.ten_gia_tri.join(", ")}
+                                </span>
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section className="py-0">
+            <div className="container-small">
+              <ul
+                className="nav nav-underline fs-9 mb-4"
+                id="productTab"
+                role="tablist"
+              >
+                <li className="nav-item" role="presentation">
+                  <a
+                    className="nav-link active"
+                    id="specification-tab"
+                    data-bs-toggle="tab"
+                    href="#tab-specification"
+                    role="tab"
+                    aria-controls="tab-specification"
+                    aria-selected="false"
+                    tabIndex={-1}
+                  >
+                    Thông số kỹ thuật
+                  </a>
+                </li>
+                <li className="nav-item" role="presentation">
+                  <a
+                    className="nav-link"
+                    id="reviews-tab"
+                    data-bs-toggle="tab"
+                    href="#tab-reviews"
+                    role="tab"
+                    aria-controls="tab-reviews"
+                    aria-selected="false"
+                    tabIndex={-1}
+                  >
+                    Đánh giá & nhận xét
+                  </a>
+                </li>
+              </ul>
+              <div className="row gx-3 gy-7">
+                <div className="col-12 col-lg-7 col-xl-12">
+                  <div className="tab-content" id="productTabContent">
+                    <div
+                      className="tab-pane pe-lg-6 pe-xl-12 fade show active text-body-emphasis"
+                      id="tab-specification"
+                      role="tabpanel"
+                      aria-labelledby="specification-tab"
+                    >
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th style={{ width: "40%" }}> </th>
+                            <th style={{ width: "60%" }} />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {productData?.sanPham?.thong_so &&
+                            productData?.sanPham?.thong_so.map(
+                              (spec, index) => (
+                                <tr key={index}>
+                                  <td className="bg-body-highlight align-middle">
+                                    <h6 className="mb-0 text-body text-uppercase fw-bolder px-4 fs-9 lh-sm">
+                                      {spec.thong_so}
+                                    </h6>
+                                  </td>
+                                  <td className="px-5 mb-0">{spec.mo_ta}</td>
+                                </tr>
+                              )
+                            )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div
+                      className="tab-pane fade"
+                      id="tab-reviews"
+                      role="tabpanel"
+                      aria-labelledby="reviews-tab"
+                    >
+                      <div className="bg-body-emphasis rounded-3 p-4 border border-translucent">
+                        <div className="row g-3 justify-content-between mb-4">
+                          <div className="col-auto">
+                            <div className="d-flex align-items-center flex-wrap">
+                              <h2 className="fw-bolder me-3">
+                                {danhGias?.summary.trung_binh_sao}
+                                <span className="fs-8 text-body-quaternary fw-bold">
+                                  /5
+                                </span>
+                              </h2>
+                              <div className="me-3">
+                                {/* Loop to display full stars */}
+                                {[
+                                  ...Array(
+                                    Math.floor(danhGias?.summary.trung_binh_sao)
+                                  ),
+                                ].map((_, index) => (
+                                  <svg
+                                    key={`full-star-${index}`}
+                                    className="svg-inline--fa fa-star text-warning fs-6"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="fas"
+                                    data-icon="star"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 576 512"
+                                    data-fa-i2svg
+                                  >
+                                    <path
+                                      fill="currentColor"
+                                      d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                                    />
+                                  </svg>
+                                ))}
+
+                                {/* Check if there is a half star */}
+                                {danhGias?.summary.trung_binh_sao % 1 !== 0 && (
+                                  <svg
+                                    className="svg-inline--fa fa-star-half-stroke star-icon text-warning fs-6"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="fas"
+                                    data-icon="star-half-stroke"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 576 512"
+                                    data-fa-i2svg
+                                  >
+                                    <path
+                                      fill="currentColor"
+                                      d="M288 376.4l.1-.1 26.4 14.1 85.2 45.5-16.5-97.6-4.8-28.7 20.7-20.5 70.1-69.3-96.1-14.2-29.3-4.3-12.9-26.6L288.1 86.9l-.1 .3V376.4zm175.1 98.3c2 12-3 24.2-12.9 31.3s-23 8-33.8 2.3L288.1 439.8 159.8 508.3C149 514 135.9 513.1 126 506s-14.9-19.3-12.9-31.3L137.8 329 33.6 225.9c-8.6-8.5-11.7-21.2-7.9-32.7s13.7-19.9 25.7-21.7L195 150.3 259.4 18c5.4-11 16.5-18 28.8-18s23.4 7 28.8 18l64.3 132.3 143.6 21.2c12 1.8 22 10.2 25.7 21.7s.7 24.2-7.9 32.7L438.5 329l24.6 145.7z"
+                                    />
+                                  </svg>
+                                )}
+
+                                {/* Loop to display empty stars */}
+                                {[
+                                  ...Array(
+                                    5 -
+                                      Math.ceil(
+                                        danhGias?.summary.trung_binh_sao
+                                      )
+                                  ),
+                                ].map((_, index) => (
+                                  <svg
+                                    key={`empty-star-${index}`}
+                                    className="svg-inline--fa fa-star text-body-quaternary fs-6"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="fas"
+                                    data-icon="star"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 576 512"
+                                    data-fa-i2svg
+                                  >
+                                    <path
+                                      fill="currentColor"
+                                      d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                                    />
+                                  </svg>
+                                ))}
+                              </div>
+
+                              <p className="text-body mb-0 fw-semibold fs-7">
+                                {danhGias?.summary.tong_sao} ratings and{" "}
+                                {danhGias?.summary.tong_danh_gia} reviews
+                              </p>
+                            </div>
+                          </div>
+
+                          {daMua ? (
+                            <div className="col-auto">
+                              <button
+                                className="btn btn-primary rounded-pill"
+                                data-bs-toggle="modal"
+                                data-bs-target="#reviewModal"
+                              >
+                                Rate this product
+                              </button>
+
+                              <div
+                                className="modal fade"
+                                id="reviewModal"
+                                tabIndex={-1}
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog modal-dialog-centered">
+                                  <div className="modal-content p-4">
+                                    <div className="d-flex flex-between-center mb-2">
+                                      <h5 className="modal-title fs-8 mb-0">
+                                        Your rating
+                                      </h5>
+                                      <button className="btn p-0 fs-10">
+                                        Clear
+                                      </button>
+                                    </div>
+                                    {/* <div
+                                      className="mb-3 star-rating"
+                                      data-rater='{"starSize":32,"step":0.5}'
+                                      style={{
+                                        width: 160,
+                                        height: 32,
+                                        backgroundSize: 32,
+                                      }}
+                                    >
+                                      <div
+                                        className="star-value"
+                                        style={{ backgroundSize: 32, width: `${(formData.rating / 5) * 100}%` }}
+                                        onClick={() => setFormData({ ...formData, rating: 5 })}
+                                      />
+                                    </div> */}
+
+                                    <div
+                                      className="mb-3 star-rating"
+                                      style={{ display: "flex", gap: "10px" }}
+                                    >
+                                      {renderStars()} {/* Hiển thị sao */}
+                                    </div>
+
+                                    <div className="mb-3">
+                                      <h5 className="text-body-highlight mb-3">
+                                        Your review
+                                      </h5>
+                                      <textarea
+                                        className="form-control"
+                                        id="reviewTextarea"
+                                        rows={5}
+                                        placeholder="Write your review"
+                                        value={formData.reviewText}
+                                        onChange={(e) =>
+                                          setFormData({
+                                            ...formData,
+                                            reviewText: e.target.value,
+                                          })
+                                        }
+                                      />
+                                    </div>
+                                    <div
+                                      className="dropzone dropzone-multiple p-0 mb-5"
+                                      onDrop={handleDrop}
+                                      onDragOver={handleDragOver}
+                                      onClick={() =>
+                                        document
+                                          .getElementById("fileInput")
+                                          .click()
+                                      } // Kích hoạt input khi click
+                                      id="my-awesome-dropzone"
+                                      data-dropzone="data-dropzone"
+                                    >
+                                      <div className="fallback">
+                                        <input
+                                          id="fileInput"
+                                          type="file"
+                                          style={{ display: "none" }} // Ẩn input
+                                          onChange={handleFileChange}
+                                          multiple="multiple" // Cho phép chọn nhiều file
+                                        />
+                                      </div>
+
+                                      {formData.images &&
+                                      formData.images.length > 0 ? (
+                                        <div className="dz-preview d-flex flex-wrap">
+                                          {formData.images.map(
+                                            (image, index) => (
+                                              <div
+                                                key={index}
+                                                className="border border-translucent bg-body-emphasis rounded-3 d-flex justify-content-center align-items-center position-relative me-2 mb-2"
+                                                style={{
+                                                  height: 120,
+                                                  width: 120,
+                                                }}
+                                              >
+                                                <img
+                                                  className="dz-image"
+                                                  src={URL.createObjectURL(
+                                                    image
+                                                  )}
+                                                  alt="Preview"
+                                                  data-dz-thumbnail="data-dz-thumbnail"
+                                                  style={{
+                                                    maxWidth: "100%",
+                                                    maxHeight: "100%",
+                                                    objectFit: "contain",
+                                                  }}
+                                                />
+                                                <a
+                                                  className="dz-remove text-body-quaternary"
+                                                  href="#!"
+                                                  data-dz-remove="data-dz-remove"
+                                                  onClick={() =>
+                                                    handleRemoveImage(index)
+                                                  }
+                                                >
+                                                  <span data-feather="x" />
+                                                </a>
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <div
+                                          className="dz-message text-body-tertiary text-opacity-85"
+                                          data-dz-message="data-dz-message"
+                                        >
+                                          Drag your photo here
+                                          <span className="text-body-secondary px-1">
+                                            or
+                                          </span>
+                                          <button
+                                            className="btn btn-link p-0"
+                                            type="button"
+                                          >
+                                            Browse from device
+                                          </button>
+                                          <br />
+                                          <img
+                                            className="mt-3 me-2"
+                                            src={icon}
+                                            width={40}
+                                            alt="upload icon"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="d-sm-flex flex-between-center">
+                                      <div className="form-check flex-1">
+                                        <input
+                                          className="form-check-input"
+                                          id="reviewAnonymously"
+                                          type="checkbox"
+                                          defaultChecked
+                                        />
+                                        <label
+                                          className="form-check-label mb-0 text-body-emphasis fw-semibold"
+                                          htmlFor="reviewAnonymously"
+                                        >
+                                          Review anonymously
+                                        </label>
+                                      </div>
+                                      <button
+                                        className="btn ps-0"
+                                        data-bs-dismiss="modal"
+                                      >
+                                        Close
+                                      </button>
+                                      <button
+                                        className="btn btn-primary rounded-pill"
+                                        onClick={handleSubmitReview}
+                                      >
+                                        Submit
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                        <div>
+                          {danhGias?.data?.data.map((danhGia, index) => (
+                            <div
+                              key={index}
+                              className="mb-4 hover-actions-trigger btn-reveal-trigger"
+                            >
+                              <div className="d-flex justify-content-between">
+                                <h5 className="mb-2">
+                                  {/* Hiển thị số sao */}
+                                  {Array.from(
+                                    { length: danhGia.danh_gia },
+                                    (_, i) => (
+                                      <svg
+                                        key={i}
+                                        className="svg-inline--fa fa-star text-warning"
+                                        aria-hidden="true"
+                                        focusable="false"
+                                        data-prefix="fas"
+                                        data-icon="star"
+                                        role="img"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 576 512"
+                                      >
+                                        <path
+                                          fill="currentColor"
+                                          d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                                        />
+                                      </svg>
+                                    )
+                                  )}
+                                  <span className="text-body-secondary ms-1">
+                                    {" "}
+                                    by{" "}
+                                  </span>
+                                  {danhGia.khach_hang.ho_ten}
+                                </h5>
+                                <div className="btn-reveal-trigger position-static">
+                                  <button
+                                    className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    data-boundary="window"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    data-bs-reference="parent"
+                                  >
+                                    <svg
+                                      className="svg-inline--fa fa-ellipsis fs-10"
+                                      aria-hidden="true"
+                                      focusable="false"
+                                      data-prefix="fas"
+                                      data-icon="ellipsis"
+                                      role="img"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      viewBox="0 0 448 512"
+                                    >
+                                      <path
+                                        fill="currentColor"
+                                        d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-body-tertiary fs-9 mb-1">
+                                {formatDate(danhGia.created_at)}
+                              </p>
+                              <p className="text-body-highlight mb-3">
+                                {danhGia.binh_luan}
+                              </p>
+                              <div className="row g-2 mb-2">
+                                {Array.isArray(danhGia.chi_tiet_danh_gias) &&
+                                  danhGia.chi_tiet_danh_gias.map(
+                                    (image, index) => (
+                                      <div className="col-auto" key={index}>
+                                        <a
+                                          href={
+                                            "http://127.0.0.1:8000/storage/" +
+                                            image.hinh_anh_duong_dan
+                                          }
+                                          data-gallery={`gallery-${index}`}
+                                        >
+                                          <img
+                                            src={
+                                              "http://127.0.0.1:8000/storage/" +
+                                              image.hinh_anh_duong_dan
+                                            }
+                                            alt={`Review ${index + 1}`}
+                                            height={164}
+                                          />
+                                        </a>
+                                      </div>
+                                    )
+                                  )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="d-flex justify-content-center">
+                          <nav>
+                            <ul className="pagination mb-0">
+                              {/* Nút quay lại */}
+                              <li
+                                className={`page-item ${
+                                  currentPage === 1 ? "disabled" : ""
+                                }`}
+                              >
+                                <a
+                                  className="page-link"
+                                  href="#!"
+                                  onClick={() =>
+                                    setCurrentPage(currentPage - 1)
+                                  }
+                                >
+                                  <svg
+                                    className="svg-inline--fa fa-chevron-left"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="fas"
+                                    data-icon="chevron-left"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 320 512"
+                                  >
+                                    <path
+                                      fill="currentColor"
+                                      d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"
+                                    />
+                                  </svg>
+                                </a>
+                              </li>
+
+                              {/* Các trang */}
+                              {Array.from({ length: totalPages }).map(
+                                (_, pageIndex) => (
+                                  <li
+                                    key={pageIndex + 1}
+                                    className={`page-item ${
+                                      currentPage === pageIndex + 1
+                                        ? "active"
+                                        : ""
+                                    }`}
+                                  >
+                                    <a
+                                      className="page-link"
+                                      href="#!"
+                                      onClick={() =>
+                                        setCurrentPage(pageIndex + 1)
+                                      }
+                                    >
+                                      {pageIndex + 1}
+                                    </a>
+                                  </li>
+                                )
+                              )}
+
+                              {/* Nút tiếp theo */}
+                              <li
+                                className={`page-item ${
+                                  currentPage === totalPages ? "disabled" : ""
+                                }`}
+                              >
+                                <a
+                                  className="page-link"
+                                  href="#!"
+                                  onClick={() =>
+                                    setCurrentPage(currentPage + 1)
+                                  }
+                                >
+                                  <svg
+                                    className="svg-inline--fa fa-chevron-right"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    data-prefix="fas"
+                                    data-icon="chevron-right"
+                                    role="img"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 320 512"
+                                  >
+                                    <path
+                                      fill="currentColor"
+                                      d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"
+                                    />
+                                  </svg>
+                                </a>
+                              </li>
+                            </ul>
+                          </nav>
+                        </div>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+              </div>
+            </div>
+            {/* end of .container*/}
+          </section>
+        </section>
+
+        <section className="py-0 mb-9">
+          <div className="container">
+            <div className="d-flex flex-between-center mb-3">
+              <div>
+                <h3>Similar Products</h3>
+                <p className="mb-0 text-body-tertiary fw-semibold">
+                  Essential for a better life
+                </p>
+              </div>
+              <button className="btn btn-sm btn-phoenix-primary">
+                View all
+              </button>
+            </div>
+            <div className="swiper-theme-container products-slider">
+              <div
+                className="swiper theme-slider swiper-initialized swiper-horizontal swiper-backface-hidden"
+                data-swiper='{"slidesPerView":1,"spaceBetween":16,"breakpoints":{"450":{"slidesPerView":2,"spaceBetween":16},"768":{"slidesPerView":3,"spaceBetween":16},"992":{"slidesPerView":4,"spaceBetween":16},"1200":{"slidesPerView":5,"spaceBetween":16},"1540":{"slidesPerView":6,"spaceBetween":16}}}'
+              >
+                <div
+                  className="swiper-wrapper"
+                  id="swiper-wrapper-18d1b1cb4c610f964"
+                  aria-live="polite"
+                >
+                  <div
+                    className="swiper-slide swiper-slide-active"
+                    role="group"
+                    aria-label="1 / 7"
+                    style={{ width: "217.6px", marginRight: 16 }}
+                  >
+                    <div className="position-relative text-decoration-none product-card h-100">
+                      <div className="d-flex flex-column justify-content-between h-100">
+                        <div>
+                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                            <button
+                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Add to wishlist"
+                              data-bs-original-title="Add to wishlist"
+                            >
+                              <svg
+                                className="svg-inline--fa fa-heart d-block-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="fas"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                              <svg
+                                className="svg-inline--fa fa-heart d-none-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="far"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                            </button>
+                            <img className="img-fluid" src={products4} alt />
+                          </div>
+                          <a
+                            className="stretched-link"
+                            href="product-details.html"
+                          >
+                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                              Fitbit Sense Advanced Smartwatch with Tools for
+                              Heart Health, Stress Management &amp; Skin
+                              Temperature Trends Carbon/Graphite, One Size (S
+                              &amp; L Bands)
+                            </h6>
+                          </a>
+                          <p className="fs-9">
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <span className="text-body-quaternary fw-semibold ms-1">
+                              (59 people rated)
+                            </span>
+                          </p>
+                        </div>
+                        <div>
+                          <div className="d-flex align-items-center mb-1">
+                            <p className="me-2 text-body text-decoration-line-through mb-0">
+                              $49.99
+                            </p>
+                            <h3 className="text-body-emphasis mb-0">$34.99</h3>
+                          </div>
+                          <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">
+                            2 colors
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="swiper-slide swiper-slide-next"
+                    role="group"
+                    aria-label="2 / 7"
+                    style={{ width: "217.6px", marginRight: 16 }}
+                  >
+                    <div className="position-relative text-decoration-none product-card h-100">
+                      <div className="d-flex flex-column justify-content-between h-100">
+                        <div>
+                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                            <button
+                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Add to wishlist"
+                              data-bs-original-title="Add to wishlist"
+                            >
+                              <svg
+                                className="svg-inline--fa fa-heart d-block-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="fas"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                              <svg
+                                className="svg-inline--fa fa-heart d-none-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="far"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                            </button>
+                            <img className="img-fluid" src={products5} alt />
+                          </div>
+                          <a
+                            className="stretched-link"
+                            href="product-details.html"
+                          >
+                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                              Apple MacBook Pro 13 inch-M1-8/256GB-Space Gray
+                            </h6>
+                          </a>
+                          <p className="fs-9">
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <span className="text-body-quaternary fw-semibold ms-1">
+                              (13 people rated)
+                            </span>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="fs-9 text-body-highlight fw-bold mb-2">
+                            Apple care included
+                          </p>
+                          <div className="d-flex align-items-center mb-1">
+                            <p className="me-2 text-body text-decoration-line-through mb-0">
+                              $1299.00
+                            </p>
+                            <h3 className="text-body-emphasis mb-0">
+                              $1149.00
+                            </h3>
+                          </div>
+                          <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">
+                            2 colors
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="swiper-slide"
+                    role="group"
+                    aria-label="3 / 7"
+                    style={{ width: "217.6px", marginRight: 16 }}
+                  >
+                    <div className="position-relative text-decoration-none product-card h-100">
+                      <div className="d-flex flex-column justify-content-between h-100">
+                        <div>
+                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                            <button
+                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Add to wishlist"
+                              data-bs-original-title="Add to wishlist"
+                            >
+                              <svg
+                                className="svg-inline--fa fa-heart d-block-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="fas"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                              <svg
+                                className="svg-inline--fa fa-heart d-none-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="far"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                            </button>
+                            <img className="img-fluid" src={products6} alt />
+                          </div>
+                          <a
+                            className="stretched-link"
+                            href="product-details.html"
+                          >
+                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                              Razer Kraken v3 x Wired 7.1 Surroung Sound Gaming
+                              headset
+                            </h6>
+                          </a>
+                          <p className="fs-9">
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <span className="text-body-quaternary fw-semibold ms-1">
+                              (64 people rated)
+                            </span>
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="text-body-emphasis">$59.00</h3>
+                          <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">
+                            1 colors
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="swiper-slide"
+                    role="group"
+                    aria-label="4 / 7"
+                    style={{ width: "217.6px", marginRight: 16 }}
+                  >
+                    <div className="position-relative text-decoration-none product-card h-100">
+                      <div className="d-flex flex-column justify-content-between h-100">
+                        <div>
+                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                            <button
+                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Add to wishlist"
+                              data-bs-original-title="Add to wishlist"
+                            >
+                              <svg
+                                className="svg-inline--fa fa-heart d-block-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="fas"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                              <svg
+                                className="svg-inline--fa fa-heart d-none-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="far"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                            </button>
+                            <img className="img-fluid" src={products1} alt />
+                            <span className="badge text-bg-success fs-10 product-verified-badge">
+                              Verified
+                              <svg
+                                className="svg-inline--fa fa-check ms-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="fas"
+                                data-icon="check"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 448 512"
+                                data-fa-i2svg
+                              >
+                                <path
+                                  fill="currentColor"
+                                  d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
+                                />
+                              </svg>
+                              {/* <span class="fas fa-check ms-1"></span> Font Awesome fontawesome.com */}
+                            </span>
+                          </div>
+                          <a
+                            className="stretched-link"
+                            href="product-details.html"
+                          >
+                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                              iPhone 13 pro max-Pacific Blue, 128GB storage
+                            </h6>
+                          </a>
+                          <p className="fs-9">
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <span className="text-body-quaternary fw-semibold ms-1">
+                              (32 people rated)
+                            </span>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="fs-9 text-body-highlight fw-bold mb-2">
+                            Stock limited
+                          </p>
+                          <div className="d-flex align-items-center mb-1">
+                            <p className="me-2 text-body text-decoration-line-through mb-0">
+                              $899.99
+                            </p>
+                            <h3 className="text-body-emphasis mb-0">$855.00</h3>
+                          </div>
+                          <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">
+                            5 colors
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="swiper-slide"
+                    role="group"
+                    aria-label="5 / 7"
+                    style={{ width: "217.6px", marginRight: 16 }}
+                  >
+                    <div className="position-relative text-decoration-none product-card h-100">
+                      <div className="d-flex flex-column justify-content-between h-100">
+                        <div>
+                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                            <button
+                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Add to wishlist"
+                              data-bs-original-title="Add to wishlist"
+                            >
+                              <svg
+                                className="svg-inline--fa fa-heart d-block-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="fas"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                              <svg
+                                className="svg-inline--fa fa-heart d-none-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="far"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                            </button>
+                            <img className="img-fluid" src={products2} alt />
+                          </div>
+                          <a
+                            className="stretched-link"
+                            href="product-details.html"
+                          >
+                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                              Apple AirPods Pro
+                            </h6>
+                          </a>
+                          <p className="fs-9">
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <span className="text-body-quaternary fw-semibold ms-1">
+                              (39 people rated)
+                            </span>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="fs-9 text-body-highlight fw-bold mb-1">
+                            free with iPhone 5s
+                          </p>
+                          <p className="fs-9 text-body-tertiary mb-2">
+                            Ships to Canada
+                          </p>
+                          <h3 className="text-body-emphasis">$59.00</h3>
+                          <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">
+                            3 colors
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="swiper-slide"
+                    role="group"
+                    aria-label="6 / 7"
+                    style={{ width: "217.6px", marginRight: 16 }}
+                  >
+                    <div className="position-relative text-decoration-none product-card h-100">
+                      <div className="d-flex flex-column justify-content-between h-100">
+                        <div>
+                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                            <button
+                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Add to wishlist"
+                              data-bs-original-title="Add to wishlist"
+                            >
+                              <svg
+                                className="svg-inline--fa fa-heart d-block-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="fas"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                              <svg
+                                className="svg-inline--fa fa-heart d-none-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="far"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                            </button>
+                            <img className="img-fluid" src={products3} alt />
+                          </div>
+                          <a
+                            className="stretched-link"
+                            href="product-details.html"
+                          >
+                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                              Apple Magic Mouse (Wireless, Rechargable) - Silver
+                            </h6>
+                          </a>
+                          <p className="fs-9">
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <span className="text-body-quaternary fw-semibold ms-1">
+                              (6 people rated)
+                            </span>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="fs-9 text-body-highlight fw-bold mb-1">
+                            Bundle availabe
+                          </p>
+                          <p className="fs-9 text-body-tertiary mb-2">
+                            Charger not included
+                          </p>
+                          <h3 className="text-body-emphasis">$89.00</h3>
+                          <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">
+                            2 colors
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="swiper-slide"
+                    role="group"
+                    aria-label="7 / 7"
+                    style={{ width: "217.6px", marginRight: 16 }}
+                  >
+                    <div className="position-relative text-decoration-none product-card h-100">
+                      <div className="d-flex flex-column justify-content-between h-100">
+                        <div>
+                          <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                            <button
+                              className="btn btn-wish btn-wish-primary z-2 d-toggle-container"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Add to wishlist"
+                              data-bs-original-title="Add to wishlist"
+                            >
+                              <svg
+                                className="svg-inline--fa fa-heart d-block-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="fas"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="fas fa-heart d-block-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                              <svg
+                                className="svg-inline--fa fa-heart d-none-hover"
+                                data-fa-transform="down-1"
+                                aria-hidden="true"
+                                focusable="false"
+                                data-prefix="far"
+                                data-icon="heart"
+                                role="img"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                data-fa-i2svg
+                                style={{ transformOrigin: "0.5em 0.5625em" }}
+                              >
+                                <g transform="translate(256 256)">
+                                  <g transform="translate(0, 32)  scale(1, 1)  rotate(0 0 0)">
+                                    <path
+                                      fill="currentColor"
+                                      d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8v-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5v3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20c0 0-.1-.1-.1-.1c0 0 0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5v3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2v-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"
+                                      transform="translate(-256 -256)"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                              {/* <span class="far fa-heart d-none-hover" data-fa-transform="down-1"></span> Font Awesome fontawesome.com */}
+                            </button>
+                            <img className="img-fluid" src={products7} alt />
+                          </div>
+                          <a
+                            className="stretched-link"
+                            href="product-details.html"
+                          >
+                            <h6 className="mb-2 lh-sm line-clamp-3 product-name">
+                              PlayStation 5 DualSense Wireless Controller
+                            </h6>
+                          </a>
+                          <p className="fs-9">
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <svg
+                              className="svg-inline--fa fa-star text-warning"
+                              aria-hidden="true"
+                              focusable="false"
+                              data-prefix="fas"
+                              data-icon="star"
+                              role="img"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 576 512"
+                              data-fa-i2svg
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"
+                              />
+                            </svg>
+                            {/* <span class="fa fa-star text-warning"></span> Font Awesome fontawesome.com */}
+                            <span className="text-body-quaternary fw-semibold ms-1">
+                              (67 people rated)
+                            </span>
+                          </p>
+                        </div>
+                        <div>
+                          <div className="d-flex align-items-center mb-1">
+                            <p className="me-2 text-body text-decoration-line-through mb-0">
+                              $125.00
+                            </p>
+                            <h3 className="text-body-emphasis mb-0">$89.00</h3>
+                          </div>
+                          <p className="text-body-tertiary fw-semibold fs-9 lh-1 mb-0">
+                            2 colors
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span
+                  className="swiper-notification"
+                  aria-live="assertive"
+                  aria-atomic="true"
+                />
+              </div>
+              <div className="swiper-nav">
+                <div
+                  className="swiper-button-next"
+                  tabIndex={0}
+                  role="button"
+                  aria-label="Next slide"
+                  aria-controls="swiper-wrapper-18d1b1cb4c610f964"
+                  aria-disabled="false"
+                >
+                  <svg
+                    className="svg-inline--fa fa-chevron-right nav-icon"
+                    aria-hidden="true"
+                    focusable="false"
+                    data-prefix="fas"
+                    data-icon="chevron-right"
+                    role="img"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 320 512"
+                    data-fa-i2svg
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"
+                    />
+                  </svg>
+                  {/* <span class="fas fa-chevron-right nav-icon"></span> Font Awesome fontawesome.com */}
+                </div>
+                <div
+                  className="swiper-button-prev swiper-button-disabled"
+                  tabIndex={-1}
+                  role="button"
+                  aria-label="Previous slide"
+                  aria-controls="swiper-wrapper-18d1b1cb4c610f964"
+                  aria-disabled="true"
+                >
+                  <svg
+                    className="svg-inline--fa fa-chevron-left nav-icon"
+                    aria-hidden="true"
+                    focusable="false"
+                    data-prefix="fas"
+                    data-icon="chevron-left"
+                    role="img"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 320 512"
+                    data-fa-i2svg
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"
+                    />
+                  </svg>
+                  {/* <span class="fas fa-chevron-left nav-icon"></span> Font Awesome fontawesome.com */}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+          {/* end of .container*/}
+        </section>
+      </div>
     </>
   );
 };
-export default Checkout;
+export default ProductDetails;
