@@ -97,7 +97,7 @@ const listCustomer = () => {
       <div className="mb-9">
         <div className="row g-2 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0 mt-3">Danh sách khách hàng</h2>
+            <h2 className="mb-0 mt-3">Khách hàng</h2>
           </div>
           <div className="col-auto ms-auto mt-3">
             <div className="search-box">
@@ -123,28 +123,28 @@ const listCustomer = () => {
               <table className="table table-sm fs-9 mb-0">
                 <thead>
                   <tr>
-                    <th className="align-middle" style={{ width: "7%" }}>
+                    <th className="align-middle" style={{ width: "10%" }}>
                       HÌNH ẢNH
                     </th>
                     <th className="align-middle" style={{ width: "13%" }}>
                       KHÁCH HÀNG
                     </th>
-                    <th className="align-middle" style={{ width: "12%" }}>
+                    <th className="align-middle" style={{ width: "17%" }}>
                       EMAIL
                     </th>
-                    <th className="align-middle" style={{ width: "10%" }}>
+                    <th className="align-middle" style={{ width: "15%" }}>
                       SỐ ĐIỆN THOẠI
                     </th>
-                    <th className="align-middle" style={{ width: "8%" }}>
+                    <th className="align-middle" style={{ width: "12%" }}>
                       NGÀY SINH
                     </th>
                     <th className="align-middle" style={{ width: "20%" }}>
                       ĐỊA CHỈ
                     </th>
-                    <th className="align-middle" style={{ width: "10%" }}>
+                    <th className="align-middle ps-4" style={{ width: "15%" }}>
                       TRẠNG THÁI
                     </th>
-                    <th className="align-middle" style={{ width: "7%" }}>
+                    <th className="align-middle ps-5" style={{ width: "5%" }}>
                       HÀNH ĐỘNG
                     </th>
                   </tr>
@@ -192,12 +192,12 @@ const listCustomer = () => {
                       <td className="align-middle white-space-nowrap">
                         {customer.dia_chi}
                       </td>
-                      <td className="align-middle white-space-nowrap ps-5">
+                      <td className="align-middle white-space-nowrap ps-6">
                         <input
                           className="form-check-status ms-0 me-2"
                           type="checkbox"
                           id={`customer_${customer.id}`} // ID độc nhất dựa trên customer ID
-                          checked={customer.status === 1} // Nếu trạng thái là 1, checkbox sẽ bật
+                          checked={customer.trang_thai === 1} // Nếu trạng thái là 1, checkbox sẽ bật
                           onChange={(e) =>
                             handleToggleStatus(customer.id, e.target.checked)
                           } // Hàm xử lý sự kiện
@@ -206,10 +206,10 @@ const listCustomer = () => {
 
                       <td className="align-middle white-space-nowrap ps-4">
                         <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                          className="btn btn-outline-info btn-sm"
                           type="button"
                           data-bs-toggle="modal"
-                          data-bs-target="#addCustomer"
+                          data-bs-target="#detailCustomer"
                           aria-haspopup="true"
                           aria-expanded="false"
                           data-bs-reference="parent"
@@ -218,7 +218,7 @@ const listCustomer = () => {
                             setSelectedCustomer(customer);
                           }}
                         >
-                          <span className="fas fa-eye fs-10" />
+                          Xem chi tiết
                         </button>
                       </td>
                     </tr>
@@ -280,11 +280,11 @@ const listCustomer = () => {
       </div>
       <div
         className="modal fade"
-        id="addCustomer"
+        id="detailCustomer"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="addCustomer"
+        aria-labelledby="detailCustomer"
         aria-hidden="true"
       >
         <div className="modal-dialog modal-lg modal-dialog-centered">

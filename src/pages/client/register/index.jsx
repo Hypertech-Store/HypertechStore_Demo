@@ -6,13 +6,17 @@ import logo from "../../../assets/img/icons/logo1.png";
 
 const Register = () => {
   document.title = "Hypertech Store - Đăng ký";
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     ten_nguoi_dung: "",
     mat_khau: "",
     email: "",
+    trang_thai: 1, // Thêm trường trang_thai mặc định = 1
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate(); // Khởi tạo useNavigate
 
@@ -41,9 +45,10 @@ const Register = () => {
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(formData),
+              body: JSON.stringify(formData), // Gửi dữ liệu formData, bao gồm trang_thai = 1
             }
           );
+
           const data = await response.json();
 
           if (response.ok) {
@@ -51,17 +56,24 @@ const Register = () => {
             setTimeout(() => {
               // Dừng spinner sau 2s (demo)
               setLoading(false);
-            }, 5000);
+            }, 2000);
             navigate("/dang-nhap"); // Chuyển hướng sang trang đăng nhập
           } else {
-            toast.error(data.message || "Đăng ký thất bại");
+            // Kiểm tra lỗi do tài khoản đã tồn tại
+            if (data.message && data.message.includes("đã tồn tại")) {
+              toast.error("Tên người dùng hoặc email đã tồn tại!");
+            } else {
+              toast.error(data.message || "Đăng ký thất bại");
+            }
           }
+          // eslint-disable-next-line no-unused-vars
         } catch (error) {
-          toast.error(`Có lỗi xảy ra`);
+          toast.error("Có lỗi xảy ra");
         } finally {
           setIsSubmitting(false); // Đặt lại trạng thái
         }
       };
+
       registerUser();
     }
   }, [isSubmitting, formData, navigate]);
@@ -76,21 +88,23 @@ const Register = () => {
             </div>
           </a>
           <div className="text-center mb-7">
-            <h3 className="text-body-highlight">Sign Up</h3>
-            <p className="text-body-tertiary">Create your account today</p>
+            <h3 className="text-body-highlight">Đăng ký</h3>
+            <p className="text-body-tertiary">
+              Tạo tài khoản của bạn ngay hôm nay
+            </p>
           </div>
           <button className="btn btn-phoenix-secondary w-100 mb-3">
             <span className="fab fa-google text-danger me-2 fs-9" />
-            Sign up with google
+            Đăng ký với google
           </button>
           <div className="position-relative mt-4">
             <hr className="bg-body-secondary" />
-            <div className="divider-content-center">or use email</div>
+            <div className="divider-content-center">hoặc sử dụng email</div>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="mb-3 text-start">
               <label className="form-label" htmlFor="name">
-                Name
+                Tên người dùng
               </label>
               <input
                 className="form-control"
@@ -99,13 +113,13 @@ const Register = () => {
                 name="ten_nguoi_dung"
                 value={formData.ten_nguoi_dung}
                 onChange={handleChange}
-                placeholder="Name"
+                placeholder="Tên người dùng"
                 required
               />
             </div>
             <div className="mb-3 text-start">
               <label className="form-label" htmlFor="email">
-                Email address
+                Email
               </label>
               <input
                 className="form-control"
@@ -121,7 +135,7 @@ const Register = () => {
             <div className="row g-3 mb-3">
               <div className="col-sm-6">
                 <label className="form-label" htmlFor="password">
-                  Password
+                  Mật khẩu
                 </label>
                 <input
                   className="form-control"
@@ -130,19 +144,19 @@ const Register = () => {
                   name="mat_khau"
                   value={formData.mat_khau}
                   onChange={handleChange}
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   required
                 />
               </div>
               <div className="col-sm-6">
                 <label className="form-label" htmlFor="confirmPassword">
-                  Confirm Password
+                  Xác nhận mật khẩu
                 </label>
                 <input
                   className="form-control"
                   id="confirmPassword"
                   type="password"
-                  placeholder="Confirm Password"
+                  placeholder="Xác nhận mật khẩu"
                   required
                 />
               </div>
@@ -158,21 +172,17 @@ const Register = () => {
                 className="form-label fs-9 text-transform-none"
                 htmlFor="termsService"
               >
-                I accept the <a href="#!">terms </a>and{" "}
-                <a href="#!">privacy policy</a>
+                Tôi chấp nhận <a href="#!">các điều khoản </a>và{" "}
+                <a href="#!">chính sách bảo mật</a>
               </label>
             </div>
-            {errorMessage && (
-              <div className="alert alert-danger" role="alert">
-                {errorMessage}
-              </div>
-            )}
+
             <button
               className="btn btn-primary w-100 mb-3 d-flex align-items-center justify-content-center"
-              disabled={loading}
+              disabled={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? "Submitting" : "Sign up"}
+              {isSubmitting ? "Đang xử lý" : "Đăng ký"}
 
               {isSubmitting ? (
                 <HashLoader
@@ -188,7 +198,7 @@ const Register = () => {
 
             <div className="text-center">
               <a className="fs-9 fw-bold" href="/dang-nhap">
-                Sign in to an existing account
+                Bạn đã có tài khoản?
               </a>
             </div>
           </form>
