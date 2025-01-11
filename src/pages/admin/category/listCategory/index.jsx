@@ -46,20 +46,20 @@ const listCategory = () => {
     }
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    const options = {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    };
+  // const formatDate = (dateStr) => {
+  //   if (!dateStr) return "N/A";
+  //   const date = new Date(dateStr);
+  //   const options = {
+  //     day: "numeric",
+  //     month: "short",
+  //     year: "numeric",
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //     hour12: true,
+  //   };
 
-    return date.toLocaleString("en-US", options);
-  };
+  //   return date.toLocaleString("en-US", options);
+  // };
 
   const updateCategory = async () => {
     if (!categoryDetails.name || !categoryDetails.description) {
@@ -80,10 +80,10 @@ const listCategory = () => {
           prev.map((cat) =>
             cat.id === categoryId
               ? {
-                ...cat,
-                ten_danh_muc: categoryDetails.name,
-                mo_ta: categoryDetails.description,
-              }
+                  ...cat,
+                  ten_danh_muc: categoryDetails.name,
+                  mo_ta: categoryDetails.description,
+                }
               : cat
           )
         );
@@ -91,33 +91,6 @@ const listCategory = () => {
     } catch (error) {
       console.error("Lỗi khi cập nhật danh mục:", error);
       alert("Không thể cập nhật danh mục.");
-    }
-  };
-
-  // Hàm xóa danh mục
-  const deleteCategory = async (id) => {
-    // Hiển thị hộp thoại xác nhận
-    const isConfirmed = window.confirm(
-      "Bạn có chắc chắn muốn xóa danh mục này?"
-    );
-
-    if (!isConfirmed) {
-      return; // Nếu người dùng không xác nhận, không thực hiện hành động xóa
-    }
-
-    try {
-      const response = await axios.delete(
-        `http://127.0.0.1:8000/api/danh-muc/${id}`
-      );
-
-      if (response.status === 200) {
-        alert("Xóa danh mục thành công!");
-        // Loại bỏ danh mục khỏi danh sách
-        setCategories((prev) => prev.filter((cat) => cat.id !== id));
-      }
-    } catch (error) {
-      console.error("Lỗi khi xóa danh mục:", error);
-      alert("Không thể xóa danh mục.");
     }
   };
 
@@ -131,6 +104,39 @@ const listCategory = () => {
 
   const handleAddCategoryClick = () => {
     navigate("/admin/them-danh-muc"); // Navigate to the 'them-danh-muc' page
+  };
+
+  const handleToggleStatus = async (categoryId, newStatus) => {
+    try {
+      // Gửi yêu cầu PUT tới API để cập nhật trạng thái
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/danh-muc/trang-thai`,
+        {
+          danh_muc_id: categoryId, // ID quản trị viên
+          trang_thai: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
+        }
+      );
+
+      // Kiểm tra phản hồi từ server
+      if (response.data.success) {
+        // Cập nhật lại trạng thái của quản trị viên trong state ngay lập tức
+        setCategories((prevState) => {
+          return prevState.map((category) =>
+            category.id === categoryId
+              ? { ...category, trang_thai: newStatus ? 1 : 0 } // Cập nhật trạng thái thành 1 hoặc 0
+              : category
+          );
+        });
+
+        // Thông báo cập nhật thành công
+        alert(response.data.message);
+      } else {
+        alert("Cập nhật trạng thái thất bại.");
+      }
+    } catch (error) {
+      console.error("Đã xảy ra lỗi:", error);
+      alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+    }
   };
 
   return (
@@ -214,11 +220,19 @@ const listCategory = () => {
                     <th
                       className="align-middle ps-4"
                       scope="col"
-                      style={{ width: "25%" }}
+                      style={{ width: "18%" }}
                     >
                       NGÀY TẠO
                     </th>
-                    <th className="align-middle ps-4" style={{ width: "20%" }}>
+
+                    <th
+                      className="align-middle ps-4"
+                      scope="col"
+                      style={{ width: "12%" }}
+                    >
+                      TRẠNG THÁI
+                    </th>
+                    <th className="align-middle ps-5" style={{ width: "20%" }}>
                       HÀNH ĐỘNG
                     </th>
                   </tr>
@@ -239,13 +253,23 @@ const listCategory = () => {
                       <td className="time align-middle text-body-tertiary text-opacity-85 ps-4">
                         {new Date(category.created_at).toLocaleString()}
                       </td>
-
-                      <td className="align-middle white-space-nowrap">
+                      <td className="align-middle white-space-nowrap ps-7">
+                        <input
+                          className="form-check-status ms-0 me-2"
+                          type="checkbox"
+                          id={`customer_${category.id}`} // ID độc nhất dựa trên category ID
+                          checked={category.trang_thai === 1} // Nếu trạng thái là 1, checkbox sẽ bật
+                          onChange={(e) =>
+                            handleToggleStatus(category.id, e.target.checked)
+                          } // Hàm xử lý sự kiện
+                        />
+                      </td>
+                      <td className="align-middle white-space-nowrap ps-5">
                         <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                          className="btn btn-outline-warning btn-sm"
                           type="button"
                           data-bs-toggle="modal"
-                          data-bs-target="#updateCustomer"
+                          data-bs-target="#updateCate"
                           aria-haspopup="true"
                           aria-expanded="false"
                           data-bs-reference="parent"
@@ -254,14 +278,7 @@ const listCategory = () => {
                             handleEditCategory(category);
                           }}
                         >
-                          <span className="fa-solid fa-pen-to-square fs-9" />
-                        </button>
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          onClick={() => deleteCategory(category.id)}
-                        >
-                          <span className="fa-solid fa-trash fs-9" />
+                          Cập nhật
                         </button>
                       </td>
                     </tr>
@@ -300,8 +317,9 @@ const listCategory = () => {
                   ))}
                 </ul>
                 <button
-                  className={`page-link ${currentPage === totalPages ? "disabled" : ""
-                    }`}
+                  className={`page-link ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
@@ -314,11 +332,11 @@ const listCategory = () => {
       </div>
       <div
         className="modal fade"
-        id="updateCustomer"
+        id="updateCate"
         data-bs-backdrop="static"
         data-bs-keyboard="false"
         tabIndex={-1}
-        aria-labelledby="updateCustomer"
+        aria-labelledby="updateCate"
         aria-hidden="true"
       >
         <div className="modal-dialog modal-l modal-dialog-centered">

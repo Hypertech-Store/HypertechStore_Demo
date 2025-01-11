@@ -126,7 +126,7 @@ const ListProducts = () => {
     setSearchQuery(e.target.value);
   };
 
-  const [isSearching, setIsSearching] = useState(false);
+  const [isSearching] = useState(false);
 
   // Lấy sản phẩm
   useEffect(() => {
@@ -219,27 +219,6 @@ const ListProducts = () => {
     return subCategory ? subCategory.ten_danh_muc_con : "N/A";
   };
 
-  // Xóa sản phẩm
-  const handleRemove = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      try {
-        await fetch(`http://127.0.0.1:8000/api/san-pham/delete/${id}`, {
-          method: "DELETE",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        });
-        alert("Sản phẩm đã được xóa thành công.");
-        setProducts((prevProducts) =>
-          prevProducts.filter((product) => product.id !== id)
-        );
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        alert("Đã xảy ra lỗi khi xóa sản phẩm. Vui lòng thử lại.");
-      }
-    }
-  };
   const handleAddProductClick = () => {
     navigate("/admin/them-san-pham"); // Navigate to the 'thêm-san-pham' page
   };
@@ -247,6 +226,52 @@ const ListProducts = () => {
   const handleEditProductClick = (id) => {
     navigate(`/admin/sua-san-pham/${id}`);
   };
+
+  const handleToggleStatus = async (productId, newStatus) => {
+    try {
+      // Gửi yêu cầu PUT tới API
+      const response = await axios.put(
+        "http://127.0.0.1:8000/api/san-pham/trang-thai",
+        {
+          san_pham_id: productId, // ID sản phẩm
+          trang_thai_ton_kho: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
+        }
+      );
+
+      // Nếu cập nhật thành công, thay đổi trạng thái hiển thị ngay lập tức
+      if (response.data.success) {
+        setProducts((prevState) => {
+          const updateProducts = prevState.map((product) => {
+            if (product.id === productId) {
+              // Kiểm tra nếu `so_luong_ton_kho = 0`, tự động tắt trạng thái
+              const trangThaiTonKho =
+                product.so_luong_ton_kho === 0 ? 0 : newStatus ? 1 : 0;
+
+              return {
+                ...product,
+                trang_thai_ton_kho: trangThaiTonKho, // Cập nhật trạng thái tồn kho
+                status: trangThaiTonKho, // Đồng bộ trạng thái hiển thị
+              };
+            }
+            return product;
+          });
+
+          // Log dữ liệu sản phẩm đã cập nhật
+          console.log("Updated products:", updateProducts);
+
+          return updateProducts;
+        });
+
+        alert(response.data.message);
+      } else {
+        alert("Cập nhật trạng thái thất bại.");
+      }
+    } catch (error) {
+      console.error("Đã xảy ra lỗi:", error);
+      alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+    }
+  };
+
   return (
     <>
       <div className="content">
@@ -434,13 +459,14 @@ const ListProducts = () => {
                   <thead>
                     <tr>
                       <th style={{ width: "5%" }}>STT</th>
-                      <th style={{ width: "20%" }}>Hình ảnh</th>
-                      <th style={{ width: "35%" }}>Tên sản phẩm</th>
+                      <th style={{ width: "10%" }}>Hình ảnh</th>
+                      <th style={{ width: "30%" }}>Tên sản phẩm</th>
                       <th style={{ width: "10%" }}>Giá</th>
                       <th style={{ width: "10%" }}>Danh mục</th>
-                      <th style={{ width: "10%" }}>Tags</th>
-                      <th style={{ width: "10%" }}>Danh mục con</th>
+                      <th style={{ width: "6%" }}>Tags</th>
+                      <th style={{ width: "12%" }}>Danh mục con</th>
                       <th style={{ width: "10%" }}>Ngày tạo</th>
+                      <th style={{ width: "10%" }}>Trạng thái</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -475,6 +501,17 @@ const ListProducts = () => {
                         <td>
                           {new Date(product.created_at).toLocaleDateString()}
                         </td>
+                        <td className="ps-3">
+                          <input
+                            className="form-check-status ms-0 me-2"
+                            type="checkbox"
+                            id={`customer_${product.id}`} // ID độc nhất dựa trên product ID
+                            checked={product.trang_thai_ton_kho === 1} // Nếu trạng thái là 1, checkbox sẽ bật
+                            onChange={(e) =>
+                              handleToggleStatus(product.id, e.target.checked)
+                            } // Hàm xử lý sự kiện
+                          />
+                        </td>
                         <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
                           <div className="btn-reveal-trigger position-static">
                             <button
@@ -501,12 +538,6 @@ const ListProducts = () => {
                                 Chỉnh sửa
                               </a>
                               <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                onClick={() => handleRemove(product.id)}
-                              >
-                                Xóa
-                              </a>
                             </div>
                           </div>
                         </td>

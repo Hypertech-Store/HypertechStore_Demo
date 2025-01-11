@@ -131,7 +131,11 @@ const HomeClient = () => {
     axios
       .get("http://localhost:8000/api/danh-muc-con/getAll")
       .then((response) => {
-        setCategories(response.data); // Assuming the API response returns an array of categories
+        // Lọc các danh mục có trang_thai = 1
+        const filteredCategories = response.data.filter(
+          (category) => category.trang_thai === 1
+        );
+        setCategories(filteredCategories); // Cập nhật danh mục đã lọc
       })
       .catch((error) => {
         console.error("There was an error fetching the data:", error);

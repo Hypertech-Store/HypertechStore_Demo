@@ -42,7 +42,6 @@ const ListSubcategory = () => {
     };
   }, [previewImage]);
 
-
   useEffect(() => {
     // Fetch data for the current page
     axios
@@ -64,7 +63,11 @@ const ListSubcategory = () => {
         const response = await axios.get(
           "http://127.0.0.1:8000/api/danh-muc/getAll"
         );
-        setCategories(response.data);
+        const filteredCategories = response.data.filter(
+          (category) => category.trang_thai === 1
+        ); // Lọc các mục có trang_thai = 1
+        setCategories(filteredCategories); // Set các mục đã lọc vào state
+        console.log(response.data);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -203,27 +206,41 @@ const ListSubcategory = () => {
     }
   };
 
-  const deleteSubCategory = async (id) => {
-    const isConfirmed = window.confirm(
-      "Bạn có chắc chắn muốn xóa danh mục này?"
-    );
-    if (!isConfirmed) return;
-
-    try {
-      const response = await axios.delete(
-        `http://127.0.0.1:8000/api/danh-muc-con/${id}`
-      );
-      if (response.status === 200) {
-        alert("Xóa danh mục con thành công!");
-        setSubCategories((prev) => prev.filter((cat) => cat.id !== id));
-      }
-    } catch (error) {
-      console.error("Lỗi khi xóa danh mục con:", error);
-      alert("Không thể xóa danh mục con.");
-    }
-  };
   const handleAddSubClick = () => {
     navigate("/admin/them-danh-muc-con"); // Navigate to the 'thêm-san-pham' page
+  };
+
+  const handleToggleStatus = async (subCategoryId, newStatus) => {
+    try {
+      // Gửi yêu cầu PUT tới API để cập nhật trạng thái
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/danh-muc-con/trang-thai`,
+        {
+          danh_muc_con_id: subCategoryId, // ID quản trị viên
+          trang_thai: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
+        }
+      );
+
+      // Kiểm tra phản hồi từ server
+      if (response.data.success) {
+        // Cập nhật lại trạng thái của quản trị viên trong state ngay lập tức
+        setSubCategories((prevState) => {
+          return prevState.map((subCategory) =>
+            subCategory.id === subCategoryId
+              ? { ...subCategory, trang_thai: newStatus ? 1 : 0 } // Cập nhật trạng thái thành 1 hoặc 0
+              : subCategory
+          );
+        });
+
+        // Thông báo cập nhật thành công
+        alert(response.data.message);
+      } else {
+        alert("Cập nhật trạng thái thất bại.");
+      }
+    } catch (error) {
+      console.error("Đã xảy ra lỗi:", error);
+      alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+    }
   };
 
   return (
@@ -316,11 +333,21 @@ const ListSubcategory = () => {
                       <th
                         className="align-middle ps-4"
                         scope="col"
-                        style={{ width: "25%" }}
+                        style={{ width: "20%" }}
                       >
                         NGÀY TẠO
                       </th>
-                      <th className="align-middle ps-4" style={{ width: "30%" }}>
+                      <th
+                        className="align-middle ps-4"
+                        scope="col"
+                        style={{ width: "25%" }}
+                      >
+                        TRẠNG THÁI
+                      </th>
+                      <th
+                        className="align-middle ps-4"
+                        style={{ width: "30%" }}
+                      >
                         HÀNH ĐỘNG
                       </th>
                     </tr>
@@ -352,12 +379,26 @@ const ListSubcategory = () => {
                           {new Date(subCategory.created_at).toLocaleString()}
                         </td>
 
-                        <td className="align-middle white-space-nowrap">
+                        <td className="align-middle white-space-nowrap ps-7">
+                          <input
+                            className="form-check-status ms-0 me-2"
+                            type="checkbox"
+                            id={`customer_${subCategory.id}`} // ID độc nhất dựa trên subCategory ID
+                            checked={subCategory.trang_thai === 1} // Nếu trạng thái là 1, checkbox sẽ bật
+                            onChange={(e) =>
+                              handleToggleStatus(
+                                subCategory.id,
+                                e.target.checked
+                              )
+                            } // Hàm xử lý sự kiện
+                          />
+                        </td>
+                        <td className="align-middle white-space-nowrap ps-5">
                           <button
-                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
+                            className="btn btn-outline-warning btn-sm"
                             type="button"
                             data-bs-toggle="modal"
-                            data-bs-target="#updateCustomer"
+                            data-bs-target="#updateSubcate"
                             aria-haspopup="true"
                             aria-expanded="false"
                             data-bs-reference="parent"
@@ -366,14 +407,7 @@ const ListSubcategory = () => {
                               handleEditSubCategory(subCategory);
                             }}
                           >
-                            <span className="fa-solid fa-pen-to-square fs-9" />
-                          </button>
-                          <button
-                            className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                            type="button"
-                            onClick={() => deleteSubCategory(subCategory.id)}
-                          >
-                            <span className="fa-solid fa-trash fs-9" />
+                            Cập nhật
                           </button>
                         </td>
                       </tr>
@@ -405,8 +439,9 @@ const ListSubcategory = () => {
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
                         key={index + 1}
-                        className={`page-item ${currentPage === index + 1 ? "active" : ""
-                          }`}
+                        className={`page-item ${
+                          currentPage === index + 1 ? "active" : ""
+                        }`}
                       >
                         <button
                           className="page-link"
@@ -434,11 +469,11 @@ const ListSubcategory = () => {
 
         <div
           className="modal fade"
-          id="updateCustomer"
+          id="updateSubcate"
           data-bs-backdrop="static"
           data-bs-keyboard="false"
           tabIndex={-1}
-          aria-labelledby="updateCustomer"
+          aria-labelledby="updateSubcate"
           aria-hidden="true"
         >
           <div className="modal-dialog modal-l modal-dialog-centered">
@@ -516,7 +551,7 @@ const ListSubcategory = () => {
                         onChange={handleFileChange} // Call the file change handler
                       />
                       {previewImage ||
-                        (imgSubCate && imgSubCate.trim() !== "") ? (
+                      (imgSubCate && imgSubCate.trim() !== "") ? (
                         <img
                           src={previewImage || `${link}${imgSubCate}`}
                           alt="imgSubCate"

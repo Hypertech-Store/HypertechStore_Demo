@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FadeLoader } from "react-spinners"; // Thêm import FadeLoader
-
+import soldout from "../../../assets/img/e-commerce/outstock.png";
 const Shop = () => {
   document.title = "Hypertech Store - Cửa hàng";
   const baseUrl = "http://127.0.0.1:8000/storage/";
@@ -1278,6 +1278,19 @@ const Shop = () => {
                           <div className="d-flex flex-column justify-content-between h-100">
                             <div>
                               <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                                {product.trang_thai_ton_kho === 0 && (
+                                  <div className="sold-out-overlay">
+                                    {/* Bạn có thể dùng một hình ảnh biểu tượng hoặc văn bản */}
+                                    <img
+                                      src={soldout}
+                                      alt="Sold Out"
+                                      style={{
+                                        width: "90%",
+                                        objectFit: "contain",
+                                      }}
+                                    />
+                                  </div>
+                                )}
                                 {label && (
                                   <div
                                     style={{

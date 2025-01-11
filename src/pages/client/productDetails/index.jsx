@@ -13,6 +13,7 @@ import products5 from "../../../assets/img/products/3.png";
 import products6 from "../../../assets/img/products/5.png";
 import products7 from "../../../assets/img/products/6.png";
 import icon from "../../../assets/img/icons/image-icon.png";
+import soldout from "../../../assets/img/e-commerce/outstock.png";
 
 const ProductDetails = () => {
   const { search } = useLocation();
@@ -23,6 +24,7 @@ const ProductDetails = () => {
   const [productData, setProductData] = useState(null);
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean); // Tách các phần của URL
+  const [bestSellingProducts, setBestSellingProducts] = useState([]);
 
   // Tiêu đề cho từng phần của URL
   const breadcrumbTitles = {
@@ -239,6 +241,7 @@ const ProductDetails = () => {
         const data = await response.json();
         console.log("Product data:", data);
         setProductData(data);
+        console.log(productData?.bestSellingProducts);
 
         setNgayKetThucSale(data.sale?.ngay_ket_thuc_sale || null);
 
@@ -431,11 +434,18 @@ const ProductDetails = () => {
     });
 
     if (selectedVariant) {
-      const stock = selectedVariant.so_luong_kho || 0;
+      const stockQuantity = selectedVariant.so_luong_kho || 0; // Kiểm tra số lượng kho
+      const stockStatus = selectedVariant.trang_thai_ton_kho || 0; // Kiểm tra trạng thái tồn kho
 
-      if (stock === 0) {
-        // Nếu sản phẩm hết hàng
+      // Kiểm tra nếu biến thể sản phẩm hết hàng
+      if (stockQuantity === 0) {
         toast.error("Sản phẩm biến thể này đã hết hàng.");
+        return;
+      }
+
+      // Kiểm tra nếu sản phẩm hết hàng
+      if (stockStatus === 0) {
+        toast.error("Sản phẩm này đã hết hàng.");
         return;
       }
 
@@ -669,6 +679,20 @@ const ProductDetails = () => {
                           data-thumb-target="swiper-products-thumb"
                           data-products-swiper='{"slidesPerView":1,"spaceBetween":16,"thumbsEl":".swiper-products-thumb"}'
                         >
+                          {productData?.sanPham?.trang_thai_ton_kho === 0 && (
+                            <div className="sold-out-overlay">
+                              {/* Bạn có thể dùng một hình ảnh biểu tượng hoặc văn bản */}
+                              <img
+                                src={soldout}
+                                alt="Sold Out"
+                                style={{
+                                  width: "90%",
+                                  objectFit: "contain",
+                                }}
+                              />
+                            </div>
+                          )}
+
                           <div
                             className="swiper-wrapper"
                             id="swiper-wrapper-25b87b05eda6d6e9"
@@ -848,14 +872,26 @@ const ProductDetails = () => {
                       <h3 className="mb-3 lh-sm">
                         {productData?.sanPham?.ten_san_pham}
                       </h3>
-                      <div className="d-flex flex-wrap align-items-start mb-3">
-                        <span className="badge text-bg-success fs-9 rounded-pill me-2 fw-semibold">
-                          #1 Best seller
-                        </span>
-                        <a className="fw-semibold" href="#!">
-                          in Phoenix sell analytics 2021
-                        </a>
-                      </div>
+                      {productData?.bestSellingProducts?.map((product) => {
+                        // Kiểm tra product.id với sanPham.id
+                        if (
+                          product.id === productData?.sanPham?.id &&
+                          product.top_bestseller
+                        ) {
+                          return (
+                            <div
+                              className="d-flex flex-wrap align-items-start mb-3"
+                              key={product.id}
+                            >
+                              <span className="badge text-bg-success fs-9 rounded-pill me-2 fw-semibold">
+                                #{product.top_bestseller} Sản phẩm bán chạy
+                              </span>
+                            </div>
+                          );
+                        }
+                        return null; // Không hiển thị gì nếu id không khớp
+                      })}
+
                       <div className="d-flex flex-wrap align-items-center">
                         {productData?.sale_theo_phan_tram ? (
                           <>
@@ -906,10 +942,7 @@ const ProductDetails = () => {
                         )}
                       </div>
 
-                      <p className="text-success fw-semibold fs-7 mb-2">
-                        In stock
-                      </p>
-                      <p className="mb-2 text-body-secondary">
+                      <p className="mb-2 text-body-secondary mt-2">
                         {productData?.sanPham?.mo_ta}
 
                         {/* <a className="fw-bold" href="#!">
