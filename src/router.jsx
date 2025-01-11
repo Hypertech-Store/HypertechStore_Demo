@@ -81,7 +81,7 @@ const Router = () => {
             <Route path="danh-sach-khach-hang" element={<ListCustomer />} />
             <Route path="danh-sach-quan-tri" element={<ListAdmin />} />
             <Route path="don-hang" element={<Orders />} />
-            <Route path="chi-tiet-don-hang" element={<OrderDetail />} />
+            <Route path="chi-tiet-don-hang/:id" element={<OrderDetail />} />
             <Route path="khuyen-mai" element={<Deals />} />
             <Route path="tin-nhan" element={<Chat />} />
             <Route path="hinh-thuc-van-chuyen" element={<Transport />} />

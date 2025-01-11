@@ -36958,6 +36958,17 @@ html:not(.navbar-vertical-collapsed)
   --phoenix-badge-color: var(--phoenix-dark-text-emphasis);
   --phoenix-badge-border-color: var(--phoenix-dark-border-subtle);
 }
+
+.badge-phoenix-warning-light {
+  background-color: #f9e79f; /* Vàng nhạt */
+  color: #856404;
+}
+
+.badge-phoenix-success-light {
+  background-color: #c3e6cb; /* Xanh nhạt thành công */
+  color: #155724;
+}
+
 .badge-phoenix-primary[href]:hover,
 .badge-phoenix-primary[href]:focus {
   color: #85a9ff;
