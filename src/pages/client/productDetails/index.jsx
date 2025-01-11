@@ -434,8 +434,11 @@ const ProductDetails = () => {
     });
 
     if (selectedVariant) {
+      // Lấy so_luong_kho từ biến thể sản phẩm
       const stockQuantity = selectedVariant.so_luong_kho || 0; // Kiểm tra số lượng kho
-      const stockStatus = selectedVariant.trang_thai_ton_kho || 0; // Kiểm tra trạng thái tồn kho
+
+      // Kiểm tra trang_thai_ton_kho từ sanPham
+      const stockStatus = productData?.sanPham?.trang_thai_ton_kho || 0; // Kiểm tra trạng thái tồn kho
 
       // Kiểm tra nếu biến thể sản phẩm hết hàng
       if (stockQuantity === 0) {

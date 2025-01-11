@@ -229,39 +229,36 @@ const ListProducts = () => {
 
   const handleToggleStatus = async (productId, newStatus) => {
     try {
-      // Gửi yêu cầu PUT tới API
+      setProducts((prevState) => {
+        const updateProducts = prevState.map((product) => {
+          if (product.id === productId) {
+            // Logic to automatically set trang_thai_ton_kho based on so_luong_ton_kho
+            const trangThaiTonKho =
+              product.so_luong_ton_kho === 0 ? 0 : newStatus ? 1 : 0;
+
+            return {
+              ...product,
+              trang_thai_ton_kho: trangThaiTonKho, // Ensure `trang_thai_ton_kho` is synced with the quantity
+              status: trangThaiTonKho, // Ensure status is also updated for the checkbox UI
+            };
+          }
+          return product;
+        });
+
+        return updateProducts;
+      });
+
+      // Gửi yêu cầu PUT tới API để cập nhật trạng thái tồn kho
       const response = await axios.put(
         "http://127.0.0.1:8000/api/san-pham/trang-thai",
         {
           san_pham_id: productId, // ID sản phẩm
-          trang_thai_ton_kho: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
+          trang_thai_ton_kho: newStatus ? 1 : 0, // Cập nhật trang thái tồn kho theo trạng thái checkbox
         }
       );
 
-      // Nếu cập nhật thành công, thay đổi trạng thái hiển thị ngay lập tức
+      // Nếu cập nhật thành công, thông báo cho người dùng
       if (response.data.success) {
-        setProducts((prevState) => {
-          const updateProducts = prevState.map((product) => {
-            if (product.id === productId) {
-              // Kiểm tra nếu `so_luong_ton_kho = 0`, tự động tắt trạng thái
-              const trangThaiTonKho =
-                product.so_luong_ton_kho === 0 ? 0 : newStatus ? 1 : 0;
-
-              return {
-                ...product,
-                trang_thai_ton_kho: trangThaiTonKho, // Cập nhật trạng thái tồn kho
-                status: trangThaiTonKho, // Đồng bộ trạng thái hiển thị
-              };
-            }
-            return product;
-          });
-
-          // Log dữ liệu sản phẩm đã cập nhật
-          console.log("Updated products:", updateProducts);
-
-          return updateProducts;
-        });
-
         alert(response.data.message);
       } else {
         alert("Cập nhật trạng thái thất bại.");
@@ -505,13 +502,15 @@ const ListProducts = () => {
                           <input
                             className="form-check-status ms-0 me-2"
                             type="checkbox"
-                            id={`customer_${product.id}`} // ID độc nhất dựa trên product ID
-                            checked={product.trang_thai_ton_kho === 1} // Nếu trạng thái là 1, checkbox sẽ bật
-                            onChange={(e) =>
-                              handleToggleStatus(product.id, e.target.checked)
-                            } // Hàm xử lý sự kiện
+                            id={`customer_${product.id}`}
+                            checked={product.trang_thai_ton_kho === 1} // If trang_thai_ton_kho is 1, checkbox will be checked
+                            onChange={
+                              (e) =>
+                                handleToggleStatus(product.id, e.target.checked) // Call handleToggleStatus on toggle
+                            }
                           />
                         </td>
+
                         <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
                           <div className="btn-reveal-trigger position-static">
                             <button
