@@ -273,7 +273,49 @@ const OrderDetails = () => {
             </div>
           </div>
         </div>
-
+      </div>
+      {/* Thẻ card chứa thông tin đơn hàng */}
+      <div className="card mx-n4 mx-lg-n6 mb-5" style={{ borderRadius: "0" }}>
+        <div className="card-header">
+          <h3 style={{ fontSize: "20px" }}>Chi tiết đơn hàng</h3>
+        </div>
+        <div className="card-body" style={{ fontSize: "15px" }}>
+          <div className="row">
+            <div className="col-md-6">
+              <p>
+                <strong>Mã đơn hàng:</strong> 46766B6086
+              </p>
+              <p>
+                <strong>Khách hàng ID:</strong> 26
+              </p>
+              <p>
+                <strong>Phương thức thanh toán:</strong> Thanh toán bằng thẻ tín
+                dụng
+              </p>
+              <p>
+                <strong>Hình thức vận chuyển:</strong> Giao hàng tận nơi
+              </p>
+              <p>
+                <strong>Địa chỉ giao hàng:</strong> 123 Main Street, Hanoi
+              </p>
+            </div>
+            <div className="col-md-6">
+              <p>
+                <strong>Trạng thái đơn hàng:</strong> Đang chờ xử lý
+              </p>
+              <p>
+                <strong>Mã giảm giá:</strong> #D1GJHSSM1
+              </p>
+              <p>
+                <strong>Tổng tiền:</strong> 980000.00 VND
+              </p>
+              <p>
+                <strong>Giảm giá:</strong> 10%
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
         {/* Thẻ card chứa thông tin đơn hàng */}
         <div className="card mx-n4 mx-lg-n6 mb-5" style={{ borderRadius: "0" }}>
           <div className="card-header">
