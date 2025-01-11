@@ -84,7 +84,7 @@ function Profile() {
           const minutes = Math.floor(timeDifference / 60000); // thời gian tính theo phút
           if (minutes < 60) {
             timeAgo = `${minutes} phút trước`;
-          } else {  
+          } else {
             const hours = Math.floor(minutes / 60);
             if (hours < 24) {
               timeAgo = `${hours} giờ trước`;
@@ -276,7 +276,7 @@ function Profile() {
       .then((response) => {
         console.log(response);
         setTotalReview(response.data.data.total);
-        
+
         setReviews(response.data.data.data); // Dữ liệu của trang hiện tại
         setTotalReviewPages(response.data.data.last_page); // Tổng số trang
       })
@@ -370,6 +370,55 @@ function Profile() {
       }));
     }
   };
+
+  const handleCancelOrder = (orderId, currentStatusId) => {
+    const newStatusId = 2; // Trạng thái "Đã hủy"
+  
+    if (currentStatusId !== 1) {
+      alert("Chỉ có thể hủy đơn hàng khi ở trạng thái mới.");
+      return;
+    }
+  
+    // Yêu cầu nhập lý do hủy
+    const reason = prompt("Vui lòng nhập lý do hủy đơn hàng:");
+    if (!reason) {
+      alert("Lý do hủy không được để trống.");
+      return;
+    }
+  
+    // Đẩy lý do hủy lên request
+    fetch(`http://127.0.0.1:8000/api/don-hang/update/${orderId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        trang_thai_don_hang_id: newStatusId,
+        ly_do_huy_don: reason,
+        nguoi_huy: "client_" + userId,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        alert("Đơn hàng đã được hủy.");
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === orderId
+              ? {
+                  ...order,
+                  trang_thai_don_hang_id: newStatusId,
+                  trang_thai_don_hang: getStatusName(newStatusId),
+                  ly_do_huy_don: reason,
+                  nguoi_huy: "client_" + userId,
+                }
+              : order
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Lỗi khi cập nhật trạng thái:", error);
+        alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+      });
+  };
+  
 
   // Hàm để lấy class theo trạng thái đơn hàng
   function getBadgeClass(statusId) {
@@ -898,45 +947,6 @@ function Profile() {
                               order.tong_tien
                             ) + " VNĐ"}
                           </td>
-
-                          {/* <td className="details align-middle text-end white-space-nowrap py-2">
-                            <button
-                              className="btn btn-sm btn-info"
-                              data-bs-toggle="collapse"
-                              data-bs-target={`#orderDetails${order.id}`}
-                              aria-expanded="false"
-                              aria-controls={`orderDetails${order.id}`}
-                            >
-                              Xem chi tiết
-                            </button>
-                            <div
-                              className="collapse"
-                              id={`orderDetails${order.id}`}
-                            >
-                              <div className="mt-2">
-                                {order.chi_tiet_don_hangs.map((detail) => (
-                                  <div key={detail.id}>
-                                    <p>
-                                      <strong>
-                                        {detail.san_pham.ten_san_pham}
-                                      </strong>
-                                    </p>
-                                    <ul>
-                                      {detail.thuoc_tinh.map(
-                                        (attribute, index) => (
-                                          <li key={index}>
-                                            {attribute.ten_gia_tri}
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                    <p>Số lượng: {detail.so_luong}</p>
-                                    <p>Giá: {detail.gia}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </td> */}
                           <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
                             <div className="btn-reveal-trigger position-static">
                               <button
@@ -961,16 +971,22 @@ function Profile() {
                                 <a className="dropdown-item" href="#!">
                                   Trạng thái
                                 </a>
-                                <div className="dropdown-divider" />
-                                <a
-                                  className="dropdown-item text-danger"
-                                  href="#!"
-                                >
-                                  Hủy đơn
-                                </a>
+                                {order.trang_thai_don_hang_id === 1 && (
+                                    <>
+                                      <div className="dropdown-divider" />
+                                      <a
+                                        className="dropdown-item text-danger"
+                                        href="#!"
+                                        onClick={() => handleCancelOrder(order.id, order.trang_thai_don_hang_id)}
+                                      >
+                                        Hủy đơn
+                                      </a>
+                                    </>
+                                  )}
                               </div>
                             </div>
                           </td>
+
                         </tr>
                       ))}
                     </tbody>
