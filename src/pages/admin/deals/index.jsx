@@ -266,7 +266,7 @@ const Deals = () => {
                       scope="col"
                       style={{ width: "5%" }}
                     >
-                      HÀNH ĐỘNG
+                      TRẠNG THÁI
                     </th>
                   </tr>
                 </thead>

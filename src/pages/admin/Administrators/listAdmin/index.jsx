@@ -30,7 +30,6 @@ const listAdmin = () => {
   const [imagePreview, setImagePreview] = useState("");
   const [image, setImage] = useState(""); // If you allow image updates
 
-
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [adminPerPage, setAdminPerPage] = useState(10);
@@ -55,7 +54,6 @@ const listAdmin = () => {
       setCurrentPage(page);
     }
   };
-
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -131,7 +129,6 @@ const listAdmin = () => {
     return true;
   };
 
-
   const handleSubmit = async () => {
     if (!validateTenDangNhap()) return;
     if (!validateMatKhau()) return;
@@ -175,7 +172,6 @@ const listAdmin = () => {
       );
       console.log(response);
 
-
       const data = await response.json();
       if (response.ok) {
         alert("Thêm thành công!");
@@ -206,7 +202,6 @@ const listAdmin = () => {
       setImage(file); // Lưu file ảnh vào state để gửi lên server
     }
   };
-
 
   const handleEditClick = async (id) => {
     console.log("Edit button clicked, admin ID:", id); // Log when the edit button is clicked
@@ -262,17 +257,20 @@ const listAdmin = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/quan-tri-viens/update/${adminId}`, {
-        method: "POST", // Laravel Form Method Spoofing sử dụng POST với `_method`
-        headers: {
-          Accept: "application/json",
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/quan-tri-viens/update/${adminId}`,
+        {
+          method: "POST", // Laravel Form Method Spoofing sử dụng POST với `_method`
+          headers: {
+            Accept: "application/json",
+          },
+          body: formData,
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        
+
         axios
           .get(
             `http://127.0.0.1:8000/api/quan-tri-viens/getAll?page=${currentPage}&limit=${adminPerPage}`
@@ -299,7 +297,6 @@ const listAdmin = () => {
       setIsUpdating(false);
     }
   };
-
 
   const handleDelete = async (id) => {
     const confirmation = window.confirm("Bạn có chắc chắn muốn xóa?");
@@ -344,7 +341,7 @@ const listAdmin = () => {
         </ol>
       </nav>
       <div className="pb-6">
-        <h2 className="mb-4">Danh sách admin</h2>
+        <h2 className="mb-4">Quản trị viên</h2>
         <div
           id="lealsTable"
           data-list='{"valueNames":["name","email","phone","contact","company","date"],"page":10,"pagination":true}'
@@ -441,9 +438,7 @@ const listAdmin = () => {
                     >
                       NGÀY TẠO
                     </th> */}
-                    <th className="align-middle">
-                      HÀNH ĐỘNG
-                    </th>
+                    <th className="align-middle">HÀNH ĐỘNG</th>
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
@@ -546,8 +541,9 @@ const listAdmin = () => {
                 {Array.from({ length: totalPages }, (_, index) => (
                   <li
                     key={index + 1}
-                    className={`page-item ${currentPage === index + 1 ? "active" : ""
-                      }`}
+                    className={`page-item ${
+                      currentPage === index + 1 ? "active" : ""
+                    }`}
                   >
                     <button
                       className="page-link"
