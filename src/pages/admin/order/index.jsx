@@ -68,70 +68,32 @@ const Order = () => {
       case 1:
         return "badge-phoenix-warning"; // Chờ xác nhận
       case 2:
-        return "badge-phoenix-info"; // Chờ lấy hàng
+        return "badge-phoenix-danger"; // Đã hủy
       case 3:
-        return "badge-phoenix-primary"; // Chờ giao hàng
+        return "badge-phoenix-info"; // Đang lấy hàng
       case 4:
-        return "badge-phoenix-secondary"; // Đang vận chuyển
+        return "badge-phoenix-primary"; // Chờ giao hàng
       case 5:
+        return "badge-phoenix-secondary"; // Đang vận chuyển
+      case 6:
         return "badge-phoenix-success"; // Đã giao hàng
-
+      case 7:
+        return "badge-phoenix-dark"; // Đã hoàn thành
+      case 8:
+        return "badge-phoenix-warning-light"; // Hoàn trả hàng
+      case 9:
+        return "badge-phoenix-success-light"; // Trả hàng thành công
       default:
         return "badge-phoenix-light"; // Mặc định
     }
   }
 
-  // Hàm xử lý khi thay đổi trạng thái
-  function handleChangeStatus(orderId, newStatusId) {
-    console.log("New Status ID:", newStatusId);
 
-    // Tiến hành cập nhật trạng thái cho đơn hàng
-    fetch(`http://127.0.0.1:8000/api/don-hang/update/${orderId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ trang_thai_don_hang_id: newStatusId }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Lỗi HTTP: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Response Data:", data);
-
-        // Kiểm tra dữ liệu trả về từ API và so với trạng thái mong muốn
-        if (data.data && data.data.trang_thai_don_hang_id === newStatusId) {
-          alert("Trạng thái đã được cập nhật!");
-
-          // Cập nhật trạng thái cho đơn hàng trong state
-          setOrders((prevOrders) =>
-            prevOrders.map((order) =>
-              order.id === orderId
-                ? {
-                    ...order,
-                    trang_thai_don_hang_id: newStatusId,
-                    trang_thai_don_hang: getStatusName(newStatusId), // Cập nhật tên trạng thái
-                  }
-                : order
-            )
-          );
-        } else {
-          alert("Cập nhật trạng thái thất bại.");
-        }
-      })
-      .catch((error) => {
-        console.error("Lỗi cập nhật trạng thái:", error);
-        alert("Đã xảy ra lỗi, vui lòng thử lại.");
-      });
-  }
-
-  const handleViewDetail = () => {
+  const handleViewDetail = (order_id) => {
     // Chuyển trang đến 'admin/chi-tiet-don-hang'
-    window.location.href = "/admin/chi-tiet-don-hang";
+    window.location.href = `/admin/chi-tiet-don-hang/${order_id}`;
   };
+
 
   return (
     <div className="content">
@@ -279,54 +241,7 @@ const Order = () => {
                           >
                             {order.trang_thai_don_hang}
                           </span>
-                          {/* Nút chỉnh sửa trạng thái */}
-                          <button
-                            className="btn btn-outline-primary btn-sm ms-2"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                            title="Cập nhật trạng thái"
-                            style={{
-                              padding: "0.25rem 0.5rem",
-                              fontSize: "0.75rem",
-                              borderRadius: "0.2rem",
-                            }}
-                          >
-                            <i className="fas fa-sync-alt" />
-                          </button>
-                          {/* Dropdown danh sách trạng thái */}
-
-                          <ul className="dropdown-menu shadow">
-                            {orderStatusList.length > 0 ? (
-                              orderStatusList.map((status) => (
-                                <li key={status.id}>
-                                  <button
-                                    className="dropdown-item"
-                                    type="button"
-                                    onClick={() =>
-                                      handleChangeStatus(order.id, status.id)
-                                    }
-                                    style={{
-                                      color:
-                                        order.trang_thai_don_hang_id ===
-                                        status.id
-                                          ? "#007bff"
-                                          : "inherit",
-                                      fontWeight:
-                                        order.trang_thai_don_hang_id ===
-                                        status.id
-                                          ? "bold"
-                                          : "normal",
-                                    }}
-                                  >
-                                    {status.ten_trang_thai}
-                                  </button>
-                                </li>
-                              ))
-                            ) : (
-                              <li>Không có trạng thái</li>
-                            )}
-                          </ul>
+                
                         </div>
                       </td>
                       <td className="order align-middle white-space-nowrap py-2 ps-1">
@@ -348,11 +263,12 @@ const Order = () => {
                         <button
                           className="btn btn-outline-info btn-sm"
                           type="button"
-                          onClick={handleViewDetail} // Gọi hàm chuyển trang
+                          onClick={() => handleViewDetail(order.id)} // Thêm arrow function để gọi hàm đúng cách
                         >
                           Xem chi tiết
                         </button>
                       </td>
+
                     </tr>
                   ))}
                 </tbody>
@@ -368,9 +284,8 @@ const Order = () => {
 
               <div className="col-auto d-flex">
                 <button
-                  className={`page-link ${
-                    currentOrderPage === 1 ? "disabled" : ""
-                  }`}
+                  className={`page-link ${currentOrderPage === 1 ? "disabled" : ""
+                    }`}
                   data-list-pagination="prev"
                   onClick={() => handleOrderPageChange(currentOrderPage - 1)}
                   disabled={currentOrderPage === 1}
@@ -398,11 +313,10 @@ const Order = () => {
                   )}
                 </ul>
                 <button
-                  className={`page-link ${
-                    currentOrderPage === Math.ceil(totalOrders / ordersPerPage)
-                      ? "disabled"
-                      : ""
-                  }`}
+                  className={`page-link ${currentOrderPage === Math.ceil(totalOrders / ordersPerPage)
+                    ? "disabled"
+                    : ""
+                    }`}
                   data-list-pagination="next"
                   onClick={() => handleOrderPageChange(currentOrderPage + 1)}
                   disabled={
