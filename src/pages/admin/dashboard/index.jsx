@@ -774,18 +774,23 @@ const Dashboard = () => {
                         </td>
                         <td className="align-middle white-space-nowrap text-end pe-0">
                           <div>
-                            <button
-                              className="btn btn-sm btn-phoenix-secondary me-1 fs-10"
-                              onClick={() => handleUpdateStatus(review, 1)}
-                            >
-                              <span className="fas fa-check" />
-                            </button>
-                            <button
-                              className="btn btn-sm btn-phoenix-secondary fs-10"
-                              onClick={() => handleUpdateStatus(review, 2)}
-                            >
-                              <span className="fas fa-trash" />
-                            </button>
+                            {/* Chỉ hiển thị các nút khi trạng thái là "Chưa duyệt" */}
+                            {review.trang_thai === 0 && (
+                              <>
+                                <button
+                                  className="btn btn-sm btn-phoenix-secondary me-1 fs-10"
+                                  onClick={() => handleUpdateStatus(review, 1)}
+                                >
+                                  <span className="fas fa-check" />
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-phoenix-secondary fs-10"
+                                  onClick={() => handleUpdateStatus(review, 2)}
+                                >
+                                  <span className="fas fa-trash" />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -852,28 +857,11 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis pt-6 pb-9 border-top">
-          <div className="row g-6">
-            <div className="col-12 col-xl-12">
-              <div>
-                <h3>Tỷ lệ khách hàng quay lại</h3>
-                <p className="mb-1 text-body-tertiary">
-                  Tỷ lệ khách hàng quay lại cửa hàng của bạn theo thời gian
-                </p>
-              </div>
-              <div
-                className="echart-returning-customer"
-                style={{ height: 300 }}
-              />
-            </div>
-          </div>
-        </div>
-
         <footer className="footer position-absolute">
           <div className="row g-0 justify-content-between align-items-center h-100">
             <div className="col-12 col-sm-auto text-center">
               <p className="mb-0 mt-2 mt-sm-0 text-body">
-                Thank you for creating with Phoenix
+                Cảm ơn bạn đã đến với Hypertech Store
                 <span className="d-none d-sm-inline-block" />
                 <span className="d-none d-sm-inline-block mx-1">|</span>
                 <br className="d-sm-none" />
