@@ -531,7 +531,7 @@ const listAdmin = () => {
                       </td>
                       <td className="align-middle white-space-nowrap">
                         <button
-                          className="btn btn-outline-warning"
+                          className="btn btn-outline-warning btn-sm"
                           type="button"
                           data-bs-toggle="modal"
                           data-bs-target="#editAdmin"

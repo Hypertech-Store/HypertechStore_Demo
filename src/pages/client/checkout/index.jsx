@@ -118,7 +118,11 @@ const Checkout = () => {
     // Fetch data from the API
     fetch("http://127.0.0.1:8000/api/get-all-hinh-thuc-van-chuyen")
       .then((response) => response.json())
-      .then((data) => setShippingOptions(data))
+      .then((data) => {
+        // Filter the shipping methods to show only those with trang_thai === 1
+        const filteredData = data.filter((method) => method.trang_thai === 1);
+        setShippingOptions(filteredData); // Set the filtered data
+      })
       .catch((error) => console.error("Error fetching shipping data:", error));
   }, []);
 
@@ -252,7 +256,13 @@ const Checkout = () => {
     // Fetching data from the API
     fetch("http://127.0.0.1:8000/api/phuong-thuc-thanh-toan")
       .then((response) => response.json())
-      .then((data) => setPaymentMethods(data))
+      .then((data) => {
+        // Filter to show only methods with trang_thai === 1 (active)
+        const filteredPaymentMethods = data.filter(
+          (method) => method.trang_thai === 1
+        );
+        setPaymentMethods(filteredPaymentMethods); // Set the filtered data to state
+      })
       .catch((error) =>
         console.error("Error fetching payment methods:", error)
       );
