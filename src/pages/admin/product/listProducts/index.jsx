@@ -21,7 +21,7 @@ const ListProducts = () => {
   const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  // const [selectedCategory, setSelectedCategory] = useState("");
 
   const productsPerPage = 10; // Số sản phẩm trên mỗi trang
   const link = "http://127.0.0.1:8000/storage/";
@@ -108,13 +108,12 @@ const ListProducts = () => {
     }
   }, [selectedCategory2]);
 
-
-  const [selectedSubCategory2, setSelectedSubCategory2] = useState('');
+  const [selectedSubCategory2, setSelectedSubCategory2] = useState("");
 
   // Hàm thay đổi danh mục
   const handleCategoryChange = (e) => {
     setSelectedCategory2(e.target.value);
-    setSelectedSubCategory2(''); // Reset danh mục con khi thay đổi danh mục
+    setSelectedSubCategory2(""); // Reset danh mục con khi thay đổi danh mục
   };
 
   // Hàm thay đổi danh mục con
@@ -128,7 +127,6 @@ const ListProducts = () => {
   };
 
   const [isSearching, setIsSearching] = useState(false);
-
 
   // Lấy sản phẩm
   useEffect(() => {
@@ -154,8 +152,6 @@ const ListProducts = () => {
     }
   }, [isSearching, currentPage]);
 
-
-
   const totalPages = Math.ceil(totalProducts / productsPerPage); // Tính tổng số trang
 
   const goToPage = (pageNumber) => {
@@ -167,24 +163,45 @@ const ListProducts = () => {
     fetchSubCategories();
   }, []);
 
-  const handleSearchSubmit = async () => {
+  const handleProductSubmit = async (type) => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/san-pham/tim-kiem', {
-        params: {
-          searchQuery,
-          categoryId: selectedCategory2 || "",
-          subCategoryId: selectedSubCategory2 || "",
-          page: currentPage, // You can change this based on the pagination logic
-          number_row: 10, // Adjust the number of rows per page
-        },
-      });
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/san-pham/tim-kiem",
+        {
+          params: {
+            searchQuery,
+            categoryId: selectedCategory2 || "",
+            subCategoryId: selectedSubCategory2 || "",
+            page: currentPage, // You can change this based on the pagination logic
+            number_row: 10, // Adjust the number of rows per page
+          },
+        }
+      );
+
       console.log(response);
 
       setProducts(response.data.data);
       setTotalProducts(response.data.total);
+
+      // Additional handling based on type, like opening a modal after filter
+      if (type === "filter") {
+        // You could trigger modal close or reset states here after filter submission
+        // Example: close modal if 'filter' type was triggered
+        // closeModal();
+      }
     } catch (error) {
       console.error("Error fetching products", error);
     }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    handleProductSubmit("search");
+  };
+
+  const handleFilterSubmit = (e) => {
+    e.preventDefault();
+    handleProductSubmit("filter");
   };
 
   // Lấy tên danh mục theo ID
@@ -244,6 +261,7 @@ const ListProducts = () => {
             </li>
           </ol>
         </nav>
+
         <div className="mb-9">
           <div className="row g-3 mb-4">
             <div className="col-auto">
@@ -255,68 +273,161 @@ const ListProducts = () => {
             id="products"
             data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
           >
-            <div className="mb-4">
-              <div className="d-flex flex-wrap gap-3">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSearchSubmit();
-                  }}
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    alignItems: "center"
-                  }}
-                >
-                  <input
-                    className="form-control"
-                    type="search"
-                    placeholder="Tìm kiếm sản phẩm"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                  />
-
-                  <select
-                    className="form-select"
-                    value={selectedCategory2}
-                    onChange={handleCategoryChange}
-                  >
-                    <option value="">Chọn danh mục...</option>
-                    {categories2.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.ten_danh_muc}
-                      </option>
-                    ))}
-                  </select>
-
-                  <select
-                    className="form-select"
-                    value={selectedSubCategory2}
-                    onChange={handleSubCategoryChange}
-                  >
-                    <option value="">Chọn danh mục con...</option>
-                    {subCategories2.map((subCategory) => (
-                      <option key={subCategory.id} value={subCategory.id}>
-                        {subCategory.ten_danh_muc_con}
-                      </option>
-                    ))}
-                  </select>
-
-                  <button type="submit" className="btn btn-primary" onClick={handleSearchSubmit}>Tìm kiếm</button>
-                </form>
-
-                <div className="ms-xxl-auto ms-auto">
+            <div className="row g-3 justify-content-between mb-4">
+              <div className="col-auto">
+                <div className="d-md-flex justify-content-between">
+                  <div>
+                    <button
+                      className="btn btn-primary me-4"
+                      onClick={handleAddProductClick}
+                    >
+                      <span className="fas fa-plus me-2" />
+                      Thêm sản phẩm
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="col-auto">
+                <div className="d-flex">
+                  <div className="search-box me-2">
+                    <form
+                      className="position-relative"
+                      onSubmit={handleSearchSubmit}
+                    >
+                      <input
+                        className="form-control search-input search"
+                        type="search"
+                        placeholder="Tìm kiếm sản phẩm"
+                        aria-label="Search"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                      />
+                      <span className="fas fa-search search-box-icon" />
+                    </form>
+                  </div>
+                  {/* <div className="flatpickr-input-container me-2">
+                    <input
+                      className="form-control ps-6 datetimepicker"
+                      id="datepicker"
+                      type="date"
+                      data-options='{"dateFormat":"M j, Y","disableMobile":true,"defaultDate":"Mar 1, 2022"}'
+                    />
+                    <span className="uil uil-calendar-alt flatpickr-icon text-body-tertiary" />
+                  </div> */}
                   <button
-                    className="btn btn-primary"
-                    onClick={handleAddProductClick}
-                    id="addBtn"
+                    className="btn px-3 btn-phoenix-secondary"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#filterModal"
+                    data-boundary="window"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    data-bs-reference="parent"
                   >
-                    <span className="fas fa-plus me-2" />
-                    Thêm sản phẩm
+                    <span
+                      className="fa-solid fa-filter text-primary"
+                      data-fa-transform="down-3"
+                    />
                   </button>
+                  <div className="modal fade" id="filterModal" tabIndex={-1}>
+                    <div className="modal-dialog modal-dialog-centered">
+                      <div className="modal-content border border-translucent">
+                        <form
+                          id="addEventForm"
+                          autoComplete="off"
+                          onSubmit={handleFilterSubmit}
+                        >
+                          <div className="modal-header border-translucent p-4 justify-content-between">
+                            <h5 className="modal-title text-body-highlight fs-6 lh-sm">
+                              Bộ lọc
+                            </h5>
+                            <button
+                              className="btn p-1 text-danger"
+                              type="button"
+                              data-bs-dismiss="modal"
+                              aria-label="Close"
+                            >
+                              <span className="fas fa-times fs-9" />
+                            </button>
+                          </div>
+
+                          <div className="modal-body pt-4 pb-2 px-4">
+                            <div className="mb-3">
+                              <label
+                                className="fw-bold mb-2 text-body-highlight"
+                                htmlFor="leadStatus"
+                              >
+                                Danh mục
+                              </label>
+                              <select
+                                className="form-select"
+                                id="leadStatus"
+                                value={selectedCategory2}
+                                onChange={handleCategoryChange}
+                              >
+                                <option value="newLead" selected="selected">
+                                  Chọn danh mục...
+                                </option>
+                                {categories2.map((category) => (
+                                  <option key={category.id} value={category.id}>
+                                    {category.ten_danh_muc}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="mb-3">
+                              <label
+                                className="fw-bold mb-2 text-body-highlight"
+                                htmlFor="createDate"
+                              >
+                                Danh mục con
+                              </label>
+                              <select
+                                className="form-select"
+                                id="createDate"
+                                value={selectedSubCategory2}
+                                onChange={handleSubCategoryChange}
+                              >
+                                <option value="today" selected="selected">
+                                  Chọn danh mục con...
+                                </option>
+                                {subCategories2.map((subCategory) => (
+                                  <option
+                                    key={subCategory.id}
+                                    value={subCategory.id}
+                                  >
+                                    {subCategory.ten_danh_muc_con}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                          <div className="modal-footer d-flex justify-content-end align-items-center px-4 pb-4 border-0 pt-3">
+                            <button
+                              className="btn btn-sm btn-phoenix-primary px-4 fs-10 my-0"
+                              type="submit"
+                            >
+                              {""}
+                              <span className="fas fa-arrows-rotate me-2 fs-10" />
+                              Reset
+                            </button>
+                            <button
+                              className="btn btn-sm btn-primary px-9 fs-10 my-0"
+                              type="submit"
+                              onClick={handleFilterSubmit}
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+
             <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis border-top border-bottom border-translucent position-relative top-1">
               <div className="table-responsive scrollbar mx-n1 px-1">
                 <table className="table fs-9 mb-0">
@@ -383,7 +494,9 @@ const ListProducts = () => {
                               </a>
                               <a
                                 className="dropdown-item"
-                                onClick={() => handleEditProductClick(product.id)}
+                                onClick={() =>
+                                  handleEditProductClick(product.id)
+                                }
                               >
                                 Chỉnh sửa
                               </a>
@@ -427,8 +540,9 @@ const ListProducts = () => {
                       {Array.from({ length: totalPages }, (_, index) => (
                         <li
                           key={index}
-                          className={`page-item ${currentPage === index + 1 ? "active" : ""
-                            }`}
+                          className={`page-item ${
+                            currentPage === index + 1 ? "active" : ""
+                          }`}
                         >
                           <button
                             className="page-link"
@@ -450,7 +564,6 @@ const ListProducts = () => {
                     </button>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
@@ -474,7 +587,7 @@ const ListProducts = () => {
             </div>
           </div>
         </footer>
-      </div >
+      </div>
     </>
   );
 };

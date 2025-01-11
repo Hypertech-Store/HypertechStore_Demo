@@ -13,7 +13,7 @@ function Profile() {
   const [orders, setOrders] = useState([]);
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
   const [totalOrderPages, setTotalOrderPages] = useState(1);
-  const [totalOrder, setTotalOrder] = useState(1);
+  const [totalOrder, setTotalOrder] = useState(0);
   const ordersPerPage = 5; // Number of orders per page
   const [totalSpent, setTotalSpent] = useState(0); // Tổng tiền đã chi tiêu
   const [lastOrderDate, setLastOrderDate] = useState(""); // Thời gian đơn hàng cuối
@@ -84,7 +84,7 @@ function Profile() {
           const minutes = Math.floor(timeDifference / 60000); // thời gian tính theo phút
           if (minutes < 60) {
             timeAgo = `${minutes} phút trước`;
-          } else {
+          } else {  
             const hours = Math.floor(minutes / 60);
             if (hours < 24) {
               timeAgo = `${hours} giờ trước`;
@@ -176,7 +176,6 @@ function Profile() {
         submitData.append(key, formData[key]);
       }
       submitData.append("_method", "PUT");
-
       const response = await fetch(url, {
         method: "POST",
         body: submitData,
@@ -329,6 +328,7 @@ function Profile() {
         fetch(`http://127.0.0.1:8000/api/danh-sach-yeu-thich/destroy`, {
           method: "POST",
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -587,7 +587,7 @@ function Profile() {
                   data-bs-toggle="tab"
                   href="#tab-wishlist"
                   role="tab"
-                  aria-controls="tab-orders"
+                  aria-controls="tab-wishlist"
                   aria-selected="true"
                 >
                   <span className="fas fa-heart me-2" />
@@ -1230,7 +1230,7 @@ function Profile() {
                             data-sort="image"
                             style={{ width: "20%" }} // Tăng chiều rộng cho hình ảnh
                           >
-                            IMAGE
+                            HÌNH ẢNH
                           </th>
                           <th
                             className="white-space-nowrap align-middle"
@@ -1238,7 +1238,7 @@ function Profile() {
                             style={{ width: "35%", minWidth: 250 }} // Tăng chiều rộng cho sản phẩm
                             data-sort="products"
                           >
-                            PRODUCTS
+                            SẢN PHẨM
                           </th>
                           <th
                             className="align-middle text-body"
@@ -1246,7 +1246,7 @@ function Profile() {
                             data-sort="price"
                             style={{ width: "15%" }} // Cân đối chiều rộng cho giá
                           >
-                            PRICE
+                            GIÁ
                           </th>
                           <th
                             className="align-middle text-body"
@@ -1258,7 +1258,7 @@ function Profile() {
                               alignItems: "center",
                             }}
                           >
-                            ACTION
+                            HÀNH ĐỘNG
                           </th>
                         </tr>
                       </thead>
@@ -1275,7 +1275,7 @@ function Profile() {
                                 href="product-details.html"
                               >
                                 <img
-                                  src={product.image}
+                                  src={`${link}${product.image}`}
                                   alt={product.name}
                                   width={55}
                                 />
@@ -1295,16 +1295,15 @@ function Profile() {
                               )}{" "}
                               VNĐ
                             </td>
-                            <td className="total align-middle fw-bold text-body-highlight text-end text-nowrap pe-0">
+                            <td className="total align-middle fw-bold text-body-highlight text-nowrap pe-0 ps-14">
                               <button
-                                className="btn btn-sm text-body-quaternary text-body-tertiary-hover me-2"
+                                className=" text-body-quaternary text-body-tertiary-hover me-2"
                                 onClick={() => removeFromWishlist(product.id)}
                               >
-                                <span className="fas fa-trash" />
+                                <span className="fa-solid fa-trash" />
                               </button>
-                              <button className="btn btn-primary fs-10">
-                                <span className="fas fa-shopping-cart me-1 fs-10" />
-                                Add to cart
+                              <button className="btn btn-sm text-body-quaternary text-body-tertiary-hover me-2">
+                                <span className="fa-solid fa-cart-plus" />
                               </button>
                             </td>
                           </tr>

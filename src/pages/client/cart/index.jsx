@@ -1,19 +1,23 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { Link, useLocation } from "react-router-dom";
+import Swal from "sweetalert2";
 const Cart = () => {
   document.title = "Hypertech Store - Giỏ hàng";
   const baseUrl = "http://127.0.0.1:8000/storage/";
   const khachHangIdFromStorage = localStorage.getItem("userId");
   console.log("Khách Hàng ID từ localStorage: ", khachHangIdFromStorage);
-  const navigate = useNavigate(); // Sử dụng useNavigate để điều hướng
+  // Sử dụng useNavigate để điều hướng
   // eslint-disable-next-line no-unused-vars
   const [isLoading, setIsLoading] = useState(true);
   const [cart, setCart] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [totalAmount, setTotalAmount] = useState(0);
   const [selectAll, setSelectAll] = useState(false);
-  const [selectedItems, setSelectedItems] = useState({}); // Initialize with an empty object
+  const [selectedItems, setSelectedItems] = useState({});
+  const [loading, setLoading] = useState(false); // Trạng thái loading
+  // Khởi tạo với một đối tượng rỗng
+
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean);
 
@@ -26,120 +30,259 @@ const Cart = () => {
     breadcrumbTitles[pathnames[0]] ||
     pathnames[pathnames.length - 1]?.toUpperCase();
 
-  // useEffect to fetch cart data
   useEffect(() => {
-    if (!khachHangIdFromStorage) {
-      console.error("Khách hàng ID không có trong localStorage.");
-      setIsLoading(false);
-      return;
-    }
+    const fetchCartData = async () => {
+      if (!khachHangIdFromStorage) {
+        console.error("Khách hàng ID không có trong localStorage.");
+        setIsLoading(false);
+        return;
+      }
 
-    // Fetch cart data from the API
-    fetch(`http://127.0.0.1:8000/api/gio-hang/${khachHangIdFromStorage}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setCart(data.gio_hang);
-        if (data.gio_hang && data.gio_hang.chi_tiet_gio_hangs) {
-          setSelectedItems(
-            data.gio_hang.chi_tiet_gio_hangs.reduce((acc, item) => {
-              acc[item.id] = false; // Initialize all items as unchecked
-              return acc;
-            }, {})
-          );
-          calculateTotalAmount(data.gio_hang.chi_tiet_gio_hangs);
+      try {
+        // Fetch dữ liệu giỏ hàng từ API
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/gio-hang/${khachHangIdFromStorage}`
+        );
+
+        console.log("HTTP Response:", response);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        setIsLoading(false); // Stop loading when data is fetched
-      })
-      .catch((error) => {
-        console.error("Error fetching cart data:", error);
-        setIsLoading(false); // Stop loading in case of error
-      });
-  }, [khachHangIdFromStorage]);
 
-  const calculateTotalAmount = (cartItems) => {
+        const data = await response.json();
+
+        // Kiểm tra và cập nhật giỏ hàng
+        if (data?.san_pham && Array.isArray(data.san_pham)) {
+          setCart({ san_pham: data.san_pham });
+          console.log("Fetched Data:", data); // Log toàn bộ dữ liệu giỏ hàng
+
+          // Khởi tạo selectedItems cho các sản phẩm, mặc định tất cả đều không được chọn
+          const newSelectedItems = data.san_pham.reduce((acc, item) => {
+            acc[item.id] = false; // Mặc định bỏ chọn cho từng sản phẩm
+            return acc;
+          }, {});
+          setSelectedItems(newSelectedItems);
+
+          calculateTotalAmount(data.san_pham);
+        }
+      } catch (error) {
+        console.error("Error fetching cart data:", error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCartData();
+  }, [khachHangIdFromStorage]);
+  // Helper functions
+
+  // Tính tổng số tiền giỏ hàng
+  const calculateTotalAmount = (cartItems = []) => {
     let total = 0;
     cartItems.forEach((item) => {
-      total += item.gia * item.so_luong; // Tính tổng giỏ hàng
+      const price = item.gia_sau_sale_them_gia_bien_the || 0;
+      const quantity = item.so_luong || 1;
+
+      // Log thông tin sản phẩm, sử dụng chi_tiet_id thay vì item.id
+      console.log(
+        `Item ID: ${item.chi_tiet_id}`, // Sử dụng chi_tiet_id
+        " Price:",
+        price,
+        " Quantity:",
+        quantity
+      );
+
+      total += price * quantity;
+
+      // Log tổng tiền tạm thời sau mỗi vòng lặp
+      console.log("Intermediate total:", total);
     });
-    setTotalAmount(total); // Cập nhật tổng tiền giỏ hàng
+
+    setTotalAmount(total);
+    // Log tổng tiền sau khi tính toán
+    console.log("Total amount after calculation:", total);
   };
 
-  const updateCartItemQuantity = (itemId, newQuantity) => {
-    // Đảm bảo số lượng sản phẩm không ít hơn 1
-    const quantity = Math.max(newQuantity, 1);
-    console.log("Updating cart item quantity:", {
-      itemId,
-      newQuantity,
-      quantity,
-    });
-
-    // Tìm sản phẩm trong giỏ hàng
-    const updatedItem = cart.chi_tiet_gio_hangs.find(
-      (item) => item.id === itemId
+  const updateCartItemQuantity = (id, quantity) => {
+    const updatedCartItems = [...cart.san_pham];
+    const itemIndex = updatedCartItems.findIndex(
+      (item) => item.chi_tiet_id === id
     );
 
-    if (!updatedItem) {
-      console.error("Item not found");
-      return;
+    if (itemIndex !== -1) {
+      updatedCartItems[itemIndex].so_luong = Math.max(quantity, 1);
+
+      // Tính productTotal
+      const selectedItem = updatedCartItems[itemIndex];
+      const productTotal =
+        selectedItem.gia_sau_sale_them_gia_bien_the * selectedItem.so_luong;
+
+      // Log dữ liệu sản phẩm sau khi cập nhật
+      console.log("Updated item:", updatedCartItems[itemIndex]);
+
+      // Cập nhật lại state giỏ hàng với số lượng mới
+      setCart({
+        ...cart,
+        san_pham: updatedCartItems,
+      });
+
+      // Gửi yêu cầu PUT API để cập nhật giỏ hàng
+      fetch("http://127.0.0.1:8000/api/gio-hang/cap-nhat-gio-hang", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          // Thêm Authorization nếu cần
+          // 'Authorization': 'Bearer <your-token>',
+        },
+        body: JSON.stringify({
+          chi_tiet_gio_hang_id: selectedItem.chi_tiet_id, // ID chi tiết sản phẩm
+          so_luong: selectedItem.so_luong, // Số lượng sản phẩm
+          gia: productTotal, // Tính total từ gia_sau_sale_them_gia_bien_the
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Hiển thị thông báo thành công khi API trả về phản hồi thành công
+          alert("Cập nhật giỏ hàng thành công");
+          console.log("Cập nhật giỏ hàng thành công:", data);
+        })
+        .catch((error) => {
+          // Xử lý lỗi nếu có
+          console.error("Có lỗi khi cập nhật giỏ hàng:", error);
+        });
+    }
+  };
+
+  // Xử lý khi "Chọn tất cả"
+
+  const handleSelectAll = (e) => {
+    const checked = e.target.checked; // Kiểm tra checkbox "Chọn tất cả" có được chọn hay không
+    setSelectAll(checked); // Cập nhật trạng thái "Chọn tất cả"
+
+    // Cập nhật trạng thái chọn sản phẩm cho tất cả sản phẩm trong giỏ hàng
+    const updatedItems = cart.san_pham.reduce((acc, item) => {
+      acc[item.chi_tiet_id] = checked; // Cập nhật trạng thái chọn cho mỗi chi_tiet_id
+      return acc;
+    }, {});
+
+    setSelectedItems(updatedItems); // Cập nhật trạng thái cho tất cả các sản phẩm
+  };
+
+  const handleSelectItem = (e, chi_tiet_id) => {
+    const checked = e.target.checked; // Kiểm tra trạng thái checkbox khi được chọn hay bỏ chọn
+
+    // Cập nhật trạng thái của sản phẩm cụ thể theo chi_tiet_id
+    setSelectedItems((prevState) => {
+      const updatedItems = {
+        ...prevState,
+        [chi_tiet_id]: checked, // Thay đổi trạng thái của sản phẩm với chi_tiet_id tương ứng
+      };
+
+      // Kiểm tra trạng thái của tất cả sản phẩm để cập nhật "Chọn tất cả" (Chỉ có thể chọn khi tất cả các sản phẩm được chọn)
+      setSelectAll(Object.values(updatedItems).every((value) => value)); // Nếu tất cả giá trị đều true, chọn tất cả
+
+      return updatedItems;
+    });
+  };
+
+  const formatPrice = (price) => {
+    return (
+      new Intl.NumberFormat("vi-VN", {
+        style: "decimal",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(price) + " VNĐ"
+    );
+  };
+
+  const handleCheckout = () => {
+    setLoading(true); // Hiện loader và disabled nút
+    // Lưu lại khachHangIdFromStorage vào localStorage (nếu chưa có)
+    localStorage.setItem("khachHangId", khachHangIdFromStorage);
+
+    // Kiểm tra và in thông báo nếu lưu thành công
+    const storedKhachHangId = localStorage.getItem("khachHangId");
+    if (storedKhachHangId === khachHangIdFromStorage) {
+      console.log(
+        "Lưu khachHangId vào localStorage thành công:",
+        storedKhachHangId
+      );
+    } else {
+      console.error("Lỗi khi lưu khachHangId vào localStorage");
     }
 
-    // Lấy giá sản phẩm sau khi giảm giá và giá biến thể
-    const newPrice =
-      updatedItem.chi_tiet_san_pham.gia_sau_sale_them_gia_bien_the;
-
-    // Cập nhật lại số lượng sản phẩm và giữ nguyên giá mới
-    const updatedCartItems = cart.chi_tiet_gio_hangs.map((item) =>
-      item.id === itemId
-        ? { ...item, so_luong: quantity } // Cập nhật số lượng
-        : item
+    // Lưu các sản phẩm đã chọn vào localStorage
+    const selectedProducts = cart.san_pham.filter(
+      (item) => selectedItems[item.chi_tiet_id]
     );
 
-    // Tính lại tổng giá của giỏ hàng sau khi cập nhật
-    let updatedTotalAmount = 0;
-    updatedCartItems.forEach((item) => {
-      updatedTotalAmount +=
-        item.so_luong * item.chi_tiet_san_pham.gia_sau_sale_them_gia_bien_the;
+    localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+
+    // Kiểm tra và in thông báo nếu lưu thành công
+    const storedSelectedProducts = JSON.parse(
+      localStorage.getItem("selectedProducts")
+    );
+    if (
+      JSON.stringify(storedSelectedProducts) ===
+      JSON.stringify(selectedProducts)
+    ) {
+      console.log(
+        "Lưu sản phẩm đã chọn vào localStorage thành công:",
+        storedSelectedProducts
+      );
+    } else {
+      console.error("Lỗi khi lưu sản phẩm đã chọn vào localStorage");
+    }
+
+    // Chuyển hướng tới trang thanh toán
+    console.log("Chuyển hướng đến trang thanh toán...");
+    // Logic chuyển trang
+    setTimeout(() => {
+      window.location.href = "/thanh-toan"; // Chuyển sang trang checkout (hoặc dùng navigate nếu dùng react-router)
+    }, 1500); // Thời gian chờ trước khi chuyển trang (1s là ví dụ)
+  };
+
+  const handleDelete = async (chi_tiet_id) => {
+    // Hiển thị hộp thoại xác nhận với SweetAlert2
+    const result = await Swal.fire({
+      title: "Bạn chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
     });
 
-    console.log("Updated cart items:", updatedCartItems);
+    // Nếu người dùng nhấn "Xóa", thực hiện xóa sản phẩm
+    if (result.isConfirmed) {
+      const apiUrl = `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${chi_tiet_id}`;
 
-    // Cập nhật giỏ hàng với trạng thái mới
-    setCart({
-      ...cart,
-      chi_tiet_gio_hangs: updatedCartItems,
-      totalAmount: updatedTotalAmount,
-    });
+      try {
+        const response = await fetch(apiUrl, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-    // Nếu muốn gửi yêu cầu API để cập nhật server
-    fetch("http://127.0.0.1:8000/api/gio-hang/cap-nhat-gio-hang", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        chi_tiet_gio_hang_id: itemId,
-        so_luong: quantity,
-        gia_sau_sale_them_gia_bien_the: newPrice, // Gửi giá mới sau khi giảm và giá biến thể
-      }),
-    })
-      .then(async (response) => {
-        console.log("Response received:", response);
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText);
+        if (response.ok) {
+          Swal.fire(
+            "Thành công!",
+            "Sản phẩm đã được xóa khỏi giỏ hàng",
+            "success"
+          );
+          // Làm mới dữ liệu giỏ hàng hoặc cập nhật trạng thái sau khi xóa
+        } else {
+          Swal.fire("Thất bại!", "Không thể xóa sản phẩm", "error");
         }
-        return response.json();
-      })
-      .then((data) => console.log("API response:", data))
-      .catch((error) => console.error("Error updating cart:", error));
+      } catch (error) {
+        Swal.fire("Lỗi!", "Đã xảy ra lỗi: " + error.message, "error");
+      }
+    }
   };
 
   // Khi giỏ hàng trống hoặc không có dữ liệu
-  if (
-    !khachHangIdFromStorage ||
-    !cart ||
-    cart.chi_tiet_gio_hangs.length === 0
-  ) {
+  if (!khachHangIdFromStorage || !cart || cart.san_pham.length === 0) {
     return (
       <div className="cart-empty">
         <i className="iconcart-empty"></i>
@@ -164,80 +307,6 @@ const Cart = () => {
       </div>
     );
   }
-
-  // Handle the checkbox for select all / deselect all
-  const handleSelectAll = (e) => {
-    const checked = e.target.checked;
-    setSelectAll(checked);
-    setSelectedItems(
-      cart.chi_tiet_gio_hangs.reduce((acc, item) => {
-        acc[item.id] = checked;
-        return acc;
-      }, {})
-    );
-  };
-
-  // Handle individual item selection
-  const handleSelectItem = (e, itemId) => {
-    const checked = e.target.checked;
-    setSelectedItems((prevState) => ({
-      ...prevState,
-      [itemId]: checked,
-    }));
-  };
-
-  const formatPrice = (price) => {
-    return (
-      new Intl.NumberFormat("vi-VN", {
-        style: "decimal",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(price) + " VNĐ"
-    );
-  };
-
-  const handleCheckout = () => {
-    // Lưu lại khachHangIdFromStorage vào localStorage (nếu chưa có)
-    localStorage.setItem("khachHangId", khachHangIdFromStorage);
-
-    // Kiểm tra và in thông báo nếu lưu thành công
-    const storedKhachHangId = localStorage.getItem("khachHangId");
-    if (storedKhachHangId === khachHangIdFromStorage) {
-      console.log(
-        "Lưu khachHangId vào localStorage thành công:",
-        storedKhachHangId
-      );
-    } else {
-      console.error("Lỗi khi lưu khachHangId vào localStorage");
-    }
-
-    // Lưu các sản phẩm đã chọn vào localStorage
-    const selectedProducts = cart.chi_tiet_gio_hangs.filter(
-      (item) => selectedItems[item.id]
-    );
-
-    localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-
-    // Kiểm tra và in thông báo nếu lưu thành công
-    const storedSelectedProducts = JSON.parse(
-      localStorage.getItem("selectedProducts")
-    );
-    if (
-      JSON.stringify(storedSelectedProducts) ===
-      JSON.stringify(selectedProducts)
-    ) {
-      console.log(
-        "Lưu sản phẩm đã chọn vào localStorage thành công:",
-        storedSelectedProducts
-      );
-    } else {
-      console.error("Lỗi khi lưu sản phẩm đã chọn vào localStorage");
-    }
-
-    // Chuyển hướng tới trang thanh toán
-    console.log("Chuyển hướng đến trang thanh toán...");
-    navigate("/thanh-toan");
-  };
 
   return (
     <>
@@ -271,8 +340,8 @@ const Cart = () => {
                               className="form-check-input"
                               id="checkbox-bulk-products-select"
                               type="checkbox"
-                              checked={selectAll} // Link with state
-                              onChange={handleSelectAll}
+                              checked={selectAll} // Đảm bảo checkbox "Chọn tất cả" đồng bộ với state
+                              onChange={handleSelectAll} // Xử lý khi click vào "Chọn tất cả"
                             />
                           </div>
                         </th>
@@ -327,7 +396,7 @@ const Cart = () => {
                       </tr>
                     </thead>
                     <tbody className="list" id="cart-table-body">
-                      {cart.chi_tiet_gio_hangs.map((item) => (
+                      {cart.san_pham?.map((item) => (
                         <tr
                           className="cart-table-row btn-reveal-trigger"
                           key={item.id}
@@ -337,8 +406,12 @@ const Cart = () => {
                               <input
                                 className="form-check-input"
                                 type="checkbox"
-                                checked={selectedItems[item.id] || false} // Sync individual item selection with state
-                                onChange={(e) => handleSelectItem(e, item.id)}
+                                checked={
+                                  selectedItems?.[item.chi_tiet_id] ?? false
+                                } // Dùng chi_tiet_id thay item.id
+                                onChange={(e) =>
+                                  handleSelectItem(e, item.chi_tiet_id)
+                                } // Truyền chi_tiet_id
                               />
                             </div>
                           </td>
@@ -358,7 +431,7 @@ const Cart = () => {
                               }}
                             >
                               <img
-                                src={`${baseUrl}${item.chi_tiet_san_pham.images}`}
+                                src={`${baseUrl}${item.images}`}
                                 alt
                                 style={{
                                   width: "40px", // Đặt kích thước ảnh 40x40px
@@ -374,22 +447,17 @@ const Cart = () => {
                               className="fw-semibold mb-0 line-clamp-2"
                               href="product-details.html"
                             >
-                              {item.chi_tiet_san_pham.ten_san_pham}
+                              {item.ten_san_pham}
                             </a>
                           </td>
                           <td
                             className="color align-middle white-space-nowrap fs-9 text-body"
                             style={{ marginLeft: "20px" }}
                           >
-                            {item.thuoc_tinh.map((t, index) => (
-                              <div key={index}>{t.ten_gia_tri}</div>
-                            ))}
+                            {item.bien_the}
                           </td>
                           <td className="price align-middle text-body fs-9 fw-semibold ps-0">
-                            {formatPrice(
-                              item.chi_tiet_san_pham
-                                .gia_sau_sale_them_gia_bien_the
-                            )}{" "}
+                            {formatPrice(item.gia_sau_sale_them_gia_bien_the)}{" "}
                             {/* Hiển thị giá đã giảm cộng thêm biến thể */}
                           </td>
                           <td className="quantity align-middle fs-8 ps-7">
@@ -401,11 +469,12 @@ const Cart = () => {
                               <button
                                 className="btn btn-sm ps-4"
                                 data-type="minus"
-                                onClick={() =>
-                                  updateCartItemQuantity(
-                                    item.id,
-                                    item.so_luong - 1
-                                  )
+                                onClick={
+                                  () =>
+                                    updateCartItemQuantity(
+                                      item.chi_tiet_id,
+                                      item.so_luong - 1
+                                    ) // Thay đổi ở đây
                                 }
                               >
                                 -
@@ -415,38 +484,44 @@ const Cart = () => {
                                 type="number"
                                 min={1}
                                 value={item.so_luong}
-                                onChange={(e) =>
-                                  updateCartItemQuantity(
-                                    item.id,
-                                    Number(e.target.value)
-                                  )
+                                onChange={
+                                  (e) =>
+                                    updateCartItemQuantity(
+                                      item.chi_tiet_id,
+                                      Number(e.target.value)
+                                    ) // Thay đổi ở đây
                                 }
                                 style={{ width: "10px" }}
                               />
                               <button
                                 className="btn btn-sm px-8 ps-3"
                                 data-type="plus"
-                                onClick={() =>
-                                  updateCartItemQuantity(
-                                    item.id,
-                                    item.so_luong + 1
-                                  )
+                                onClick={
+                                  () =>
+                                    updateCartItemQuantity(
+                                      item.chi_tiet_id,
+                                      item.so_luong + 1
+                                    ) // Thay đổi ở đây
                                 }
                               >
                                 +
                               </button>
                             </div>
                           </td>
+
                           <td className="total align-middle fw-bold text-body-highlight ps-0">
                             {formatPrice(
-                              item.chi_tiet_san_pham
-                                .gia_sau_sale_them_gia_bien_the * item.so_luong
+                              item.gia_sau_sale_them_gia_bien_the *
+                                item.so_luong
                             )}{" "}
                             {/* Tổng giá theo số lượng */}
                           </td>
 
                           <td className="align-middle white-space-nowrap text-end pe-0 ps-3">
-                            <button className="btn btn-sm text-body-tertiary text-opacity-85 text-body-tertiary-hover me-2">
+                            <button
+                              className="btn btn-sm text-body-tertiary text-opacity-85 text-body-tertiary-hover me-2"
+                              onClick={() => handleDelete(item.chi_tiet_id)}
+                            >
                               <span className="fas fa-trash" />
                             </button>
                           </td>
@@ -458,11 +533,14 @@ const Cart = () => {
                   <button
                     onClick={handleCheckout}
                     className={
+                      selectedItems &&
                       Object.values(selectedItems).some((value) => value)
                         ? "btn btn-primary mt-5 float-end"
                         : "btn btn-phoenix-primary mt-5 float-end"
                     }
                     disabled={
+                      loading || // Disable khi đang loading
+                      !selectedItems ||
                       !Object.values(selectedItems).some((value) => value)
                     }
                   >

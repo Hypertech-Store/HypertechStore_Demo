@@ -14,6 +14,7 @@ const EditProducts = () => {
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
+    
   const navbarTopShape = window.config?.config?.phoenixNavbarTopShape;
   const navbarPosition = window.config?.config?.phoenixNavbarPosition;
 
