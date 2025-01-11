@@ -23,6 +23,7 @@ import ListAdmin from "./pages/admin/Administrators/listAdmin";
 import AdminLogin from "./pages/admin/login";
 
 import Orders from "./pages/admin/order";
+import OrderDetail from "./pages/admin/oderDetails";
 import Chat from "./pages/admin/chat";
 import Transport from "./pages/admin/transport";
 import Payment from "./pages/admin/paymentMethod";
@@ -80,6 +81,7 @@ const Router = () => {
             <Route path="danh-sach-khach-hang" element={<ListCustomer />} />
             <Route path="danh-sach-quan-tri" element={<ListAdmin />} />
             <Route path="don-hang" element={<Orders />} />
+            <Route path="chi-tiet-don-hang" element={<OrderDetail />} />
             <Route path="khuyen-mai" element={<Deals />} />
             <Route path="tin-nhan" element={<Chat />} />
             <Route path="hinh-thuc-van-chuyen" element={<Transport />} />
