@@ -80,40 +80,6 @@ const TransportMethod = () => {
       console.error("Failed to add method", error);
     }
   };
-  const handleEditMethod = async () => {
-    try {
-      await axios.put(
-        `http://127.0.0.1:8000/api/hinh-thuc-van-chuyen/${editData.id}`,
-        editData
-      );
-      alert("Cập nhật phương thức vận chuyển thành công!");
-
-      fetchMethods(); // Tải lại danh sách
-    } catch (error) {
-      alert("Cập nhật phương thức vận chuyển thất bại. Vui lòng thử lại!");
-      console.error("Failed to edit method", error);
-    }
-  };
-
-  const handleDeleteMethod = async (id) => {
-    const confirmDelete = window.confirm(
-      "Bạn có chắc chắn muốn xóa phương thức này không?"
-    );
-    if (!confirmDelete) {
-      return; // Nếu người dùng chọn "Hủy", thoát hàm
-    }
-
-    try {
-      await axios.delete(
-        `http://127.0.0.1:8000/api/hinh-thuc-van-chuyen/${id}`
-      );
-      alert("Xóa hình thức vận chuyển thành công!");
-      fetchMethods(); // Tải lại danh sách
-    } catch (error) {
-      alert("Xóa hình thức vận chuyển thất bại. Vui lòng thử lại!");
-      console.error("Failed to delete method", error);
-    }
-  };
 
   const handleChange = (e, isEdit = false) => {
     const { name, value } = e.target;
@@ -140,6 +106,44 @@ const TransportMethod = () => {
     }
   };
 
+  const handleToggleStatus = async (methodId, newStatus) => {
+    try {
+      // Gửi yêu cầu PUT tới API
+      const response = await axios.put("http://127.0.0.1:8000/api/trang-thai", {
+        hinh_thuc_id: methodId, // ID khách hàng
+        trang_thai: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
+      });
+
+      // Nếu cập nhật thành công, thay đổi trạng thái hiển thị ngay lập tức
+      if (response.data.success) {
+        // Cập nhật lại trạng thái của khách hàng trong state
+        setMethods((prevState) => {
+          const updatedMethods = prevState.map((method) =>
+            method.id === methodId
+              ? {
+                  ...method,
+                  trang_thai: newStatus ? 1 : 0, // Cập nhật trang_thai với trạng thái mới
+                  status: newStatus ? 1 : 0, // Tự động cập nhật status nếu cần thiết
+                }
+              : method
+          );
+
+          // Log the updated methods to verify the data
+          console.log("Updated methods:", updatedMethods); // Log the updated list
+
+          return updatedMethods;
+        });
+
+        alert(response.data.message);
+      } else {
+        alert("Cập nhật trạng thái thất bại.");
+      }
+    } catch (error) {
+      console.error("Đã xảy ra lỗi:", error);
+      alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+    }
+  };
+
   return (
     <div className="content">
       <nav className="mb-3" aria-label="breadcrumb">
@@ -156,7 +160,7 @@ const TransportMethod = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">Danh sách hình thức vận chuyển</h2>
+            <h2 className="mb-0">Hình thức vận chuyển</h2>
           </div>
         </div>
 
@@ -207,69 +211,59 @@ const TransportMethod = () => {
                       STT
                     </th>
                     <th
-                      className="white-space-nowrap align-middle ps-4"
+                      className="white-space-nowrap align-middle"
                       scope="col"
-                      style={{ width: "30%" }}
+                      style={{ width: "25%" }}
                       data-sort="product"
                     >
                       TÊN VẬN CHUYỂN
                     </th>
 
                     <th
-                      className="align-middle ps-4"
+                      className="align-middle"
                       scope="col"
-                      style={{ width: "25%" }}
+                      style={{ width: "20%" }}
                     >
                       GIÁ VẬN CHUYỂN
                     </th>
                     <th
                       className="align-middle ps-4"
                       scope="col"
-                      style={{ width: "25%" }}
+                      style={{ width: "20%" }}
                     >
                       MÔ TẢ
                     </th>
 
-                    <th className="align-middle" style={{ width: "5%" }}>
-                      HÀNH ĐỘNG
+                    <th className="align-middle ps-6" style={{ width: "10%" }}>
+                      TRẠNG THÁI
                     </th>
                   </tr>
                 </thead>
                 <tbody className="list" id="products-table-body">
                   {methods.map((method, index) => (
                     <tr key={method.id}>
-                      <td className="product align-middle ps-2">
+                      <td className="product align-middle">
                         {(currentPage - 1) * 10 + index + 1}
                       </td>
-                      <td className="product align-middle ps-4">
+                      <td className="product align-middle">
                         {method.ten_van_chuyen}
                       </td>
-                      <td className="tags align-middle review pb-2 ps-4">
+                      <td className="tags align-middle review pb-2">
                         {Number(method.gia_van_chuyen).toLocaleString()} VNĐ
                       </td>
                       <td className="tags align-middle review pb-2 ps-4">
                         {method.mo_ta}
                       </td>
-                      <td className="align-middle white-space-nowrap ps-1">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="modal"
-                          data-bs-target="#editMethod"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          data-bs-reference="parent"
-                          onClick={() => setEditData(method)}
-                        >
-                          <span className="fa-solid fa-pen-to-square fs-9" />
-                        </button>
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          onClick={() => handleDeleteMethod(method.id)}
-                        >
-                          <span className="fa-solid fa-trash fs-9" />
-                        </button>
+                      <td className="align-middle white-space-nowrap ps-9">
+                        <input
+                          className="form-check-status ms-0 me-2"
+                          type="checkbox"
+                          id={`customer_${method.id}`} // ID độc nhất dựa trên method ID
+                          checked={method.trang_thai === 1} // Nếu trạng thái là 1, checkbox sẽ bật
+                          onChange={(e) =>
+                            handleToggleStatus(method.id, e.target.checked)
+                          } // Hàm xử lý sự kiện
+                        />
                       </td>
                     </tr>
                   ))}
@@ -400,90 +394,6 @@ const TransportMethod = () => {
                 onClick={handleAddMethod}
               >
                 Thêm mới
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className="modal fade"
-        id="editMethod"
-        data-bs-backdrop="static"
-        data-bs-keyboard="false"
-        tabIndex={-1}
-        aria-labelledby="editMethod"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-lg modal-dialog-centered">
-          <div className="modal-content bg-body-highlight p-6">
-            <div className="modal-header justify-content-between border-0 p-0 mb-2">
-              <h3 className="mb-0">Sửa hình thức vận chuyển</h3>
-              <button
-                className="btn btn-sm btn-phoenix-secondary"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                <span className="fas fa-times text-danger" />
-              </button>
-            </div>
-            <div className="modal-body px-0 mt-1">
-              <div className="row g-4">
-                <div className="col-lg-12">
-                  {/* Biến thể ) */}
-                  <div className="mb-4">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Tên vận chuyển
-                    </label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      name="ten_van_chuyen"
-                      value={editData?.ten_van_chuyen || ""}
-                      onChange={(e) => handleChange(e, true)}
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Giá vận chuyển
-                    </label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      name="gia_van_chuyen"
-                      value={Number(editData?.gia_van_chuyen) || ""}
-                      onChange={(e) => handleChange(e, true)}
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="text-body-highlight fw-bold mb-2">
-                      Mô tả
-                    </label>
-                    <textarea
-                      className="form-control"
-                      rows="4"
-                      name="mo_ta"
-                      value={editData?.mo_ta || ""}
-                      onChange={(e) => handleChange(e, true)}
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer border-0 pt-0 px-0 pb-0">
-              <button
-                className="btn btn-link text-danger px-3 my-0"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                className="btn btn-primary my-0"
-                onClick={handleEditMethod}
-              >
-                Cập nhật
               </button>
             </div>
           </div>

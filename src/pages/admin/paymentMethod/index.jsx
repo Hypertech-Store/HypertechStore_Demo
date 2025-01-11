@@ -2,7 +2,7 @@
 import icon from "../../../assets/img/icons/image-icon.png";
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-
+import axios from "axios";
 const PaymentMethod = () => {
   const breadcrumbTitles = {
     "admin/phuong-thuc-thanh-toan": "Phương thức thanh toán", // Đây là URL không có "/"
@@ -15,7 +15,7 @@ const PaymentMethod = () => {
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
     pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
-    
+
   const [formData, setFormData] = useState({
     image: null, // Dữ liệu hình ảnh
   });
@@ -113,87 +113,45 @@ const PaymentMethod = () => {
     return <p>Loading...</p>;
   }
 
-  const handleDelete = async (id) => {
+  const handleToggleStatus = async (methodId, newStatus) => {
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/phuong-thuc-thanh-toan/${id}`,
+      // Gửi yêu cầu PUT tới API
+      const response = await axios.put(
+        "http://127.0.0.1:8000/api/phuong-thuc/trang-thai",
         {
-          method: "DELETE",
+          phuong_thuc_id: methodId, // ID khách hàng
+          trang_thai: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
         }
       );
 
-      if (response.ok) {
-        alert("Xóa thành công!");
+      // Nếu cập nhật thành công, thay đổi trạng thái hiển thị ngay lập tức
+      if (response.data.success) {
+        // Cập nhật lại trạng thái của khách hàng trong state
+        setPaymentMethods((prevState) => {
+          const updatedMethods = prevState.map((method) =>
+            method.id === methodId
+              ? {
+                  ...method,
+                  trang_thai: newStatus ? 1 : 0, // Cập nhật trang_thai với trạng thái mới
+                  status: newStatus ? 1 : 0, // Tự động cập nhật status nếu cần thiết
+                }
+              : method
+          );
 
-        // Cập nhật danh sách phương thức trong state
-        setPaymentMethods((prevMethods) =>
-          prevMethods.filter((method) => method.id !== id)
-        );
-      } else {
-        alert("Lỗi khi xóa: " + response.statusText);
-      }
-    } catch (error) {
-      alert("Lỗi kết nối tới server: " + error.message);
-    }
-  };
+          // Log the updated methods to verify the data
+          console.log("Updated methods:", updatedMethods); // Log the updated list
 
-  const handleUpdate = async (id, updatedData) => {
-    const formDataToSend = new FormData();
-    formDataToSend.append("ten_phuong_thuc", updatedData.ten_phuong_thuc);
-    if (updatedData.image) {
-      formDataToSend.append("image", updatedData.image);
-    }
-
-    try {
-      // Hiển thị trạng thái loading
-      setLoading(true);
-
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/phuong-thuc-thanh-toan/${id}`,
-        {
-          method: "PUT",
-          body: formDataToSend,
-        }
-      );
-
-      if (response.ok) {
-        const updatedMethod = await response.json();
-        alert("Cập nhật thành công!");
-
-        // Cập nhật danh sách phương thức trong state
-        setPaymentMethods((prevMethods) =>
-          prevMethods.map((method) =>
-            method.id === id ? { ...method, ...updatedMethod } : method
-          )
-        );
-        setImagePreview(null);
-      } else {
-        alert("Lỗi khi cập nhật: " + response.statusText);
-      }
-    } catch (error) {
-      alert("Lỗi kết nối tới server: " + error.message);
-    } finally {
-      // Ẩn trạng thái loading khi hoàn thành
-      setLoading(false);
-    }
-  };
-
-  // Hàm xử lý khi nhấn nút chỉnh sửa
-  const handleEditClick = (id) => {
-    // Giả sử bạn gọi API để lấy thông tin phương thức thanh toán theo id
-    fetch(`http://127.0.0.1:8000/api/phuong-thuc-thanh-toan/${id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setMethodData({
-          id: data.data.id,
-          name: data.data.ten_phuong_thuc, // Thay "ten_phuong_thuc" bằng tên trường đúng
-          image: data.data.anh_phuong_thuc, // Thay "image" bằng tên trường đúng
+          return updatedMethods;
         });
-        console.log(methodData);
-      })
-      .catch((error) => {
-        console.error("Error fetching payment method data:", error);
-      });
+
+        alert(response.data.message);
+      } else {
+        alert("Cập nhật trạng thái thất bại.");
+      }
+    } catch (error) {
+      console.error("Đã xảy ra lỗi:", error);
+      alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+    }
   };
 
   return (
@@ -212,7 +170,7 @@ const PaymentMethod = () => {
       <div className="mb-9">
         <div className="row g-3 mb-4">
           <div className="col-auto">
-            <h2 className="mb-0">Danh sách phương thức thanh toán</h2>
+            <h2 className="mb-0">Phương thức thanh toán</h2>
           </div>
         </div>
 
@@ -278,8 +236,8 @@ const PaymentMethod = () => {
                     >
                       TÊN PHƯƠNG THỨC
                     </th>
-                    <th className="align-middle ps-4" style={{ width: "5%" }}>
-                      HÀNH ĐỘNG
+                    <th className="align-middle ps-8" style={{ width: "10%" }}>
+                      TRẠNG THÁI
                     </th>
                   </tr>
                 </thead>
@@ -302,25 +260,16 @@ const PaymentMethod = () => {
                         {method.ten_phuong_thuc}
                       </td>
 
-                      <td className="align-middle white-space-nowrap ps-4">
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          data-bs-toggle="modal"
-                          data-bs-target="#editMethod"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                          onClick={() => handleEditClick(method.id)}
-                        >
-                          <span className="fa-solid fa-pen-to-square fs-9" />
-                        </button>
-                        <button
-                          className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
-                          type="button"
-                          onClick={() => handleDelete(method.id)}
-                        >
-                          <span className="fa-solid fa-trash fs-9" />
-                        </button>
+                      <td className="align-middle white-space-nowrap ps-11">
+                        <input
+                          className="form-check-status ms-0 me-2"
+                          type="checkbox"
+                          id={`customer_${method.id}`} // ID độc nhất dựa trên method ID
+                          checked={method.trang_thai === 1} // Nếu trạng thái là 1, checkbox sẽ bật
+                          onChange={(e) =>
+                            handleToggleStatus(method.id, e.target.checked)
+                          } // Hàm xử lý sự kiện
+                        />
                       </td>
                     </tr>
                   ))}
