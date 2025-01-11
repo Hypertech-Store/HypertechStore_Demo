@@ -305,7 +305,7 @@ const ListProducts = () => {
                       <span className="fas fa-search search-box-icon" />
                     </form>
                   </div>
-                  <div className="flatpickr-input-container me-2">
+                  {/* <div className="flatpickr-input-container me-2">
                     <input
                       className="form-control ps-6 datetimepicker"
                       id="datepicker"
@@ -313,7 +313,7 @@ const ListProducts = () => {
                       data-options='{"dateFormat":"M j, Y","disableMobile":true,"defaultDate":"Mar 1, 2022"}'
                     />
                     <span className="uil uil-calendar-alt flatpickr-icon text-body-tertiary" />
-                  </div>
+                  </div> */}
                   <button
                     className="btn px-3 btn-phoenix-secondary"
                     type="button"

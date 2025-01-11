@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 // import { useNavigate } from "react-router-dom";
 import { Link, useLocation } from "react-router-dom";
-
+import Swal from "sweetalert2";
 const Cart = () => {
   document.title = "Hypertech Store - Giỏ hàng";
   const baseUrl = "http://127.0.0.1:8000/storage/";
@@ -243,6 +243,44 @@ const Cart = () => {
     }, 1500); // Thời gian chờ trước khi chuyển trang (1s là ví dụ)
   };
 
+  const handleDelete = async (chi_tiet_id) => {
+    // Hiển thị hộp thoại xác nhận với SweetAlert2
+    const result = await Swal.fire({
+      title: "Bạn chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+    });
+
+    // Nếu người dùng nhấn "Xóa", thực hiện xóa sản phẩm
+    if (result.isConfirmed) {
+      const apiUrl = `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${chi_tiet_id}`;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          Swal.fire(
+            "Thành công!",
+            "Sản phẩm đã được xóa khỏi giỏ hàng",
+            "success"
+          );
+          // Làm mới dữ liệu giỏ hàng hoặc cập nhật trạng thái sau khi xóa
+        } else {
+          Swal.fire("Thất bại!", "Không thể xóa sản phẩm", "error");
+        }
+      } catch (error) {
+        Swal.fire("Lỗi!", "Đã xảy ra lỗi: " + error.message, "error");
+      }
+    }
+  };
+
   // Khi giỏ hàng trống hoặc không có dữ liệu
   if (!khachHangIdFromStorage || !cart || cart.san_pham.length === 0) {
     return (
@@ -480,7 +518,10 @@ const Cart = () => {
                           </td>
 
                           <td className="align-middle white-space-nowrap text-end pe-0 ps-3">
-                            <button className="btn btn-sm text-body-tertiary text-opacity-85 text-body-tertiary-hover me-2">
+                            <button
+                              className="btn btn-sm text-body-tertiary text-opacity-85 text-body-tertiary-hover me-2"
+                              onClick={() => handleDelete(item.chi_tiet_id)}
+                            >
                               <span className="fas fa-trash" />
                             </button>
                           </td>

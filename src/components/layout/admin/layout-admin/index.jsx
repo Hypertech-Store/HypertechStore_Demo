@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import HeaderAdmin from "../header-admin";
 import SliderBarAdmin from "../slidebar-admin";
-import FooterAdmin from "../footer-admin";
 
 import "../../../../assets/img/favicons/manifest.json";
 import "../../../../assets/vendors/simplebar/simplebar.min.js"; // SimpleBar JS (Ensure this is only imported once)
@@ -73,7 +72,6 @@ const LayoutAdmin = () => {
         <SliderBarAdmin />
         <HeaderAdmin />
         <Outlet />
-        <FooterAdmin />
       </main>
     </>
   );
