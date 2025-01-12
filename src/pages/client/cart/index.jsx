@@ -368,7 +368,7 @@ const Cart = () => {
                           VARIABLE
                         </th>
                         <th
-                          className="align-middle ps-0"
+                          className="align-middle ps-3"
                           scope="col"
                           style={{ width: "12%" }}
                         >
@@ -452,11 +452,17 @@ const Cart = () => {
                           </td>
                           <td
                             className="color align-middle white-space-nowrap fs-9 text-body"
-                            style={{ marginLeft: "20px" }}
+                            style={{
+                              marginLeft: "20px",
+                              color: "#dc2626",
+                              fontWeight: "600",
+                            }} // Thêm thuộc tính màu sắc
                           >
-                            {item.bien_the}
+                            {item.bien_the.join(" - ")}{" "}
+                            {/* Nối các giá trị trong mảng bằng dấu gạch ngang */}
                           </td>
-                          <td className="price align-middle text-body fs-9 fw-semibold ps-0">
+
+                          <td className="price align-middle fs-9 fw-semibold ps-3">
                             {formatPrice(item.gia_sau_sale_them_gia_bien_the)}{" "}
                             {/* Hiển thị giá đã giảm cộng thêm biến thể */}
                           </td>

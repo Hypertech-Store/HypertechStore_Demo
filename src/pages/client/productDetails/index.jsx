@@ -25,6 +25,7 @@ const ProductDetails = () => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean); // Tách các phần của URL
   const [bestSellingProducts, setBestSellingProducts] = useState([]);
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
   // Tiêu đề cho từng phần của URL
   const breadcrumbTitles = {
@@ -414,150 +415,285 @@ const ProductDetails = () => {
   }, [productData]);
 
   const handleAddToCart = async () => {
-    const userData = JSON.parse(localStorage.getItem("userInfo")); // Lấy thông tin người dùng từ localStorage
+    const userData = JSON.parse(localStorage.getItem("userInfo"));
 
+    // Kiểm tra người dùng đăng nhập
     if (!userData || !userData.id) {
       toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
       return;
     }
 
-    const selectedVariant = productData?.bienTheSanPhams?.find((variant) => {
-      const selectedAttributes = variant.gia_tri_thuoc_tinh || [];
+    // Kiểm tra nếu chỉ có màu sắc (colorName) hoặc dung lượng (selectedDungLuong) mà không yêu cầu cả 2
+    if (
+      !selectedVariant ||
+      !selectedVariant.id ||
+      (!colorName && !selectedDungLuong)
+    ) {
+      toast.error("Vui lòng chọn đầy đủ thuộc tính của sản phẩm.");
+      return;
+    }
 
-      // Kiểm tra xem sản phẩm đã có đủ các thuộc tính được chọn chưa
-      return selectedAttributes.every((attr) => {
-        return (
-          attr.ten_gia_tri === colorName ||
-          attr.ten_gia_tri === selectedDungLuong
-        );
-      });
-    });
+    // Nếu selectedVariant có đầy đủ thuộc tính, không cần kiểm tra lại
+    console.log("Biến thể đã chọn (ID):", selectedVariant.id);
+    console.log("Thuộc tính biến thể:", selectedVariant.gia_tri_thuoc_tinh);
 
-    if (selectedVariant) {
-      // Lấy so_luong_kho từ biến thể sản phẩm
-      const stockQuantity = selectedVariant.so_luong_kho || 0; // Kiểm tra số lượng kho
+    // Lấy thông tin tồn kho
+    const { so_luong_kho: stockQuantity } = selectedVariant;
+    const stockStatus = productData?.sanPham?.so_luong_ton_kho || 0;
 
-      // Kiểm tra trang_thai_ton_kho từ sanPham
-      const stockStatus = productData?.sanPham?.trang_thai_ton_kho || 0; // Kiểm tra trạng thái tồn kho
+    console.log("Stock Quantity:", stockQuantity);
+    console.log("Stock Status:", stockStatus);
 
-      // Kiểm tra nếu biến thể sản phẩm hết hàng
-      if (stockQuantity === 0) {
-        toast.error("Sản phẩm biến thể này đã hết hàng.");
-        return;
-      }
+    // Kiểm tra tình trạng tồn kho
+    if (stockQuantity === 0 && stockStatus === 0) {
+      toast.error("Sản phẩm biến thể này đã hết hàng.");
+      return;
+    }
 
-      // Kiểm tra nếu sản phẩm hết hàng
-      if (stockStatus === 0) {
-        toast.error("Sản phẩm này đã hết hàng.");
-        return;
-      }
+    // Kiểm tra tồn kho biến thể hoặc sản phẩm riêng lẻ
+    if (stockQuantity === 0) {
+      toast.error("Sản phẩm biến thể này đã hết hàng.");
+      return;
+    }
 
-      const totalPrice = finalPrice;
+    if (stockStatus === 0) {
+      toast.error("Sản phẩm này đã hết hàng.");
+      return;
+    }
 
-      // Dữ liệu cho sản phẩm sẽ gửi lên API
-      const productDataToSend = {
-        khach_hang_id: userData.id,
-        san_pham_id: selectedVariant.san_pham_id,
-        so_luong: 1,
-        bien_the_san_pham_id: selectedVariant.id,
-        attributes: selectedVariant.gia_tri_thuoc_tinh.map((attr) => ({
+    // Chuẩn bị dữ liệu để gửi
+    const productDataToSend = {
+      khach_hang_id: userData.id,
+      san_pham_id: selectedVariant.san_pham_id,
+      so_luong: 1,
+      bien_the_san_pham_id: selectedVariant.id,
+      attributes:
+        selectedVariant.gia_tri_thuoc_tinh?.map((attr) => ({
           gia_tri_thuoc_tinh_id: attr.id,
           ten_gia_tri: attr.ten_gia_tri,
-        })),
-        gia: totalPrice,
-      };
+        })) || [],
+      gia: finalPrice,
+    };
 
-      // Lấy giỏ hàng hiện tại từ localStorage
-      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    // Giỏ hàng
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const existingProductIndex = cart.findIndex(
+      (item) =>
+        item.san_pham_id === selectedVariant.san_pham_id &&
+        JSON.stringify(item.attributes) ===
+          JSON.stringify(productDataToSend.attributes)
+    );
 
-      // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
-      const existingProductIndex = cart.findIndex(
-        (item) =>
-          item.san_pham_id === selectedVariant.san_pham_id &&
-          JSON.stringify(item.attributes) ===
-            JSON.stringify(productDataToSend.attributes)
+    if (existingProductIndex !== -1) {
+      // Sản phẩm đã có trong giỏ hàng, cập nhật số lượng
+      cart[existingProductIndex].so_luong += 1;
+      localStorage.setItem("cart", JSON.stringify(cart));
+      toast.success("Sản phẩm đã được cập nhật số lượng trong giỏ hàng.");
+    } else {
+      // Thêm sản phẩm mới vào giỏ hàng
+      cart.push(productDataToSend);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      toast.success("Sản phẩm đã được thêm vào giỏ hàng!");
+    }
+
+    // Gửi yêu cầu thêm vào giỏ hàng
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/gio-hang/them-gio-hang",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productDataToSend),
+        }
       );
 
-      if (existingProductIndex !== -1) {
-        // Cập nhật số lượng nếu sản phẩm đã có trong giỏ hàng
-        cart[existingProductIndex].so_luong += 1;
-
-        // Cập nhật lại giỏ hàng vào localStorage
-        localStorage.setItem("cart", JSON.stringify(cart));
-
-        toast.success("Sản phẩm đã được cập nhật số lượng trong giỏ hàng.");
-      } else {
-        // Nếu sản phẩm chưa có trong giỏ hàng, thêm mới
-        cart.push(productDataToSend);
-
-        // Lưu giỏ hàng vào localStorage
-        localStorage.setItem("cart", JSON.stringify(cart));
-
-        toast.success("Sản phẩm đã được thêm vào giỏ hàng!");
-      }
-
-      // Gửi dữ liệu lên API
-      try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/gio-hang/them-gio-hang",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(productDataToSend),
-          }
+      if (response.ok) {
+        console.log(
+          "Sản phẩm đã được thêm vào giỏ hàng:",
+          await response.json()
         );
-
-        if (response.ok) {
-          console.log(
-            "Sản phẩm đã được thêm vào giỏ hàng:",
-            await response.json()
-          );
-          navigate("/gio-hang");
-        } else {
-          toast.error("Có lỗi khi thêm sản phẩm vào giỏ hàng.");
-        }
-      } catch (error) {
-        toast.error("Không thể kết nối với máy chủ, vui lòng thử lại.");
+        navigate("/gio-hang");
+      } else {
+        toast.error("Có lỗi khi thêm sản phẩm vào giỏ hàng.");
       }
-    } else {
-      toast.error("Vui lòng chọn đầy đủ thuộc tính của sản phẩm.");
+    } catch (error) {
+      toast.error("Không thể kết nối với máy chủ, vui lòng thử lại.");
     }
   };
 
-  const handleDungLuongChange = (event) => {
+  const handleDungLuongChange = async (event) => {
     const selectedCapacity = event.target.value;
     setSelectedDungLuong(selectedCapacity);
 
-    if (colorName) {
-      const selectedVariant = productData?.bienTheSanPhams?.find(
-        (variant) =>
-          variant.gia_tri_thuoc_tinh?.some(
-            (attr) => attr.ten_gia_tri === colorName
-          ) &&
-          variant.gia_tri_thuoc_tinh?.some(
-            (attr) => attr.ten_gia_tri === selectedCapacity
-          )
+    // Lọc các biến thể theo dung lượng đã chọn
+    const filteredVariants = productData?.bienTheSanPhams?.filter((variant) =>
+      variant.gia_tri_thuoc_tinh?.some(
+        (attr) => attr.ten_gia_tri === selectedCapacity || !selectedCapacity
+      )
+    );
+
+    console.log("Các biến thể lọc theo dung lượng:", filteredVariants);
+
+    if (!filteredVariants || filteredVariants.length === 0) {
+      setSelectedVariant(null);
+      setVariantPrice(0);
+      setFinalPrice(0);
+      toast.warn("Không tìm thấy biến thể phù hợp với dung lượng đã chọn.");
+      return;
+    }
+
+    let selectedVariant = filteredVariants[0]; // Mặc định chọn biến thể đầu tiên
+
+    // Kiểm tra nếu có chọn màu sắc và chọn biến thể dựa trên màu sắc và dung lượng
+    if (colorName && colorName.trim()) {
+      // Lọc các biến thể dựa trên dung lượng và màu sắc đã chọn
+      selectedVariant = filteredVariants.find((variant) =>
+        variant.gia_tri_thuoc_tinh?.some(
+          (attr) => attr.ten_gia_tri === colorName // Lọc theo màu
+        )
+      );
+    }
+
+    console.log("Biến thể đã chọn:", selectedVariant);
+
+    // Nếu không tìm thấy biến thể với màu sắc, sẽ kiểm tra biến thể khác (hoặc biến thể đầu tiên nếu không có màu sắc)
+    if (!selectedVariant) {
+      selectedVariant = filteredVariants[0]; // Chọn một biến thể bất kỳ
+      setSelectedVariant(selectedVariant);
+      setVariantPrice(0);
+      setFinalPrice(0);
+      toast.warn("Không tìm thấy kết hợp màu sắc và dung lượng phù hợp.");
+    }
+
+    const sanPhamId = selectedVariant?.san_pham_id;
+    const attributeIds = selectedVariant?.gia_tri_thuoc_tinh?.map(
+      (attr) => attr.id
+    );
+
+    if (!sanPhamId || !attributeIds || attributeIds.length === 0) {
+      toast.warn("Không có thuộc tính hoặc ID sản phẩm hợp lệ.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/get-gia-bien-the",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            san_pham_id: sanPhamId,
+            attributes: attributeIds,
+          }),
+        }
       );
 
-      if (selectedVariant) {
-        const variantPrice = parseFloat(selectedVariant.gia) || 0;
-        setVariantPrice(variantPrice);
-
-        // Log the variant details
-        console.log("Biến thể đã chọn:", selectedVariant);
-
-        // Log the price with currency format
-        console.log(
-          `Giá biến thể: ${new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          }).format(variantPrice)}`
-        );
-
-        setFinalPrice(calculateFinalPrice(variantPrice)); // Tính giá cuối
+      if (!response.ok) {
+        throw new Error("Không thể lấy giá biến thể.");
       }
+
+      const data = await response.json();
+      const variantData = data?.bien_the_san_pham?.[0];
+      console.log("Dữ liệu trả về từ API:", variantData);
+      if (variantData?.gia) {
+        const variantPrice = parseFloat(variantData.gia); // Lấy giá của biến thể
+        setVariantPrice(variantPrice);
+        setFinalPrice(calculateFinalPrice(variantPrice)); // Hàm tính giá cuối cùng
+        setSelectedVariant(selectedVariant);
+
+        console.log("Giá biến thể:", variantPrice);
+      } else {
+        toast.warn("Không tìm thấy giá cho biến thể đã chọn.");
+      }
+    } catch (error) {
+      toast.error("Lỗi khi lấy giá biến thể từ API.");
+      console.error("Error:", error);
+    }
+  };
+
+  const handleColorChange = async (colorName) => {
+    setColorName(colorName); // Cập nhật tên màu đã chọn vào state
+
+    // Lọc các biến thể theo màu đã chọn
+    const filteredVariants = productData?.bienTheSanPhams?.filter((variant) =>
+      variant.gia_tri_thuoc_tinh?.some((attr) => attr.ten_gia_tri === colorName)
+    );
+
+    console.log("Các biến thể lọc theo màu sắc:", filteredVariants);
+
+    if (!filteredVariants || filteredVariants.length === 0) {
+      setSelectedVariant(null); // Không tìm thấy biến thể phù hợp
+      setVariantPrice(0);
+      setFinalPrice(0);
+      toast.warn("Không tìm thấy biến thể phù hợp với màu sắc đã chọn.");
+      return;
+    }
+
+    // Mặc định chọn biến thể đầu tiên trong danh sách đã lọc
+    let selectedVariant = filteredVariants[0];
+
+    // Cập nhật trạng thái của biến thể đã chọn và giá trị của nó
+    setSelectedVariant(selectedVariant);
+    setVariantPrice(0);
+    setFinalPrice(0);
+
+    console.log("Biến thể đã chọn:", selectedVariant);
+
+    // Lấy ID sản phẩm và ID thuộc tính để gửi đi
+    const sanPhamId = selectedVariant?.san_pham_id;
+    const attributeIds = selectedVariant?.gia_tri_thuoc_tinh?.map(
+      (attr) => attr.id
+    );
+
+    if (!sanPhamId || !attributeIds || attributeIds.length === 0) {
+      toast.warn("Không có thuộc tính hoặc ID sản phẩm hợp lệ.");
+      return;
+    }
+
+    // Gửi request API để lấy giá biến thể
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/get-gia-bien-the",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            san_pham_id: sanPhamId,
+            attributes: attributeIds,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Không thể lấy giá biến thể.");
+      }
+
+      const data = await response.json();
+      const variantData = data?.bien_the_san_pham?.[0];
+
+      if (variantData?.gia) {
+        const variantPrice = parseFloat(variantData.gia); // Lấy giá của biến thể
+        setVariantPrice(variantPrice);
+        setFinalPrice(calculateFinalPrice(variantPrice)); // Hàm tính giá cuối cùng
+        console.log("Giá biến thể:", variantPrice);
+      } else {
+        toast.warn("Không tìm thấy giá cho biến thể đã chọn.");
+      }
+    } catch (error) {
+      toast.error("Lỗi khi lấy giá biến thể từ API.");
+      console.error("Error:", error);
+    }
+  };
+
+  const handleCheckVariant = (type, value) => {
+    if (type === "color") {
+      // Xử lý sự kiện khi chọn màu
+      handleImageClick(value.index + 1, value.colorName);
+    } else if (type === "capacity") {
+      // Xử lý sự kiện khi chọn dung lượng
+      handleDungLuongChange({ target: { value } });
     }
   };
 
@@ -682,7 +818,7 @@ const ProductDetails = () => {
                           data-thumb-target="swiper-products-thumb"
                           data-products-swiper='{"slidesPerView":1,"spaceBetween":16,"thumbsEl":".swiper-products-thumb"}'
                         >
-                          {productData?.sanPham?.trang_thai_ton_kho === 0 && (
+                          {productData?.sanPham?.so_luong_ton_kho === 0 && (
                             <div className="sold-out-overlay">
                               {/* Bạn có thể dùng một hình ảnh biểu tượng hoặc văn bản */}
                               <img
@@ -751,7 +887,7 @@ const ProductDetails = () => {
                         />
                       </svg>
                       {/* <span class="me-2 far fa-heart"></span> Font Awesome fontawesome.com */}
-                      Add to wishlist
+                      Thêm yêu thích
                     </button>
                     <button
                       className="btn btn-lg btn-warning rounded-pill w-100 fs-9 fs-sm-8"
@@ -773,7 +909,7 @@ const ProductDetails = () => {
                           d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"
                         />
                       </svg>
-                      Add to cart
+                      Thêm giỏ hàng
                     </button>
                   </div>
                 </div>
@@ -923,7 +1059,7 @@ const ProductDetails = () => {
                                 .replace("₫", "VNĐ")}
                             </p>
                             <p className="text-warning fw-bolder fs-6 mb-0">
-                              Sale {""}
+                              Giảm giá {""}
                               {parseFloat(
                                 productData?.sale_theo_phan_tram
                               ).toFixed(0)}
@@ -954,11 +1090,12 @@ const ProductDetails = () => {
                       </p>
                       {remainingTime && (
                         <p className="text-danger-dark fw-bold mb-5 mb-lg-0">
-                          Special offer ends in {remainingTime} hours
+                          Khuyến mãi kết thúc sau {remainingTime} giờ
                         </p>
                       )}
                     </div>
                     <div>
+                      {/* Màu sắc */}
                       {/* Màu sắc */}
                       {colorAttribute === "Màu sắc" && (
                         <div className="mb-3">
@@ -973,11 +1110,13 @@ const ProductDetails = () => {
                               <div
                                 key={index}
                                 className={`rounded-1 border border-translucent me-2 ${
-                                  activeImageIndex === index + 1 ? "active" : ""
-                                }`}
+                                  variant.colorName === colorName
+                                    ? "active"
+                                    : ""
+                                }`} // Đánh dấu biến thể đã chọn
                                 onClick={() =>
-                                  handleImageClick(index + 1, variant.colorName)
-                                }
+                                  handleColorChange(variant.colorName)
+                                } // Gọi hàm khi chọn
                                 style={{ padding: "5px", borderWidth: "3px" }}
                               >
                                 <img
@@ -985,11 +1124,7 @@ const ProductDetails = () => {
                                   alt={variant.colorName}
                                   width={30}
                                   height={30}
-                                  style={{
-                                    width: "30px",
-                                    height: "30px",
-                                    objectFit: "cover",
-                                  }}
+                                  style={{ objectFit: "cover" }}
                                 />
                               </div>
                             ))}
@@ -1013,11 +1148,9 @@ const ProductDetails = () => {
                                       selectedDungLuong === option
                                         ? "border border-primary"
                                         : "border border-1"
-                                    }`} // Ensure `option.name` is compared with selectedDungLuong
+                                    }`}
                                     onClick={() =>
-                                      handleDungLuongChange({
-                                        target: { value: option },
-                                      })
+                                      handleCheckVariant("capacity", option)
                                     }
                                     style={{
                                       padding: "7px 10px",
@@ -1030,7 +1163,7 @@ const ProductDetails = () => {
                                 ))
                               ) : (
                                 <span className="text-muted">
-                                  No capacity options available
+                                  Không có tùy chọn dung lượng
                                 </span>
                               )}
                             </div>

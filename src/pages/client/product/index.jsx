@@ -15,50 +15,60 @@ const Shop = () => {
   // eslint-disable-next-line no-unused-vars
   const [currentTime, setCurrentTime] = useState(new Date());
   const [currentPage, setCurrentPage] = useState(1);
+  // eslint-disable-next-line no-unused-vars
   const [totalProducts, setTotalProducts] = useState(0);
-  const [productsPerPage] = useState(9); // Set max 9 products per page
+  const [totalPages, setTotalPages] = useState(1);
+  const [productsPerPage] = useState(9); // Số sản phẩm mỗi trang (max 9 sản phẩm)
+
   // eslint-disable-next-line no-unused-vars
   const [wishlistData, setWishlistData] = useState(null);
   const [error, setError] = useState(null);
 
-  // Calculate total pages based on total products and products per page
-  const totalPages = Math.ceil(totalProducts / productsPerPage);
   useEffect(() => {
     const fetchProducts = async () => {
-      setLoading(true); // Hiển thị loader khi bắt đầu gọi API
+      setLoading(true);
       try {
         const response = await fetch(
-          `http://127.0.0.1:8000/api/san-pham/allProductClient?page=${currentPage}&limit=${productsPerPage}`
+          `http://127.0.0.1:8000/api/san-pham/allProductClient?page=${currentPage}&number_row=${productsPerPage}`
         );
         const data = await response.json();
 
-        if (data.status === "success" && Array.isArray(data.data.data)) {
-          setProducts(data.data.data);
-          setTotalProducts(data.data.total);
-        } else {
-          console.error(
-            "Error: Expected an array but got",
-            typeof data.data.data
+        // Kiểm tra nếu dữ liệu hợp lệ và có mảng
+        if (data.status === "success" && Array.isArray(data.data)) {
+          const filteredProducts = data.data.filter(
+            (product) => product.trang_thai_ton_kho === 1 // Lọc sản phẩm có `trang_thai_ton_kho = 1`
           );
+
+          // Lấy các sản phẩm phù hợp với trang hiện tại
+          const pagedProducts = filteredProducts.slice(
+            (currentPage - 1) * productsPerPage,
+            currentPage * productsPerPage
+          );
+
+          // Cập nhật các sản phẩm hiển thị cho trang hiện tại
+          setProducts(pagedProducts);
+
+          // Cập nhật tổng số sản phẩm và số trang
+          setTotalProducts(data.total_products); // Cập nhật tổng số sản phẩm từ API
+          setTotalPages(Math.ceil(data.total_products / productsPerPage)); // Tính số trang cần thiết
+        } else {
+          console.error("API response không hợp lệ:", data);
         }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Lỗi khi lấy sản phẩm:", error);
+        setError(error);
       } finally {
-        setLoading(false); // Dừng loader khi dữ liệu được tải xong
+        setLoading(false); // Ẩn loader
       }
     };
 
     fetchProducts();
+  }, [currentPage, productsPerPage]); // Gọi lại khi `currentPage` hoặc `productsPerPage` thay đổi
 
-    // Timeout 10 giây để đảm bảo dừng `loading` ngay cả khi lỗi xảy ra
-    const timeout = setTimeout(() => setLoading(false), 10000);
-
-    return () => clearTimeout(timeout); // Dọn dẹp timeout khi component unmount
-  }, [currentPage]);
-
+  // Hàm xử lý thay đổi trang
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page); // Update the current page
+      setCurrentPage(page); // Cập nhật trang hiện tại
     }
   };
 
@@ -1278,7 +1288,7 @@ const Shop = () => {
                           <div className="d-flex flex-column justify-content-between h-100">
                             <div>
                               <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                                {product.trang_thai_ton_kho === 0 && (
+                                {product.so_luong_ton_kho === 0 && (
                                   <div className="sold-out-overlay">
                                     {/* Bạn có thể dùng một hình ảnh biểu tượng hoặc văn bản */}
                                     <img
@@ -1429,7 +1439,7 @@ const Shop = () => {
                   );
                 })}
               </div>
-              ;
+
               <div className="d-flex justify-content-end">
                 <nav aria-label="Page navigation example">
                   <ul className="pagination mb-0">
@@ -1453,25 +1463,26 @@ const Shop = () => {
                     </li>
 
                     {/* Page Numbers */}
-                    {Array.from({ length: totalPages }, (_, index) => (
-                      <li
-                        className={`page-item ${
-                          currentPage === index + 1 ? "active" : ""
-                        }`}
-                        key={index}
-                      >
-                        <a
-                          className="page-link"
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handlePageChange(index + 1);
-                          }}
+                    {totalPages > 1 &&
+                      Array.from({ length: totalPages }, (_, index) => (
+                        <li
+                          className={`page-item ${
+                            currentPage === index + 1 ? "active" : ""
+                          }`}
+                          key={index}
                         >
-                          {index + 1}
-                        </a>
-                      </li>
-                    ))}
+                          <a
+                            className="page-link"
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(index + 1);
+                            }}
+                          >
+                            {index + 1}
+                          </a>
+                        </li>
+                      ))}
 
                     {/* Next Button */}
                     <li
