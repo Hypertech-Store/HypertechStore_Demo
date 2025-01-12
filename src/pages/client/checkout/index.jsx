@@ -7,6 +7,7 @@ import { Link, useLocation } from "react-router-dom";
 import "../../../assets/css/style.css";
 import "../../../assets/js/main.js";
 import { TbEdit } from "react-icons/tb";
+import { forEach } from "lodash";
 const Checkout = () => {
   document.title = "Hypertech Store - Thanh toán";
   const baseUrl = "http://127.0.0.1:8000/storage/";
@@ -55,11 +56,7 @@ const Checkout = () => {
     navigate("/thong-tin-tai-khoan"); // Chuyển hướng đến trang thông tin tài khoản
   };
   const [userInfo, setUserInfo] = useState({
-    fullName: "",
-    address: "",
-    phoneNumber: "",
-    note: "",
-    shippingAddress: "",
+
   });
 
   useEffect(() => {
@@ -346,6 +343,32 @@ const Checkout = () => {
     return result;
   };
 
+  const [formData, setFormData] = useState({
+    ho_ten: '',
+    email: '',
+    dien_thoai: '',
+  });
+  useEffect(() => {
+    // Kiểm tra nếu `userInfo` đã có dữ liệu
+    if (userInfo) {
+      setFormData({
+        ho_ten: userInfo.ho_ten || '',
+        email: userInfo.email || '',
+        dien_thoai: userInfo.dien_thoai || '',
+      });
+    }
+  }, [userInfo]);
+
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -385,12 +408,16 @@ const Checkout = () => {
 
     const orderCode = generateRandomOrderCode();
 
+
     const orderData = {
       ma_don_hang: orderCode, // Thêm mã đơn hàng ngẫu nhiên
       khach_hang_id: khachHangId,
       phuong_thuc_thanh_toan_id: selectedPaymentMethod.id,
       hinh_thuc_van_chuyen_id: selectedShippingOption.id,
       tong_tien: total,
+      ho_ten: formData.ho_ten,
+      email: formData.email,
+      so_dien_thoai: formData.dien_thoai,
       ma_giam_gia: discountCode || null,
       dia_chi_giao_hang: address,
       products: products.map((product) => ({
@@ -414,6 +441,28 @@ const Checkout = () => {
     if (!spinnerModalElement) {
       console.error("Không tìm thấy modal spinner trong DOM.");
       return; // Dừng nếu modal không tồn tại
+    }
+
+    let errorMessage = "";
+
+    // Kiểm tra từng trường
+    if (!orderData.ho_ten.trim()) {
+      errorMessage += "Vui lòng nhập họ tên.\n";
+    }
+    if (!orderData.email.trim()) {
+      errorMessage += "Vui lòng nhập email.\n";
+    }
+    if (!orderData.so_dien_thoai.trim()) {
+      errorMessage += "Vui lòng nhập số điện thoại.\n";
+    }
+    if (!orderData.dia_chi_giao_hang.trim()) {
+      errorMessage += "Vui lòng nhập địa chỉ giao hàng.\n";
+    }
+
+    // Nếu có lỗi, hiển thị thông báo
+    if (errorMessage) {
+      alert(errorMessage);
+      return;
     }
 
     // eslint-disable-next-line no-undef
@@ -673,117 +722,54 @@ const Checkout = () => {
           <div className="row justify-content-between">
             <div className="col-lg-7 col-xl-6 mt-2">
               <form>
-                <div className="card mt-3 mt-lg-0">
+                <div className="card mt-lg-3">
                   <div className="card-body">
                     <div className="d-flex align-items-end">
-                      <h3 className="mb-0 me-3">Người đặt hàng</h3>
-                      <button
-                        className="btn btn-link p-0"
-                        type="button"
-                        onClick={handleEditClick}
-                      >
-                        <TbEdit style={{ height: "1.3em", width: "1.3em" }} />
-                      </button>
+                      <h3 className="mb-0 me-3">Thông tin người nhận</h3>
                     </div>
-                    <table className="table table-borderless mt-4">
-                      <tbody>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="user"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5 className="lh-sm me-4">Họ tên</h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">:</td>
-                          <td className="py-2 px-3">
-                            <h5 className="lh-sm fw-normal text-body-secondary">
-                              {userInfo.ho_ten}
-                            </h5>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="home"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5 className="lh-sm me-3">Địa chỉ</h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">:</td>
-                          <td className="py-2 px-3">
-                            <h5
-                              className="lh-lg fw-normal text-body-secondary"
-                              style={{
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {userInfo.dia_chi}
-                            </h5>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="mail"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5 className="lh-sm me-4">Email</h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">: </td>
-                          <td className="py-2 px-3">
-                            <h5 className="lh-sm fw-normal text-body-secondary">
-                              {userInfo.email}
-                            </h5>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="phone"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5
-                                className="lh-sm me-4"
-                                style={{
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                Số điện thoại
-                              </h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">: </td>
-                          <td className="py-2 px-3">
-                            <h5 className="lh-sm fw-normal text-body-secondary">
-                              {userInfo.dien_thoai}
-                            </h5>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    <div className="row g-3 mt-3">
+                      <div className="col-12">
+                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">Họ tên</span>
+                        <input
+                          className="form-control mt-1"
+                          id="ho_ten"
+                          name="ho_ten"
+                          type="text"
+                          value={formData.ho_ten}
+                          onChange={handleChange}
+                          required
+                          autoComplete="off"
+                        />
+                      </div>
+                      <div className="col-12">
+                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">Email</span>
+                        <input
+                          className="form-control mt-1"
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          autoComplete="off"
+                        />
+                      </div>
+                      <div className="col-12">
+                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">Số điện thoại</span>
+                        <input
+                          className="form-control mt-1"
+                          id="dien_thoai"
+                          name="dien_thoai"
+                          type="text"
+                          value={formData.dien_thoai}
+                          onChange={handleChange}
+                          required
+                          autoComplete="off"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-
                 <div className="card mt-lg-3">
                   <div className="card-body">
                     <div className="d-flex align-items-end">
@@ -1000,7 +986,7 @@ const Checkout = () => {
                                         }}
                                       >
                                         {product.bien_the &&
-                                        Array.isArray(product.bien_the)
+                                          Array.isArray(product.bien_the)
                                           ? product.bien_the.join(" - ")
                                           : product.bien_the}
                                       </strong>
@@ -1242,11 +1228,10 @@ const Checkout = () => {
                       </button>
                     </div>
                     <span
-                      className={`codeboxinput__dropdown--content1 ${
-                        errorMessage
-                          ? "error_codebox_input"
-                          : "success_codebox_input"
-                      }`}
+                      className={`codeboxinput__dropdown--content1 ${errorMessage
+                        ? "error_codebox_input"
+                        : "success_codebox_input"
+                        }`}
                     >
                       {errorMessage || successMessage}
                     </span>
