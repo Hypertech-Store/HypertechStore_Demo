@@ -24,6 +24,7 @@ const LayoutClient = () => {
     }, 6000); // Bạn có thể thay đổi thời gian này tùy vào thời gian tải thực tế
 
 
+
     return () => clearTimeout(timer); // Dọn dẹp khi component unmount
   }, []);
 
