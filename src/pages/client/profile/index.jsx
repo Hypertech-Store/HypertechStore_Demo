@@ -455,6 +455,47 @@ function Profile() {
     }
   };
 
+  const handleReturnOrder = (orderId) => {
+    const newStatusId = 8;
+  
+    const reason = prompt("Vui lòng nhập lý do hoàn hàng:");
+    if (!reason) {
+      alert("Lý do không được để trống.");
+      return;
+    }
+    if (confirm("Bạn có chắc chắn muốn xác nhận hoàn hàng không?")) {
+      // Gửi yêu cầu cập nhật trạng thái
+      fetch(`http://127.0.0.1:8000/api/don-hang/update/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trang_thai_don_hang_id: newStatusId,
+          ly_do_hoan_hang: reason,
+        }),
+      })
+        .then((response) => response.json())
+        .then(() => {
+          alert("Đã gửi yêu cầu hoàn hàng.");
+          setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+              order.id === orderId
+                ? {
+                    ...order,
+                    trang_thai_don_hang_id: newStatusId,
+                    trang_thai_don_hang: getStatusName(newStatusId),
+                    nguoi_xac_nhan: "client_" + userId,
+                  }
+                : order
+            )
+          );
+        })
+        .catch((error) => {
+          console.error("Lỗi khi cập nhật trạng thái:", error);
+          alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+        });
+    }
+  };
+
   // Hàm để lấy class theo trạng thái đơn hàng
   function getBadgeClass(statusId) {
     switch (statusId) {
