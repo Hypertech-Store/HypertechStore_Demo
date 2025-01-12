@@ -179,6 +179,38 @@ const Order = () => {
                       Hình thức vận chuyển
                     </th>
                     <th
+                      className="align-middle pe-3"
+                      scope="col"
+                      data-sort="status"
+                      style={{ width: "20%", minWidth: 180 }}
+                    >
+                      Người nhận
+                    </th>
+                    <th
+                      className="align-middle pe-3"
+                      scope="col"
+                      data-sort="status"
+                      style={{ width: "20%", minWidth: 180 }}
+                    >
+                      Email
+                    </th>
+                    <th
+                      className="align-middle pe-3"
+                      scope="col"
+                      data-sort="status"
+                      style={{ width: "20%", minWidth: 180 }}
+                    >
+                      Số điện thoại
+                    </th>
+                    <th
+                      className="align-middle pe-3"
+                      scope="col"
+                      data-sort="status"
+                      style={{ width: "20%", minWidth: 180 }}
+                    >
+                      Địa chỉ
+                    </th>
+                    <th
                       className="align-middle pe-0 text-start"
                       scope="col"
                       data-sort="date"
@@ -194,16 +226,7 @@ const Order = () => {
                     >
                       Tổng tiền
                     </th>
-
-                    <th
-                      className="align-middle pe-3"
-                      scope="col"
-                      data-sort="status"
-                      style={{ width: "20%", minWidth: 180 }}
-                    >
-                      Địa chỉ
-                    </th>
-
+                   
                     <th
                       className="align-middle pe-0 ps-6"
                       scope="col"
@@ -225,9 +248,8 @@ const Order = () => {
                         </a>
                       </td>
                       <td className="order align-middle white-space-nowrap py-2 ps-0">
-                        {order.ho_ten}
+                        {order.ho_ten_khach_hang}
                       </td>
-
                       <td className="delivery align-middle white-space-nowrap text-body py-2">
                         {order.phuong_thuc_thanh_toan.ten_phuong_thuc}
                       </td>
@@ -241,11 +263,23 @@ const Order = () => {
                           >
                             {order.trang_thai_don_hang}
                           </span>
-                
+
                         </div>
                       </td>
                       <td className="order align-middle white-space-nowrap py-2 ps-1">
                         {order.ten_van_chuyen}
+                      </td>
+                      <td className="order align-middle white-space-nowrap py-2 ps-0">
+                        {order.ho_ten}
+                      </td>
+                      <td className="order align-middle white-space-nowrap py-2 ps-0">
+                        {order.email}
+                      </td>
+                      <td className="order align-middle white-space-nowrap py-2 ps-0">
+                        {order.so_dien_thoai}
+                      </td>
+                      <td className="order align-middle white-space-nowrap py-2 ps-1">
+                        {order.dia_chi_giao_hang}
                       </td>
                       <td className="total align-middle text-body-tertiary text-start py-2">
                         {new Date(order.created_at).toLocaleString()}
@@ -255,10 +289,6 @@ const Order = () => {
                           order.tong_tien
                         ) + " VNĐ"}
                       </td>
-                      <td className="order align-middle white-space-nowrap py-2 ps-1">
-                        {order.dia_chi_giao_hang}
-                      </td>
-
                       <td className="align-middle white-space-nowrap ps-4">
                         <button
                           className="btn btn-outline-info btn-sm"

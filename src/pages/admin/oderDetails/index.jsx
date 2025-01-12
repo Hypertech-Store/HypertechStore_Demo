@@ -77,15 +77,15 @@ const OrderDetails = () => {
       8: [9],              // Chỉ hiển thị trạng thái 9
       9: []                // Không hiển thị trạng thái nào
     };
-  
+
     // Trả về danh sách trạng thái dựa trên statusMap hoặc tất cả trạng thái nếu không có ánh xạ
     return statusMap[currentStatusId]
       ? orderStatusList.filter((status) => statusMap[currentStatusId].includes(status.id))
       : orderStatusList;
   }
-  
-  
-  
+
+
+
 
   function handleChangeStatus(orderId, newStatusId) {
     const currentStatusId = orderDetails.trang_thai_don_hang_id;
@@ -187,7 +187,7 @@ const OrderDetails = () => {
     try {
       // Fetch dữ liệu từ API
       const response = await fetch(apiUrl);
-      
+
       // Kiểm tra phản hồi từ API
       if (!response.ok) {
         console.error('Lỗi phản hồi từ API:', response.statusText);
@@ -274,12 +274,12 @@ const OrderDetails = () => {
           </div>
           <div className="card-body" style={{ fontSize: "15px" }}>
             <div className="row">
-              <div className="col-md-4">
+              <div className="col-md-3">
                 <p>
                   <strong>Mã đơn hàng:</strong> #{orderDetails.ma_don_hang}
                 </p>
                 <p>
-                  <strong>Khách hàng:</strong> {orderDetails.ho_ten}
+                  <strong>Khách hàng:</strong> {orderDetails.ho_ten_khach_hang}
                 </p>
                 <p>
                   <strong>Phương thức thanh toán:</strong> {orderDetails.ten_phuong_thuc}
@@ -287,11 +287,23 @@ const OrderDetails = () => {
                 <p>
                   <strong>Hình thức vận chuyển:</strong> {orderDetails.ten_van_chuyen}
                 </p>
+
+              </div>
+              <div className="col-md-3">
+                <p>
+                  <strong>Người nhận:</strong> {orderDetails.ho_ten}
+                </p>
+                <p>
+                  <strong>Email:</strong> {orderDetails.email}
+                </p>
+                <p>
+                  <strong>Số điện thoại:</strong> {orderDetails.so_dien_thoai}
+                </p>
                 <p>
                   <strong>Địa chỉ giao hàng:</strong>  {orderDetails.dia_chi_giao_hang}
                 </p>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-3">
                 <p>
                   <strong>Trạng thái đơn hàng:</strong>
                   <span
@@ -341,7 +353,7 @@ const OrderDetails = () => {
                   <strong>Giảm giá:</strong>  {orderDetails.discount}%
                 </p>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-3">
                 <p>
                   <strong>Lý do hủy:</strong>  {orderDetails.ly_do_huy_don}
                 </p>
