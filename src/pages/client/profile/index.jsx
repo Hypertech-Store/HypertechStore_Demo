@@ -1044,7 +1044,7 @@ function Profile() {
                                     <a
                                       className="dropdown-item text-success"
                                     >
-                                      Đánh gi
+                                      Đánh giá
                                     </a>
                                   </>
                                 )}
