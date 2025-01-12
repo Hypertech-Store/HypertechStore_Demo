@@ -16,7 +16,7 @@ const OrderDetails = () => {
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [orderStatusList, setOrderStatusList] = useState([]);
-  const [nguoiHuy, setNguoiHuy] = useState('');
+  const [nguoiHuy, setNguoiHuy] = useState("");
 
   useEffect(() => {
     // Fetch trạng thái đơn hàng từ API
@@ -63,35 +63,34 @@ const OrderDetails = () => {
     }
   }
 
-
   // Hàm lọc trạng thái theo trang_thai_id
   function getFilteredStatusList(currentStatusId) {
     const statusMap = {
-      1: [2, 3],           // Chỉ hiển thị trạng thái 2, 3
-      2: [],               // Không hiển thị trạng thái nào
-      3: [4, 5, 6, 7],     // Hiển thị trạng thái 4, 5, 6, 7
-      4: [5, 6, 7],        // Hiển thị trạng thái 5, 6, 7
-      5: [6, 7],           // Hiển thị trạng thái 6, 7
-      6: [7],              // Hiển thị trạng thái 7
-      7: [],               // Không hiển thị trạng thái nào
-      8: [9],              // Chỉ hiển thị trạng thái 9
-      9: []                // Không hiển thị trạng thái nào
+      1: [2, 3], // Chỉ hiển thị trạng thái 2, 3
+      2: [], // Không hiển thị trạng thái nào
+      3: [4, 5, 6, 7], // Hiển thị trạng thái 4, 5, 6, 7
+      4: [5, 6, 7], // Hiển thị trạng thái 5, 6, 7
+      5: [6, 7], // Hiển thị trạng thái 6, 7
+      6: [7], // Hiển thị trạng thái 7
+      7: [], // Không hiển thị trạng thái nào
+      8: [9], // Chỉ hiển thị trạng thái 9
+      9: [], // Không hiển thị trạng thái nào
     };
 
     // Trả về danh sách trạng thái dựa trên statusMap hoặc tất cả trạng thái nếu không có ánh xạ
     return statusMap[currentStatusId]
-      ? orderStatusList.filter((status) => statusMap[currentStatusId].includes(status.id))
+      ? orderStatusList.filter((status) =>
+          statusMap[currentStatusId].includes(status.id)
+        )
       : orderStatusList;
   }
-
-
-
 
   function handleChangeStatus(orderId, newStatusId) {
     const currentStatusId = orderDetails.trang_thai_don_hang_id;
 
     // Điều kiện cho phép hủy
-    if (newStatusId === 2) { // Trạng thái "Đã hủy"
+    if (newStatusId === 2) {
+      // Trạng thái "Đã hủy"
       if (currentStatusId !== 1) {
         alert("Chỉ có thể hủy đơn hàng khi ở trạng thái mới.");
         return;
@@ -116,7 +115,6 @@ const OrderDetails = () => {
       })
         .then((response) => response.json())
         .then(() => {
-
           alert("Đơn hàng đã được hủy.");
           setOrderDetails((prev) => ({
             ...prev,
@@ -144,7 +142,7 @@ const OrderDetails = () => {
       6: [7],
       7: [],
       8: [9],
-      9: []
+      9: [],
     };
 
     if (!validStatuses[currentStatusId]?.includes(newStatusId)) {
@@ -173,14 +171,14 @@ const OrderDetails = () => {
   }
 
   const handleCancelOrder = async (nguoi_huy) => {
-    const rolePrefix = nguoi_huy.split('_')[0]; // Tách chuỗi để lấy tiền tố trước dấu "_"
-    const id = nguoi_huy.split('_')[1]; // Lấy phần sau dấu "_" làm id
+    const rolePrefix = nguoi_huy.split("_")[0]; // Tách chuỗi để lấy tiền tố trước dấu "_"
+    const id = nguoi_huy.split("_")[1]; // Lấy phần sau dấu "_" làm id
 
     // Kiểm tra nếu là admin hoặc user và gọi API tương ứng
-    let apiUrl = '';
-    if (rolePrefix === 'admin') {
+    let apiUrl = "";
+    if (rolePrefix === "admin") {
       apiUrl = `http://127.0.0.1:8000/api/quan-tri-viens/detail/${id}`; // API cho admin với id
-    } else if (rolePrefix === 'user') {
+    } else if (rolePrefix === "user") {
       apiUrl = `http://127.0.0.1:8000/api/khach-hang/profile/${id}`; // API cho user với id
     }
 
@@ -190,20 +188,20 @@ const OrderDetails = () => {
 
       // Kiểm tra phản hồi từ API
       if (!response.ok) {
-        console.error('Lỗi phản hồi từ API:', response.statusText);
+        console.error("Lỗi phản hồi từ API:", response.statusText);
         return;
       }
 
       const data = await response.json();
-      console.log('Dữ liệu từ API:', data);
+      console.log("Dữ liệu từ API:", data);
 
-      if (rolePrefix === 'admin') {
+      if (rolePrefix === "admin") {
         setNguoiHuy(`Admin ${data.ho_ten}`); // Nếu là admin
-      } else if (rolePrefix === 'user') {
+      } else if (rolePrefix === "user") {
         setNguoiHuy(`Khách hàng ${data.user.ho_ten}`); // Nếu là user
       }
     } catch (error) {
-      console.error('Lỗi khi gọi API:', error);
+      console.error("Lỗi khi gọi API:", error);
     }
   };
 
@@ -214,13 +212,13 @@ const OrderDetails = () => {
     }
   }, [orderDetails]);
 
-
   useEffect(() => {
     // Fetch chi tiết đơn hàng từ API
     fetch(`http://127.0.0.1:8000/api/donhang/order-details/${id}`)
       .then((response) => response.json())
       .then((data) => {
         setOrderDetails(data.data);
+        console.log(data.data);
         setLoading(false);
       })
       .catch((error) => {
@@ -232,7 +230,6 @@ const OrderDetails = () => {
   if (loading) {
     return <div>Loading...</div>;
   }
-
 
   return (
     <div className="content">
@@ -282,12 +279,13 @@ const OrderDetails = () => {
                   <strong>Khách hàng:</strong> {orderDetails.ho_ten_khach_hang}
                 </p>
                 <p>
-                  <strong>Phương thức thanh toán:</strong> {orderDetails.ten_phuong_thuc}
+                  <strong>Phương thức thanh toán:</strong>{" "}
+                  {orderDetails.ten_phuong_thuc}
                 </p>
                 <p>
-                  <strong>Hình thức vận chuyển:</strong> {orderDetails.ten_van_chuyen}
+                  <strong>Hình thức vận chuyển:</strong>{" "}
+                  {orderDetails.ten_van_chuyen}
                 </p>
-
               </div>
               <div className="col-md-3">
                 <p>
@@ -300,7 +298,8 @@ const OrderDetails = () => {
                   <strong>Số điện thoại:</strong> {orderDetails.so_dien_thoai}
                 </p>
                 <p>
-                  <strong>Địa chỉ giao hàng:</strong>  {orderDetails.dia_chi_giao_hang}
+                  <strong>Địa chỉ giao hàng:</strong>{" "}
+                  {orderDetails.dia_chi_giao_hang}
                 </p>
               </div>
               <div className="col-md-3">
@@ -330,38 +329,43 @@ const OrderDetails = () => {
                   </button>
 
                   <ul className="dropdown-menu">
-                    {getFilteredStatusList(orderDetails.trang_thai_don_hang_id).map((status) => (
+                    {getFilteredStatusList(
+                      orderDetails.trang_thai_don_hang_id
+                    ).map((status) => (
                       <li key={status.id}>
                         <button
                           className="dropdown-item"
-                          onClick={() => handleChangeStatus(orderDetails.id, status.id)}
+                          onClick={() =>
+                            handleChangeStatus(orderDetails.id, status.id)
+                          }
                         >
                           {status.ten_trang_thai}
                         </button>
                       </li>
                     ))}
                   </ul>
-
                 </p>
                 <p>
                   <strong>Mã giảm giá:</strong> #{orderDetails.ma_giam_gia}
                 </p>
                 <p>
-                  <strong>Tổng tiền:</strong> {Number(orderDetails.tong_tien).toLocaleString()} VNĐ
+                  <strong>Tổng tiền:</strong>{" "}
+                  {Number(orderDetails.tong_tien).toLocaleString()} VNĐ
                 </p>
                 <p>
-                  <strong>Giảm giá:</strong>  {orderDetails.discount}%
+                  <strong>Giảm giá:</strong> {orderDetails.discount}%
                 </p>
               </div>
               <div className="col-md-3">
                 <p>
-                  <strong>Lý do hủy:</strong>  {orderDetails.ly_do_huy_don}
+                  <strong>Lý do hủy:</strong> {orderDetails.ly_do_huy_don}
                 </p>
                 <p>
-                  <strong>Người hủy:</strong>  {nguoiHuy}
+                  <strong>Người hủy:</strong> {nguoiHuy}
                 </p>
                 <p>
-                  <strong>Lý do hoàn hàng:</strong>  {orderDetails.ly_do_hoan_hang}
+                  <strong>Lý do hoàn hàng:</strong>{" "}
+                  {orderDetails.ly_do_hoan_hang}
                 </p>
               </div>
             </div>
@@ -369,38 +373,72 @@ const OrderDetails = () => {
         </div>
 
         {/* Bảng chi tiết sản phẩm */}
-        <div id="orderTable" data-list='{"valueNames":["order","total","customer","payment_status","fulfilment_status","delivery_type","date"],"page":10,"pagination":true}'>
+        <div
+          id="orderTable"
+          data-list='{"valueNames":["order","total","customer","payment_status","fulfilment_status","delivery_type","date"],"page":10,"pagination":true}'
+        >
           <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis border-top border-bottom border-translucent position-relative top-1">
             <div className="table-responsive scrollbar mx-n1 px-1">
               <table className="table table-sm fs-9 mb-0">
                 <thead>
                   <tr>
-                    <th scope="col" style={{ width: "7%" }}>STT</th>
-                    <th scope="col" style={{ width: "10%" }}>Hình ảnh</th>
-                    <th scope="col" style={{ width: "25%" }}>Sản phẩm</th>
-                    <th scope="col" style={{ width: "15%" }}>Danh mục</th>
-                    <th scope="col" style={{ width: "15%" }}>Số lượng</th>
-                    <th scope="col" style={{ width: "15%" }}>Biến thể</th>
-                    <th scope="col" style={{ width: "11%" }}>Giá</th>
+                    <th scope="col" style={{ width: "7%" }}>
+                      STT
+                    </th>
+                    <th scope="col" style={{ width: "10%" }}>
+                      Hình ảnh
+                    </th>
+                    <th scope="col" style={{ width: "25%" }}>
+                      Sản phẩm
+                    </th>
+                    <th scope="col" style={{ width: "15%" }}>
+                      Danh mục
+                    </th>
+                    <th scope="col" style={{ width: "15%" }}>
+                      Số lượng
+                    </th>
+                    <th scope="col" style={{ width: "15%" }}>
+                      Biến thể
+                    </th>
+                    <th scope="col" style={{ width: "11%" }}>
+                      Giá
+                    </th>
                     <th scope="col" style={{ width: "5%" }} />
                   </tr>
                 </thead>
                 <tbody className="list" id="profile-order-table-body">
                   {orderDetails?.chi_tiet_don_hangs.map((item, index) => (
-                    <tr key={index} className="hover-actions-trigger btn-reveal-trigger position-static">
-                      <td className="order align-middle white-space-nowrap py-2 ps-0">{index + 1}</td>
-                      <td className="delivery align-middle white-space-nowrap text-body py-2">
-                        <img src={`http://127.0.0.1:8000/storage/${item.san_pham.duong_dan_anh}`} alt={item.san_pham.ten_san_pham} style={{ width: '50px' }} />
+                    <tr
+                      key={index}
+                      className="hover-actions-trigger btn-reveal-trigger position-static"
+                    >
+                      <td className="order align-middle white-space-nowrap py-2 ps-0">
+                        {index + 1}
                       </td>
-                      <td className="status align-middle white-space-nowrap text-start py-2">{item.san_pham.ten_san_pham}</td>
-                      <td className="order align-middle white-space-nowrap py-2 ps-1">{item.san_pham.ten_danh_muc}</td>
-                      <td className="total align-middle text-body-tertiary text-start py-2">{item.so_luong}</td>
+                      <td className="delivery align-middle white-space-nowrap text-body py-2">
+                        <img
+                          src={`http://127.0.0.1:8000/storage/${item.san_pham.duong_dan_anh}`}
+                          alt={item.san_pham.ten_san_pham}
+                          style={{ width: "50px" }}
+                        />
+                      </td>
+                      <td className="status align-middle white-space-nowrap text-start py-2">
+                        {item.san_pham.ten_san_pham}
+                      </td>
+                      <td className="order align-middle white-space-nowrap py-2 ps-1">
+                        {item.san_pham.ten_danh_muc}
+                      </td>
+                      <td className="total align-middle text-body-tertiary text-start py-2">
+                        {item.so_luong}
+                      </td>
                       <td className="date align-middle fw-semibold text-start py-2 text-body-highlight">
                         {item.thuoc_tinh.map((t, idx) => (
                           <div key={idx}>{t.ten_gia_tri}</div>
                         ))}
                       </td>
-                      <td className="order align-middle white-space-nowrap py-2 ps-1">{Number(item.gia).toLocaleString()} VNĐ</td>
+                      <td className="order align-middle white-space-nowrap py-2 ps-1">
+                        {Number(item.gia).toLocaleString()} VNĐ
+                      </td>
                       <td className="order align-middle white-space-nowrap py-2 ps-1"></td>
                     </tr>
                   ))}
@@ -420,7 +458,9 @@ const OrderDetails = () => {
               <span className="d-none d-sm-inline-block mx-1">|</span>
               <br className="d-sm-none" />
               2024 ©
-              <a className="mx-1" href="https://themewagon.com/">Themewagon</a>
+              <a className="mx-1" href="https://themewagon.com/">
+                Themewagon
+              </a>
             </p>
           </div>
           <div className="col-12 col-sm-auto text-center">
@@ -431,6 +471,5 @@ const OrderDetails = () => {
     </div>
   );
 };
-
 
 export default OrderDetails;

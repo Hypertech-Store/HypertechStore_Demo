@@ -40,6 +40,7 @@ const OrderDetails = () => {
 
         const data = await response.json();
         setOrderData(data.data); // Lưu dữ liệu vào state
+        console.log(data.data);
       } catch (error) {
         setError(error.message);
       } finally {
