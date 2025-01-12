@@ -80,6 +80,7 @@ const LayoutAdmin = () => {
       setIsLoading(false); // Giả lập đã tải dữ liệu xong
     }, 6000); // Bạn có thể thay đổi thời gian này tùy vào thời gian tải thực tế
 
+
     return () => clearTimeout(timer); // Dọn dẹp khi component unmount
   }, []);
 
