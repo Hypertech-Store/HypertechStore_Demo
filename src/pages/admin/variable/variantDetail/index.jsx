@@ -182,37 +182,6 @@ const ListValue = () => {
     setImagePreview("");
   };
 
-  const deleteVariant = async (id) => {
-    // Xác nhận trước khi xóa
-    const isConfirmed = window.confirm(
-      "Bạn có chắc chắn muốn xóa biến thể sản phẩm này?"
-    );
-
-    if (!isConfirmed) return;
-
-    try {
-      // Gửi yêu cầu xóa biến thể sản phẩm qua API
-      const response = await axios.delete(
-        `http://127.0.0.1:8000/api/bien-the-san-pham/${id}`
-      );
-
-      if (response.status === 200) {
-        // Nếu xóa thành công, thông báo và cập nhật lại danh sách
-        alert("Xóa biến thể sản phẩm thành công!");
-        // Cập nhật lại dữ liệu trong state (setData hoặc tương tự)
-        setData((prev) =>
-          prev.filter((variant) => variant.bienTheSanPham.id !== id)
-        );
-      } else {
-        // Nếu có lỗi khác, thông báo cho người dùng
-        alert("Không thể xóa biến thể sản phẩm.");
-      }
-    } catch (error) {
-      console.error("Lỗi khi xóa biến thể sản phẩm:", error);
-      // Thông báo lỗi nếu có sự cố
-      alert("Không thể xóa biến thể sản phẩm. Vui lòng thử lại.");
-    }
-  };
 
   return (
     <div className="content">
@@ -361,9 +330,6 @@ const ListValue = () => {
                           <button
                             className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                             type="button"
-                            onClick={() =>
-                              deleteVariant(item.bienTheSanPham.id)
-                            }
                           >
                             <span className="fa-solid fa-trash fs-9" />
                           </button>

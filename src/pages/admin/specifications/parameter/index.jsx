@@ -170,14 +170,14 @@ const ListParameter = () => {
         },
       });
 
-      if (response.ok) {
+      if (response.redirected == true) {
         alert("Xóa thông số thành công!");
         setThongSo((prevThongSo) =>
           prevThongSo.filter((item) => item.id !== id)
         );
       } else {
         const errorData = await response.json();
-        alert(`Xóa thất bại: ${errorData.message || "Có lỗi xảy ra"}`);
+        alert(`Xóa thất bại!`);
       }
     } catch (error) {
       console.error("Lỗi khi xóa thông số:", error);
