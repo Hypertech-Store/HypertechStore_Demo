@@ -967,10 +967,14 @@ function Profile() {
                                 >
                                   Chi tiết
                                 </a>
+                                {order.trang_thai_don_hang_id !== 6 && (
+                                  <>
+                                    <a className="dropdown-item" href="#!">
+                                      Trạng thái
+                                    </a>
+                                  </>
+                                )}
 
-                                <a className="dropdown-item" href="#!">
-                                  Trạng thái
-                                </a>
                                 {order.trang_thai_don_hang_id === 1 && (
                                   <>
                                     <div className="dropdown-divider" />
@@ -980,6 +984,25 @@ function Profile() {
                                       onClick={() => handleCancelOrder(order.id, order.trang_thai_don_hang_id)}
                                     >
                                       Hủy đơn
+                                    </a>
+                                  </>
+                                )}
+
+                                {order.trang_thai_don_hang_id === 6 && (
+                                  <>
+                                    <a
+                                      className="dropdown-item text-success"
+                                      href="#!"
+                                      onClick={() => handleConfirmReceived(order.id)}
+                                    >
+                                      Xác nhận đã nhận hàng
+                                    </a>
+                                    <a
+                                      className="dropdown-item text-warning"
+                                      href="#!"
+                                      onClick={() => handleReturnOrder(order.id)}
+                                    >
+                                      Hoàn trả hàng
                                     </a>
                                   </>
                                 )}
