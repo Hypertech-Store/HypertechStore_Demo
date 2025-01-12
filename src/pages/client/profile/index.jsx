@@ -1004,7 +1004,7 @@ function Profile() {
                                 </a>
                                 {order.trang_thai_don_hang_id !== 6 && (
                                   <>
-                                    <a className="dropdown-item" href="#!">
+                                    <a className="dropdown-item">
                                       Trạng thái
                                     </a>
                                   </>
@@ -1015,7 +1015,6 @@ function Profile() {
                                     <div className="dropdown-divider" />
                                     <a
                                       className="dropdown-item text-danger"
-                                      href="#!"
                                       onClick={() => handleCancelOrder(order.id, order.trang_thai_don_hang_id)}
                                     >
                                       Hủy đơn
@@ -1027,17 +1026,25 @@ function Profile() {
                                   <>
                                     <a
                                       className="dropdown-item text-success"
-                                      href="#!"
                                       onClick={() => handleConfirmReceived(order.id)}
                                     >
                                       Xác nhận đã nhận hàng
                                     </a>
                                     <a
                                       className="dropdown-item text-warning"
-                                      href="#!"
                                       onClick={() => handleReturnOrder(order.id)}
                                     >
                                       Hoàn trả hàng
+                                    </a>
+                                  </>
+                                )}
+
+                                {order.trang_thai_don_hang_id === 7 && (
+                                  <>
+                                    <a
+                                      className="dropdown-item text-success"
+                                    >
+                                      Đánh giá
                                     </a>
                                   </>
                                 )}

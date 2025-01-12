@@ -78,7 +78,9 @@ const LayoutAdmin = () => {
     // Giả lập việc tải dữ liệu (có thể thay bằng các API request thực tế)
     const timer = setTimeout(() => {
       setIsLoading(false); // Giả lập đã tải dữ liệu xong
+
     }, 6000); // Bạn có thể thay đổi thời gian này tùy vào thời gian tải thực tế
+
 
     return () => clearTimeout(timer); // Dọn dẹp khi component unmount
   }, []);
