@@ -46,21 +46,6 @@ const listCategory = () => {
     }
   };
 
-  // const formatDate = (dateStr) => {
-  //   if (!dateStr) return "N/A";
-  //   const date = new Date(dateStr);
-  //   const options = {
-  //     day: "numeric",
-  //     month: "short",
-  //     year: "numeric",
-  //     hour: "2-digit",
-  //     minute: "2-digit",
-  //     hour12: true,
-  //   };
-
-  //   return date.toLocaleString("en-US", options);
-  // };
-
   const updateCategory = async () => {
     if (!categoryDetails.name || !categoryDetails.description) {
       alert("Vui lòng nhập đầy đủ tên danh mục và mô tả.");

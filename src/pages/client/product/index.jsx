@@ -34,23 +34,12 @@ const Shop = () => {
         const data = await response.json();
 
         // Kiểm tra nếu dữ liệu hợp lệ và có mảng
-        if (data.status === "success" && Array.isArray(data.data)) {
-          const filteredProducts = data.data.filter(
-            (product) => product.trang_thai_ton_kho === 1 // Lọc sản phẩm có `trang_thai_ton_kho = 1`
-          );
+        if (data.status === "success" && Array.isArray(data.data.data)) {
 
-          // Lấy các sản phẩm phù hợp với trang hiện tại
-          const pagedProducts = filteredProducts.slice(
-            (currentPage - 1) * productsPerPage,
-            currentPage * productsPerPage
-          );
+          setProducts(data.data.data);
 
-          // Cập nhật các sản phẩm hiển thị cho trang hiện tại
-          setProducts(pagedProducts);
-
-          // Cập nhật tổng số sản phẩm và số trang
-          setTotalProducts(data.total_products); // Cập nhật tổng số sản phẩm từ API
-          setTotalPages(Math.ceil(data.total_products / productsPerPage)); // Tính số trang cần thiết
+          setTotalProducts(data.data.total);
+          setTotalPages(data.data.last_page);
         } else {
           console.error("API response không hợp lệ:", data);
         }
@@ -63,7 +52,7 @@ const Shop = () => {
     };
 
     fetchProducts();
-  }, [currentPage, productsPerPage]); // Gọi lại khi `currentPage` hoặc `productsPerPage` thay đổi
+  }, [currentPage, productsPerPage]);
 
   // Hàm xử lý thay đổi trang
   const handlePageChange = (page) => {
@@ -71,6 +60,7 @@ const Shop = () => {
       setCurrentPage(page); // Cập nhật trang hiện tại
     }
   };
+
 
   // Hàm để lấy sản phẩm mới
   const fetchNewProducts = async () => {
@@ -1334,9 +1324,8 @@ const Shop = () => {
                                 )}
 
                                 <button
-                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${
-                                    wishlistStatus[product.id] ? "active" : ""
-                                  }`}
+                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${wishlistStatus[product.id] ? "active" : ""
+                                    }`}
                                   data-bs-toggle="tooltip"
                                   data-bs-placement="top"
                                   title={
@@ -1350,17 +1339,15 @@ const Shop = () => {
                                   disabled={loading}
                                 >
                                   <span
-                                    className={`fas fa-heart d-block-hover ${
-                                      wishlistStatus[product.id] ? "d-none" : ""
-                                    }`}
+                                    className={`fas fa-heart d-block-hover ${wishlistStatus[product.id] ? "d-none" : ""
+                                      }`}
                                     data-fa-transform="down-1"
                                   />
                                   <span
-                                    className={`far fa-heart d-none-hover ${
-                                      !wishlistStatus[product.id]
-                                        ? "d-block"
-                                        : ""
-                                    }`}
+                                    className={`far fa-heart d-none-hover ${!wishlistStatus[product.id]
+                                      ? "d-block"
+                                      : ""
+                                      }`}
                                     data-fa-transform="down-1"
                                   />
                                 </button>
@@ -1445,9 +1432,8 @@ const Shop = () => {
                   <ul className="pagination mb-0">
                     {/* Previous Button */}
                     <li
-                      className={`page-item ${
-                        currentPage === 1 ? "disabled" : ""
-                      }`}
+                      className={`page-item ${currentPage === 1 ? "disabled" : ""
+                        }`}
                     >
                       <a
                         className="page-link"
@@ -1463,12 +1449,10 @@ const Shop = () => {
                     </li>
 
                     {/* Page Numbers */}
-                    {totalPages > 1 &&
-                      Array.from({ length: totalPages }, (_, index) => (
+                    { Array.from({ length: totalPages }, (_, index) => (
                         <li
-                          className={`page-item ${
-                            currentPage === index + 1 ? "active" : ""
-                          }`}
+                          className={`page-item ${currentPage === index + 1 ? "active" : ""
+                            }`}
                           key={index}
                         >
                           <a
@@ -1483,12 +1467,11 @@ const Shop = () => {
                           </a>
                         </li>
                       ))}
-
+                    
                     {/* Next Button */}
                     <li
-                      className={`page-item ${
-                        currentPage === totalPages ? "disabled" : ""
-                      }`}
+                      className={`page-item ${currentPage === totalPages ? "disabled" : ""
+                        }`}
                     >
                       <a
                         className="page-link"
@@ -1505,6 +1488,8 @@ const Shop = () => {
                   </ul>
                 </nav>
               </div>
+
+              
             </div>
           </div>
         </div>
