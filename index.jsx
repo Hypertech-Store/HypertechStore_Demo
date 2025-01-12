@@ -353,19 +353,19 @@ const ProductDetails = () => {
       isColorSelected && isDungLuongSelected && areOtherAttributesSelected
     );
   }, [colorName, selectedDungLuong, otherAttributes, productData]);
-  // State để lưu chỉ số ảnh hiện tại
-  const [activeImageIndex, setActiveImageIndex] = useState(0); // Mặc định là ảnh chính
 
-  // Thêm ảnh chính vào đầu danh sách
+  // State to store the index of the active image (default is 0)
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Concatenate the main image to the image array (optional, based on your original structure)
   const imageArray = [productData?.sanPham?.duong_dan_anh, ...images];
 
+  // Handle image click event
   const handleImageClick = (index, color = "") => {
-    if (index === 0) {
-      setActiveImageIndex(0);
-      setColorName("");
-      setVariantPrice(0); // No variant price
-    } else {
-      setActiveImageIndex(index);
+    setActiveImageIndex(index); // Update the active image index when an image is clicked
+
+    // Handle the variant-specific behavior if needed, e.g., color changes or price calculation
+    if (index > 0) {
       setColorName(color);
 
       if (selectedDungLuong) {
@@ -384,14 +384,7 @@ const ProductDetails = () => {
           setVariantPrice(variantPrice);
 
           // Format price with currency
-          console.log(
-            `Giá biến thể: ${new Intl.NumberFormat("vi-VN", {
-              style: "currency",
-              currency: "VND",
-            }).format(variantPrice)}`
-          );
-
-          setFinalPrice(calculateFinalPrice(variantPrice)); // Tính giá cuối
+          setFinalPrice(calculateFinalPrice(variantPrice)); // Calculate the final price
         }
       }
     }
@@ -753,7 +746,7 @@ const ProductDetails = () => {
                         />
                       </svg>
                       {/* <span class="me-2 far fa-heart"></span> Font Awesome fontawesome.com */}
-                      Add to wishlist
+                      Thêm yêu thích
                     </button>
                     <button
                       className="btn btn-lg btn-warning rounded-pill w-100 fs-9 fs-sm-8"
@@ -775,7 +768,7 @@ const ProductDetails = () => {
                           d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"
                         />
                       </svg>
-                      Add to cart
+                      Thêm giỏ hàng
                     </button>
                   </div>
                 </div>
@@ -925,7 +918,7 @@ const ProductDetails = () => {
                                 .replace("₫", "VNĐ")}
                             </p>
                             <p className="text-warning fw-bolder fs-6 mb-0">
-                              Sale {""}
+                              Giảm giá {""}
                               {parseFloat(
                                 productData?.sale_theo_phan_tram
                               ).toFixed(0)}
@@ -956,7 +949,7 @@ const ProductDetails = () => {
                       </p>
                       {remainingTime && (
                         <p className="text-danger-dark fw-bold mb-5 mb-lg-0">
-                          Special offer ends in {remainingTime} hours
+                          Khuyến mãi kết thúc sau {remainingTime} giờ
                         </p>
                       )}
                     </div>

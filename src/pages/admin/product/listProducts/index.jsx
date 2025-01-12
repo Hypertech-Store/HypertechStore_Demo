@@ -229,43 +229,34 @@ const ListProducts = () => {
 
   const handleToggleStatus = async (productId, newStatus) => {
     try {
-      setProducts((prevState) => {
-        const updateProducts = prevState.map((product) => {
-          if (product.id === productId) {
-            // Logic to automatically set trang_thai_ton_kho based on so_luong_ton_kho
-            const trangThaiTonKho =
-              product.so_luong_ton_kho === 0 ? 0 : newStatus ? 1 : 0;
-
-            return {
-              ...product,
-              trang_thai_ton_kho: trangThaiTonKho, // Ensure `trang_thai_ton_kho` is synced with the quantity
-              status: trangThaiTonKho, // Ensure status is also updated for the checkbox UI
-            };
-          }
-          return product;
-        });
-
-        return updateProducts;
-      });
-
-      // Gửi yêu cầu PUT tới API để cập nhật trạng thái tồn kho
+      // Gửi yêu cầu PUT tới API để cập nhật trạng thái
       const response = await axios.put(
         "http://127.0.0.1:8000/api/san-pham/trang-thai",
         {
           san_pham_id: productId, // ID sản phẩm
-          trang_thai_ton_kho: newStatus ? 1 : 0, // Cập nhật trang thái tồn kho theo trạng thái checkbox
+          trang_thai_ton_kho: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
         }
       );
 
-      // Nếu cập nhật thành công, thông báo cho người dùng
+      // Nếu API trả về kết quả thành công
       if (response.data.success) {
-        alert(response.data.message);
+        // Cập nhật lại trạng thái trong danh sách sản phẩm
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === productId
+              ? { ...product, trang_thai_ton_kho: newStatus ? 1 : 0 }
+              : product
+          )
+        );
+
+        alert(response.data.message || "Cập nhật trạng thái thành công!");
       } else {
-        alert("Cập nhật trạng thái thất bại.");
+        console.error("Lỗi từ API:", response.data);
+        alert("Cập nhật trạng thái thất bại. Vui lòng thử lại.");
       }
     } catch (error) {
-      console.error("Đã xảy ra lỗi:", error);
-      alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+      console.error("Lỗi khi gọi API:", error);
+      alert("Đã xảy ra lỗi khi cập nhật trạng thái. Vui lòng kiểm tra lại.");
     }
   };
 
