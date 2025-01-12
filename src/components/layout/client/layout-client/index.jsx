@@ -21,11 +21,9 @@ const LayoutClient = () => {
     // Giả lập việc tải dữ liệu (có thể thay bằng các API request thực tế)
     const timer = setTimeout(() => {
       setIsLoading(false); // Giả lập đã tải dữ liệu xong
-<<<<<<< HEAD
     }, 6000); // Bạn có thể thay đổi thời gian này tùy vào thời gian tải thực tế
-=======
-    }, 4000); // Bạn có thể thay đổi thời gian này tùy vào thời gian tải thực tế
->>>>>>> 43ea641352e6eeff906fac6bfd6a5b19cbcb27d7
+
+
 
     return () => clearTimeout(timer); // Dọn dẹp khi component unmount
   }, []);
