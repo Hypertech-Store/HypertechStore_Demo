@@ -497,7 +497,7 @@ const ProductDetails = () => {
       toast.success("Sản phẩm đã được thêm vào giỏ hàng!");
     }
 
-    // Gửi yêu cầu thêm vào giỏ hàng
+    // Gửi yêu cầu thêm vào giỏ hàng qua API
     try {
       const response = await fetch(
         "http://127.0.0.1:8000/api/gio-hang/them-gio-hang",
@@ -509,12 +509,16 @@ const ProductDetails = () => {
           body: JSON.stringify(productDataToSend),
         }
       );
+
+      if (response.ok) {
+        // Nếu thành công, chuyển đến trang giỏ hàng
         navigate("/gio-hang");
       } else {
         toast.error("Có lỗi khi thêm sản phẩm vào giỏ hàng.");
       }
     } catch (error) {
       toast.error("Không thể kết nối với máy chủ, vui lòng thử lại.");
+      console.error("Error:", error);
     }
   };
 
