@@ -203,6 +203,7 @@ const ProductDetails = () => {
           {
             method: "POST",
             headers: {
+              Accept: "application/json",
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
@@ -508,12 +509,6 @@ const ProductDetails = () => {
           body: JSON.stringify(productDataToSend),
         }
       );
-
-      if (response.ok) {
-        console.log(
-          "Sản phẩm đã được thêm vào giỏ hàng:",
-          await response.json()
-        );
         navigate("/gio-hang");
       } else {
         toast.error("Có lỗi khi thêm sản phẩm vào giỏ hàng.");

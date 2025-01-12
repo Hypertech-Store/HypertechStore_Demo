@@ -202,6 +202,7 @@ const ProductDetails = () => {
           {
             method: "POST",
             headers: {
+              Accept: "application/json",
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
@@ -496,6 +497,7 @@ const ProductDetails = () => {
           {
             method: "POST",
             headers: {
+              Accept: "application/json",
               "Content-Type": "application/json",
             },
             body: JSON.stringify(productDataToSend),

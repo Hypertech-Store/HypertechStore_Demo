@@ -66,33 +66,26 @@ const OrderDetails = () => {
 
   // Hàm lọc trạng thái theo trang_thai_id
   function getFilteredStatusList(currentStatusId) {
-    if (currentStatusId === 1) {
-      return orderStatusList.filter(
-        (status) => status.id !== 8 && status.id !== 9
-      );
-    } else if (currentStatusId === 2) {
-      return []; // Không hiển thị trạng thái nào
-    } else if ([3, 4, 5, 6, 7].includes(currentStatusId)) {
-      // Đưa ra các trạng thái phù hợp dựa trên currentStatusId
-      if (currentStatusId === 3) {
-        return orderStatusList.filter((status) => [4, 5, 6, 7].includes(status.id));
-      } else if (currentStatusId === 4) {
-        return orderStatusList.filter((status) => [5, 6, 7].includes(status.id));
-      } else if (currentStatusId === 5) {
-        return orderStatusList.filter((status) => [6, 7].includes(status.id));
-      } else if (currentStatusId === 6) {
-        return orderStatusList.filter((status) => status.id === 7);
-      } else if (currentStatusId === 7) {
-        return []; // Không hiển thị trạng thái nào
-      }
-    } else if (currentStatusId === 8) {
-      return orderStatusList.filter((status) => status.id === 9);
-    } else if (currentStatusId === 9) {
-      return []; // Không hiển thị trạng thái nào
-    }
-    return orderStatusList;
+    const statusMap = {
+      1: [2, 3],           // Chỉ hiển thị trạng thái 2, 3
+      2: [],               // Không hiển thị trạng thái nào
+      3: [4, 5, 6, 7],     // Hiển thị trạng thái 4, 5, 6, 7
+      4: [5, 6, 7],        // Hiển thị trạng thái 5, 6, 7
+      5: [6, 7],           // Hiển thị trạng thái 6, 7
+      6: [7],              // Hiển thị trạng thái 7
+      7: [],               // Không hiển thị trạng thái nào
+      8: [9],              // Chỉ hiển thị trạng thái 9
+      9: []                // Không hiển thị trạng thái nào
+    };
+
+    // Trả về danh sách trạng thái dựa trên statusMap hoặc tất cả trạng thái nếu không có ánh xạ
+    return statusMap[currentStatusId]
+      ? orderStatusList.filter((status) => statusMap[currentStatusId].includes(status.id))
+      : orderStatusList;
   }
-  
+
+
+
 
   function handleChangeStatus(orderId, newStatusId) {
     const currentStatusId = orderDetails.trang_thai_don_hang_id;
@@ -143,7 +136,7 @@ const OrderDetails = () => {
 
     // Các điều kiện khác cho các trạng thái chuyển tiếp
     const validStatuses = {
-      1: [2], // Ví dụ chỉ được chuyển từ 1 sang 2
+      1: [2, 3], // Ví dụ chỉ được chuyển từ 1 sang 2
       2: [3],
       3: [4],
       4: [5],
@@ -194,7 +187,7 @@ const OrderDetails = () => {
     try {
       // Fetch dữ liệu từ API
       const response = await fetch(apiUrl);
-      
+
       // Kiểm tra phản hồi từ API
       if (!response.ok) {
         console.error('Lỗi phản hồi từ API:', response.statusText);
@@ -281,12 +274,12 @@ const OrderDetails = () => {
           </div>
           <div className="card-body" style={{ fontSize: "15px" }}>
             <div className="row">
-              <div className="col-md-4">
+              <div className="col-md-3">
                 <p>
                   <strong>Mã đơn hàng:</strong> #{orderDetails.ma_don_hang}
                 </p>
                 <p>
-                  <strong>Khách hàng:</strong> {orderDetails.ho_ten}
+                  <strong>Khách hàng:</strong> {orderDetails.ho_ten_khach_hang}
                 </p>
                 <p>
                   <strong>Phương thức thanh toán:</strong> {orderDetails.ten_phuong_thuc}
@@ -294,11 +287,23 @@ const OrderDetails = () => {
                 <p>
                   <strong>Hình thức vận chuyển:</strong> {orderDetails.ten_van_chuyen}
                 </p>
+
+              </div>
+              <div className="col-md-3">
+                <p>
+                  <strong>Người nhận:</strong> {orderDetails.ho_ten}
+                </p>
+                <p>
+                  <strong>Email:</strong> {orderDetails.email}
+                </p>
+                <p>
+                  <strong>Số điện thoại:</strong> {orderDetails.so_dien_thoai}
+                </p>
                 <p>
                   <strong>Địa chỉ giao hàng:</strong>  {orderDetails.dia_chi_giao_hang}
                 </p>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-3">
                 <p>
                   <strong>Trạng thái đơn hàng:</strong>
                   <span
@@ -348,7 +353,7 @@ const OrderDetails = () => {
                   <strong>Giảm giá:</strong>  {orderDetails.discount}%
                 </p>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-3">
                 <p>
                   <strong>Lý do hủy:</strong>  {orderDetails.ly_do_huy_don}
                 </p>
