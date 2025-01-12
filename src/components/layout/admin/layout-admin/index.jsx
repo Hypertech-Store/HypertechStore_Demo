@@ -1,7 +1,11 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
+
 import HeaderAdmin from "../header-admin";
 import SliderBarAdmin from "../slidebar-admin";
+import Lottie from "react-lottie";
+import "../../../../assets/css/loading.css";
+import loadingAnimation from "../../../../../loading.json";
 
 import "../../../../assets/img/favicons/manifest.json";
 import "../../../../assets/vendors/simplebar/simplebar.min.js"; // SimpleBar JS (Ensure this is only imported once)
@@ -43,6 +47,9 @@ import "../../../../assets/vendors/echarts/echarts.min.js"; // Swiper JS
 import "../../../../assets/js/ecommerce-dashboard.js";
 const LayoutAdmin = () => {
   document.title = "HyperTechStore – Dashboard";
+
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const phoenixIsRTL = window.config.config.phoenixIsRTL;
 
@@ -66,9 +73,35 @@ const LayoutAdmin = () => {
     }
   }, []);
 
+  // Đảm bảo rằng bạn chỉ hiển thị GIF khi dữ liệu trang đang được tải
+  useEffect(() => {
+    // Giả lập việc tải dữ liệu (có thể thay bằng các API request thực tế)
+    const timer = setTimeout(() => {
+      setIsLoading(false); // Giả lập đã tải dữ liệu xong
+    }, 10000); // Bạn có thể thay đổi thời gian này tùy vào thời gian tải thực tế
+
+    return () => clearTimeout(timer); // Dọn dẹp khi component unmount
+  }, []);
+
   return (
     <>
-      <main className="main" id="top">
+      {/* Hiển thị GIF loading nếu đang tải, bọc ngoài toàn bộ trang */}
+      {isLoading && (
+        <div className="loading">
+          <Lottie
+            options={{ animationData: loadingAnimation, loop: true }}
+            height={200}
+            width={200}
+          />
+        </div>
+      )}
+
+      <main
+        className="main"
+        id="top"
+        style={{ display: isLoading ? "none" : "block" }}
+      >
+        {/* Nội dung chính chỉ hiển thị khi không còn loading */}
         <SliderBarAdmin />
         <HeaderAdmin />
         <Outlet />

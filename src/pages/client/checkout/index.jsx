@@ -6,8 +6,8 @@ import { Link, useLocation } from "react-router-dom";
 
 import "../../../assets/css/style.css";
 import "../../../assets/js/main.js";
-import { TbEdit } from "react-icons/tb";
-import { forEach } from "lodash";
+// import { TbEdit } from "react-icons/tb";
+// import { forEach } from "lodash";
 const Checkout = () => {
   document.title = "Hypertech Store - Thanh toán";
   const baseUrl = "http://127.0.0.1:8000/storage/";
@@ -55,9 +55,7 @@ const Checkout = () => {
   const handleEditClick = () => {
     navigate("/thong-tin-tai-khoan"); // Chuyển hướng đến trang thông tin tài khoản
   };
-  const [userInfo, setUserInfo] = useState({
-
-  });
+  const [userInfo, setUserInfo] = useState({});
 
   useEffect(() => {
     import("../../../assets/js/main.js")
@@ -345,22 +343,20 @@ const Checkout = () => {
   };
 
   const [formData, setFormData] = useState({
-    ho_ten: '',
-    email: '',
-    dien_thoai: '',
+    ho_ten: "",
+    email: "",
+    dien_thoai: "",
   });
   useEffect(() => {
     // Kiểm tra nếu `userInfo` đã có dữ liệu
     if (userInfo) {
       setFormData({
-        ho_ten: userInfo.ho_ten || '',
-        email: userInfo.email || '',
-        dien_thoai: userInfo.dien_thoai || '',
+        ho_ten: userInfo.ho_ten || "",
+        email: userInfo.email || "",
+        dien_thoai: userInfo.dien_thoai || "",
       });
     }
   }, [userInfo]);
-
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -408,7 +404,6 @@ const Checkout = () => {
     }
 
     const orderCode = generateRandomOrderCode();
-
 
     const orderData = {
       ma_don_hang: orderCode, // Thêm mã đơn hàng ngẫu nhiên
@@ -730,7 +725,9 @@ const Checkout = () => {
                     </div>
                     <div className="row g-3 mt-3">
                       <div className="col-12">
-                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">Họ tên</span>
+                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">
+                          Họ tên
+                        </span>
                         <input
                           className="form-control mt-1"
                           id="ho_ten"
@@ -743,7 +740,9 @@ const Checkout = () => {
                         />
                       </div>
                       <div className="col-12">
-                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">Email</span>
+                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">
+                          Email
+                        </span>
                         <input
                           className="form-control mt-1"
                           id="email"
@@ -756,7 +755,9 @@ const Checkout = () => {
                         />
                       </div>
                       <div className="col-12">
-                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">Số điện thoại</span>
+                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">
+                          Số điện thoại
+                        </span>
                         <input
                           className="form-control mt-1"
                           id="dien_thoai"
@@ -987,7 +988,7 @@ const Checkout = () => {
                                         }}
                                       >
                                         {product.bien_the &&
-                                          Array.isArray(product.bien_the)
+                                        Array.isArray(product.bien_the)
                                           ? product.bien_the.join(" - ")
                                           : product.bien_the}
                                       </strong>
@@ -1016,9 +1017,11 @@ const Checkout = () => {
                                   whiteSpace: "nowrap",
                                 }}
                               >
-                                {parseInt(product.tong_tien).toLocaleString()}{" "}
+                                {Math.floor(
+                                  parseInt(product.tong_tien)
+                                ).toLocaleString()}{" "}
                                 VNĐ
-                              </h5>{" "}
+                              </h5>
                               {/* Giá */}
                             </div>
                           </div>
@@ -1031,7 +1034,7 @@ const Checkout = () => {
                     <div className="d-flex justify-content-between mb-2">
                       <h5 className="text-body fw-semibold">Tổng tiền</h5>
                       <h5 className="text-body fw-semibold">
-                        {subtotal.toLocaleString()} VNĐ
+                        {Math.floor(subtotal).toLocaleString()} VNĐ
                       </h5>
                     </div>
 
@@ -1040,7 +1043,9 @@ const Checkout = () => {
                       <h5 className="text-body fw-semibold">Giảm giá</h5>
                       <h5 className="text-danger fw-semibold">
                         {isVoucherApplied && discountAmount > 0
-                          ? `- ${discountAmount.toLocaleString()} VNĐ` // Hiển thị giảm giá
+                          ? `- ${Math.floor(
+                              discountAmount
+                            ).toLocaleString()} VNĐ` // Hiển thị giảm giá
                           : "0"}
                       </h5>
                     </div>
@@ -1050,7 +1055,7 @@ const Checkout = () => {
                       <h5 className="text-body fw-semibold">Phí vận chuyển</h5>
                       <h5 className="text-body fw-semibold">
                         {shippingCost > 0
-                          ? `${shippingCost.toLocaleString()} VNĐ`
+                          ? `${Math.floor(shippingCost).toLocaleString()} VNĐ`
                           : "0"}
                       </h5>
                     </div>
@@ -1059,7 +1064,9 @@ const Checkout = () => {
                   {/* Total */}
                   <div className="d-flex justify-content-between border-dashed-y pt-3">
                     <h4 className="mb-0">Cần thanh toán</h4>
-                    <h4 className="mb-0">{total.toLocaleString()} VNĐ</h4>
+                    <h4 className="mb-0">
+                      {Math.floor(total).toLocaleString()} VNĐ
+                    </h4>
                   </div>
                 </div>
               </div>
@@ -1229,10 +1236,11 @@ const Checkout = () => {
                       </button>
                     </div>
                     <span
-                      className={`codeboxinput__dropdown--content1 ${errorMessage
-                        ? "error_codebox_input"
-                        : "success_codebox_input"
-                        }`}
+                      className={`codeboxinput__dropdown--content1 ${
+                        errorMessage
+                          ? "error_codebox_input"
+                          : "success_codebox_input"
+                      }`}
                     >
                       {errorMessage || successMessage}
                     </span>
