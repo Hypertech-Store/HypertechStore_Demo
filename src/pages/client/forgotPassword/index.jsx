@@ -114,16 +114,7 @@ const ForPassword = () => {
   margin-bottom: 30px;
 }
 
-.mail-seccess .btn {
-  display: inline-block;
-  padding: 12px 25px;
-  background-color: #007bff;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 5px;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
-}
+
 
 .mail-seccess .btn:hover {
   background-color: #0056b3;
@@ -140,7 +131,8 @@ const ForPassword = () => {
               <div className="col-lg-6 offset-lg-3 col-12">
                 <div className="success-inner">
                   <h1>
-                    <i className="fa fa-envelope" />
+                    <i className="fa fa-envelope fa-2x" />
+
                     <br />
                     <span>Yêu cầu đặt lại mật khẩu đã được gửi!</span>
                   </h1>
@@ -150,7 +142,7 @@ const ForPassword = () => {
                     bạn. Vui lòng kiểm tra hộp thư đến (hoặc mục thư rác) và làm
                     theo hướng dẫn.
                   </p>
-                  <a href="/" className="btn">
+                  <a href="/" className="btn btn-primary btn-sm">
                     Trang chủ
                   </a>
                 </div>

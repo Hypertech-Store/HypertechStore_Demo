@@ -255,7 +255,7 @@ const Cart = () => {
 
     // Nếu người dùng nhấn "Xóa", thực hiện xóa sản phẩm
     if (result.isConfirmed) {
-      const apiUrl = `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${chi_tiet_id}`;
+      const apiUrl = `http://127.0.0.1:8000/api/gio-hang/xoa-san-pham-gio-hang/${chi_tiet_id}`;
 
       try {
         const response = await fetch(apiUrl, {
@@ -271,7 +271,40 @@ const Cart = () => {
             "Sản phẩm đã được xóa khỏi giỏ hàng",
             "success"
           );
-          // Làm mới dữ liệu giỏ hàng hoặc cập nhật trạng thái sau khi xóa
+
+          // Fetch updated cart data after deletion
+          const updatedCartResponse = await fetch(
+            `http://127.0.0.1:8000/api/gio-hang/${khachHangIdFromStorage}`
+          );
+
+          if (!updatedCartResponse.ok) {
+            throw new Error(
+              `HTTP error! status: ${updatedCartResponse.status}`
+            );
+          }
+
+          const updatedCartData = await updatedCartResponse.json();
+
+          // Kiểm tra và cập nhật giỏ hàng
+          if (
+            updatedCartData?.san_pham &&
+            Array.isArray(updatedCartData.san_pham)
+          ) {
+            setCart({ san_pham: updatedCartData.san_pham });
+            console.log("Updated Cart Data:", updatedCartData); // Log dữ liệu giỏ hàng mới
+
+            // Cập nhật lại selectedItems với các sản phẩm mới (bỏ chọn các sản phẩm)
+            const newSelectedItems = updatedCartData.san_pham.reduce(
+              (acc, item) => {
+                acc[item.id] = false; // Mặc định bỏ chọn cho từng sản phẩm
+                return acc;
+              },
+              {}
+            );
+            setSelectedItems(newSelectedItems);
+
+            calculateTotalAmount(updatedCartData.san_pham);
+          }
         } else {
           Swal.fire("Thất bại!", "Không thể xóa sản phẩm", "error");
         }
