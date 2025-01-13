@@ -14,22 +14,26 @@ const LayoutClient = () => {
   const excludePaths = ["/dang-nhap", "/dang-ky", "/quen-mat-khau"];
 
   // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách excludePaths
-  const shouldHideHeaderFooter = excludePaths.includes(location.pathname);
+  const shouldSkipLoading = excludePaths.includes(location.pathname);
 
-  // Đảm bảo rằng bạn chỉ hiển thị GIF khi dữ liệu trang đang được tải
   useEffect(() => {
-    // Giả lập việc tải dữ liệu (có thể thay bằng các API request thực tế)
-    const timer = setTimeout(() => {
-      setIsLoading(false); // Giả lập đã tải dữ liệu xong
-    }, 6000); // Bạn có thể thay đổi thời gian này tùy vào thời gian tải thực tế
+    if (shouldSkipLoading) {
+      // Nếu đường dẫn thuộc excludePaths, không chạy hiệu ứng loading
+      setIsLoading(false);
+    } else {
+      // Nếu không, bật trạng thái loading
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 6000); // Thời gian giả lập tải dữ liệu
 
-    return () => clearTimeout(timer); // Dọn dẹp khi component unmount
-  }, []);
+      return () => clearTimeout(timer); // Dọn dẹp timer khi component unmount
+    }
+  }, [location.pathname, shouldSkipLoading]);
 
   return (
     <>
-      {/* Hiển thị GIF loading nếu đang tải và không phải là các đường dẫn được loại trừ */}
-      {isLoading && !shouldHideHeaderFooter && (
+      {/* Hiển thị GIF loading nếu đang tải, trừ khi thuộc excludePaths */}
+      {isLoading && !shouldSkipLoading && (
         <div className="loading">
           <Lottie
             options={{ animationData: loadingAnimation, loop: true }}
@@ -39,17 +43,16 @@ const LayoutClient = () => {
         </div>
       )}
 
-      {/* Hiển thị Header và Footer, trừ khi chúng bị ẩn */}
-      {!shouldHideHeaderFooter && !isLoading && (
-        <>
-          <HeaderClient />
-          <Outlet />
-          <FooterClient />
-        </>
-      )}
+      {/* Hiển thị nội dung trang */}
+      <div
+        style={{ display: isLoading && !shouldSkipLoading ? "none" : "block" }}
+      >
+        {!shouldSkipLoading && <HeaderClient />}
 
-      {/* Chỉ hiển thị Outlet nếu là các đường dẫn loại trừ */}
-      {shouldHideHeaderFooter && <Outlet />}
+        <Outlet />
+
+        {!shouldSkipLoading && <FooterClient />}
+      </div>
     </>
   );
 };
