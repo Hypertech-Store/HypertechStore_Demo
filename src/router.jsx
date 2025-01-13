@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import LayoutClient from "./components/layout/client/layout-client";
 import LayoutAdmin from "./components/layout/admin/layout-admin";
-
+import NotFound from "./components/error/404.jsx";
 // Admin pages
 // import AdminLogin from "./pages/admin/login";
 import Dashboard from "./pages/admin/dashboard";
@@ -53,6 +53,9 @@ const Router = () => {
   return (
     <>
       <Routes>
+        {/* Catch-all for 404 Not Found page */}
+        <Route path="*" element={<NotFound />} />
+
         {/* Admin Routes */}
 
         {/* Wrap /admin with PrivateRoute */}
