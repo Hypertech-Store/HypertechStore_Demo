@@ -1,10 +1,13 @@
+/* eslint-disable no-undef */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
+import { Link, useLocation } from "react-router-dom";
 
 import "../../../assets/css/style.css";
 import "../../../assets/js/main.js";
-import { TbEdit } from "react-icons/tb";
+// import { TbEdit } from "react-icons/tb";
+// import { forEach } from "lodash";
 const Checkout = () => {
   document.title = "Hypertech Store - Thanh toán";
   const baseUrl = "http://127.0.0.1:8000/storage/";
@@ -29,25 +32,28 @@ const Checkout = () => {
   const [ngayKetThuc, setNgayKetThuc] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("");
   const [moTa, setMoTa] = useState("");
+
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isVoucherApplied, setIsVoucherApplied] = useState(false);
 
-  const [discount, setDiscount] = useState(0);
-  // const [totalAfterDiscount, setTotalAfterDiscount] = useState(0);
   // eslint-disable-next-line no-unused-vars
   const [vouchers, setVouchers] = useState([]);
   const [showVoucherForm, setShowVoucherForm] = useState(false);
 
-  const handleEditClick = () => {
-    navigate("/thong-tin-tai-khoan"); // Chuyển hướng đến trang thông tin tài khoản
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  const breadcrumbTitles = {
+    "thanh-toan": "Thanh toán", // URL chính, không có "/"
   };
-  const [userInfo, setUserInfo] = useState({
-    fullName: "",
-    address: "",
-    phoneNumber: "",
-    note: "",
-    shippingAddress: "",
-  });
+
+  // Tách ra tên của các phần đường dẫn, không bao gồm id (phần cuối cùng là id đơn hàng)
+  const currentTitle =
+    breadcrumbTitles[pathnames[0]] ||
+    pathnames[pathnames.length - 1]?.toUpperCase();
+
+  const [userInfo, setUserInfo] = useState({});
+
   useEffect(() => {
     import("../../../assets/js/main.js")
       .then((module) => {
@@ -104,7 +110,11 @@ const Checkout = () => {
     // Fetch data from the API
     fetch("http://127.0.0.1:8000/api/get-all-hinh-thuc-van-chuyen")
       .then((response) => response.json())
-      .then((data) => setShippingOptions(data))
+      .then((data) => {
+        // Filter the shipping methods to show only those with trang_thai === 1
+        const filteredData = data.filter((method) => method.trang_thai === 1);
+        setShippingOptions(filteredData); // Set the filtered data
+      })
       .catch((error) => console.error("Error fetching shipping data:", error));
   }, []);
 
@@ -143,6 +153,7 @@ const Checkout = () => {
           {
             method: "POST",
             headers: {
+              Accept: "application/json",
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ gia_tri_don_hang: subtotal }),
@@ -223,7 +234,7 @@ const Checkout = () => {
   useEffect(() => {
     let currentSubtotal = 0;
     products.forEach((product) => {
-      currentSubtotal += product.gia; // Tính tổng giá sản phẩm
+      currentSubtotal += product.tong_tien; // Tính tổng giá sản phẩm
     });
 
     // Chỉ trừ số tiền giảm giá khi voucher được áp dụng
@@ -236,9 +247,15 @@ const Checkout = () => {
 
   useEffect(() => {
     // Fetching data from the API
-    fetch("http://127.0.0.1:8000/api/phuong-thuc-thanh-toan")
+    fetch("http://127.0.0.1:8000/api/get-phuong-thuc-thanh-toan")
       .then((response) => response.json())
-      .then((data) => setPaymentMethods(data))
+      .then((data) => {
+        // Filter to show only methods with trang_thai === 1 (active)
+        const filteredPaymentMethods = data.filter(
+          (method) => method.trang_thai === 1
+        );
+        setPaymentMethods(filteredPaymentMethods); // Set the filtered data to state
+      })
       .catch((error) =>
         console.error("Error fetching payment methods:", error)
       );
@@ -265,6 +282,7 @@ const Checkout = () => {
         {
           method: "POST",
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -321,6 +339,30 @@ const Checkout = () => {
     return result;
   };
 
+  const [formData, setFormData] = useState({
+    ho_ten: "",
+    email: "",
+    dien_thoai: "",
+  });
+  useEffect(() => {
+    // Kiểm tra nếu `userInfo` đã có dữ liệu
+    if (userInfo) {
+      setFormData({
+        ho_ten: userInfo.ho_ten || "",
+        email: userInfo.email || "",
+        dien_thoai: userInfo.dien_thoai || "",
+      });
+    }
+  }, [userInfo]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -366,17 +408,21 @@ const Checkout = () => {
       phuong_thuc_thanh_toan_id: selectedPaymentMethod.id,
       hinh_thuc_van_chuyen_id: selectedShippingOption.id,
       tong_tien: total,
+      ho_ten: formData.ho_ten,
+      email: formData.email,
+      so_dien_thoai: formData.dien_thoai,
       ma_giam_gia: discountCode || null,
       dia_chi_giao_hang: address,
       products: products.map((product) => ({
+        chi_tiet_id: product.chi_tiet_id,
         san_pham_id: product.san_pham_id,
         bien_the_san_pham_id: product.bien_the_san_pham_id,
-        attributes: product.thuoc_tinh.map((item) => ({
+        attributes: product.bien_the.map((item) => ({
           gia_tri_thuoc_tinh_id: item.gia_tri_thuoc_tinh_id,
           ten_gia_tri: item.ten_gia_tri,
         })),
         so_luong: product.so_luong,
-        gia: product.gia,
+        gia: product.tong_tien,
       })),
     };
 
@@ -389,6 +435,28 @@ const Checkout = () => {
     if (!spinnerModalElement) {
       console.error("Không tìm thấy modal spinner trong DOM.");
       return; // Dừng nếu modal không tồn tại
+    }
+
+    let errorMessage = "";
+
+    // Kiểm tra từng trường
+    if (!orderData.ho_ten.trim()) {
+      errorMessage += "Vui lòng nhập họ tên.\n";
+    }
+    if (!orderData.email.trim()) {
+      errorMessage += "Vui lòng nhập email.\n";
+    }
+    if (!orderData.so_dien_thoai.trim()) {
+      errorMessage += "Vui lòng nhập số điện thoại.\n";
+    }
+    if (!orderData.dia_chi_giao_hang.trim()) {
+      errorMessage += "Vui lòng nhập địa chỉ giao hàng.\n";
+    }
+
+    // Nếu có lỗi, hiển thị thông báo
+    if (errorMessage) {
+      alert(errorMessage);
+      return;
     }
 
     // eslint-disable-next-line no-undef
@@ -424,8 +492,7 @@ const Checkout = () => {
         // Redirect đến URL thanh toán VNPAY
         window.location.href = vnpayData.data;
         return;
-      }
-      else {
+      } else {
         const orderResponse = await fetch(
           "http://127.0.0.1:8000/api/donhang/orders",
           {
@@ -440,7 +507,6 @@ const Checkout = () => {
 
         console.log(orderResponse);
 
-
         if (!orderResponse.ok) {
           throw new Error("Gửi đơn hàng thất bại");
         }
@@ -449,24 +515,36 @@ const Checkout = () => {
         console.log(data);
 
         console.log("Đơn hàng đã được gửi:", data);
-
       }
 
-      // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
-      if (khachHangId) {
-        const deleteCartResponse = await fetch(
-          `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${khachHangId}`,
-          {
-            method: "DELETE",
+      // Xử lý xóa từng sản phẩm khỏi giỏ hàng qua API
+      for (const product of orderData.products) {
+        try {
+          const response = await fetch(
+            `http://127.0.0.1:8000/api/gio-hang/xoa-san-pham-gio-hang/${product.chi_tiet_id}`,
+            {
+              method: "DELETE",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (!response.ok) {
+            console.error(
+              `Không thể xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}`
+            );
+          } else {
+            console.log(
+              `Đã xóa sản phẩm chi_tiet_id=${product.chi_tiet_id} khỏi giỏ hàng.`
+            );
           }
-        );
-
-        if (!deleteCartResponse.ok) {
-          throw new Error("Xóa giỏ hàng thất bại");
+        } catch (error) {
+          console.error(
+            `Lỗi khi gọi API xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}:`,
+            error
+          );
         }
-
-        console.log("Giỏ hàng đã được xóa cho khách hàng:", khachHangId);
-        
       }
 
       // Đóng spinner modal sau khi thanh toán thành công và mở modal thành công
@@ -496,19 +574,20 @@ const Checkout = () => {
     }
   };
 
-  // Hàm này sẽ được gọi khi trang thanh toán VNPAY nhận được thông tin từ returnUrl
   const handleVNPAYReturn = () => {
-    // Lấy các tham số từ URL
     const urlParams = new URLSearchParams(window.location.search);
-    const vnp_ResponseCode = urlParams.get('vnp_ResponseCode');
-  
-    // Kiểm tra mã phản hồi từ VNPAY
-    if (vnp_ResponseCode === '00') {
-      // Lấy orderData từ localStorage
+    const vnp_ResponseCode = urlParams.get("vnp_ResponseCode");
+
+    if (!vnp_ResponseCode) {
+      console.error("Mã phản hồi không hợp lệ hoặc không có.");
+      return;
+    }
+
+    if (vnp_ResponseCode === "00") {
       const orderData = JSON.parse(localStorage.getItem("orderData"));
-  
+
       if (orderData) {
-        // Gửi thông tin đơn hàng vào hệ thống
+        // Gửi đơn hàng
         fetch("http://127.0.0.1:8000/api/donhang/orders", {
           method: "POST",
           headers: {
@@ -519,32 +598,52 @@ const Checkout = () => {
         })
           .then((orderResponse) => {
             if (!orderResponse.ok) {
-              throw new Error("Gửi đơn hàng thất bại");
+              return orderResponse.json().then((errData) => {
+                console.error("Gửi đơn hàng thất bại:", errData);
+                throw new Error("Gửi đơn hàng thất bại");
+              });
             }
+            console.log("Đơn hàng đã được gửi:", orderResponse);
             return orderResponse.json();
           })
           .then((data) => {
+            // Kiểm tra nếu dữ liệu trả về có lỗi
+            if (data.error) {
+              console.error("Lỗi từ server:", data.error);
+              throw new Error("Gửi đơn hàng thất bại");
+            }
             console.log("Đơn hàng đã được gửi:", data);
-  
-            // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
-            const khachHangId = orderData.khach_hang_id;
-            if (khachHangId) {
-              return fetch(
-                `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${khachHangId}`,
-                {
-                  method: "DELETE",
-                }
+
+            const products = orderData.products;
+            if (products && products.length > 0) {
+              // Xóa sản phẩm trong giỏ hàng
+              return Promise.all(
+                products.map((product) =>
+                  fetch(
+                    `http://127.0.0.1:8000/api/gio-hang/xoa-san-pham-gio-hang/${product.chi_tiet_id}`,
+                    { method: "DELETE" }
+                  ).then((response) => {
+                    if (!response.ok) {
+                      console.error(
+                        `Không thể xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}`
+                      );
+                      throw new Error(
+                        `Không thể xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}`
+                      );
+                    }
+                    console.log(
+                      `Đã xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}`
+                    );
+                  })
+                )
               );
             }
+            // Nếu không có sản phẩm để xóa, tiếp tục thực hiện các bước kế tiếp
+            return Promise.resolve();
           })
-          .then((deleteCartResponse) => {
-            if (deleteCartResponse && !deleteCartResponse.ok) {
-              throw new Error("Xóa giỏ hàng thất bại");
-            }
-  
-            console.log("Giỏ hàng đã được xóa cho khách hàng:", orderData.khach_hang_id);
-  
-            // Gửi email thông báo thanh toán thành công
+
+          .then(() => {
+            // Gửi email thông báo thành công
             return fetch("http://127.0.0.1:8000/api/donhang/send-mail", {
               method: "POST",
               headers: {
@@ -560,46 +659,46 @@ const Checkout = () => {
             });
           })
           .then((mailResponse) => {
-            if (mailResponse && !mailResponse.ok) {
+            if (!mailResponse.ok) {
+              console.error("Gửi email thất bại");
               throw new Error("Gửi email thất bại");
             }
-  
             console.log("Email thông báo thanh toán thành công đã được gửi.");
           })
           .then(() => {
-            // Đóng spinner modal và hiển thị modal thành công
-            const spinnerModalElement = document.getElementById("paymentSpinnerModal");
+            // Thông báo thành công và ẩn modal
+            const spinnerModalElement = document.getElementById(
+              "paymentSpinnerModal"
+            );
             if (spinnerModalElement) {
               const spinnerModal = new bootstrap.Modal(spinnerModalElement);
-              spinnerModal.hide(); // Ẩn spinner modal
+              spinnerModal.hide();
             }
-  
-            // Mở modal thành công sau 3 giây
-            const successModalElement = document.getElementById("paymentSuccessModal");
+
+            const successModalElement = document.getElementById(
+              "paymentSuccessModal"
+            );
             if (successModalElement) {
               const successModal = new bootstrap.Modal(successModalElement);
-              setTimeout(() => {
-                successModal.show();
-              }, 3000); // Đợi 3 giây để hiển thị spinner trước khi mở modal thành công
-            } else {
-              console.error("Không tìm thấy modal thành công trong DOM.");
+              setTimeout(() => successModal.show(), 3000);
             }
           })
           .catch((error) => {
             console.error("Lỗi:", error);
-  
             // Đóng modal spinner và hiển thị lỗi
-            const spinnerModalElement = document.getElementById("paymentSpinnerModal");
+            const spinnerModalElement = document.getElementById(
+              "paymentSpinnerModal"
+            );
             if (spinnerModalElement) {
               const spinnerModal = new bootstrap.Modal(spinnerModalElement);
               setTimeout(() => {
-                spinnerModal.hide(); // Ẩn spinner modal
+                spinnerModal.hide();
                 alert("Đã có lỗi xảy ra, vui lòng thử lại sau.");
-              }, 3000); // Đợi 3 giây trước khi ẩn spinner
+              }, 3000);
             }
           })
           .finally(() => {
-            // Xóa orderData khỏi localStorage sau khi xử lý xong
+            // Clean up
             localStorage.removeItem("orderData");
           });
       } else {
@@ -607,15 +706,12 @@ const Checkout = () => {
       }
     } else {
       console.error("Thanh toán không thành công, mã lỗi:", vnp_ResponseCode);
-      // Xử lý khi thanh toán không thành công
       alert("Thanh toán thất bại. Vui lòng thử lại.");
     }
   };
-  
+
   // Gọi hàm handleVNPAYReturn khi trang load
   window.onload = handleVNPAYReturn;
-  
-
 
   return (
     <>
@@ -624,13 +720,14 @@ const Checkout = () => {
           <nav className="mb-3" aria-label="breadcrumb">
             <ol className="breadcrumb mb-0">
               <li className="breadcrumb-item">
-                <a href="#!">Page 1</a>
+                <Link to="/">Trang chủ</Link>
               </li>
               <li className="breadcrumb-item">
-                <a href="#!">Page 2</a>
+                <a href={`gio-hang`}>Giỏ hàng</a>
               </li>
+
               <li className="breadcrumb-item active" aria-current="page">
-                Default
+                {currentTitle}
               </li>
             </ol>
           </nav>
@@ -639,117 +736,60 @@ const Checkout = () => {
           <div className="row justify-content-between">
             <div className="col-lg-7 col-xl-6 mt-2">
               <form>
-                <div className="card mt-3 mt-lg-0">
+                <div className="card mt-lg-3">
                   <div className="card-body">
                     <div className="d-flex align-items-end">
-                      <h3 className="mb-0 me-3">Người đặt hàng</h3>
-                      <button
-                        className="btn btn-link p-0"
-                        type="button"
-                        onClick={handleEditClick}
-                      >
-                        <TbEdit style={{ height: "1.3em", width: "1.3em" }} />
-                      </button>
+                      <h3 className="mb-0 me-3">Thông tin người nhận</h3>
                     </div>
-                    <table className="table table-borderless mt-4">
-                      <tbody>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="user"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5 className="lh-sm me-4">Họ tên</h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">:</td>
-                          <td className="py-2 px-3">
-                            <h5 className="lh-sm fw-normal text-body-secondary">
-                              {userInfo.ho_ten}
-                            </h5>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="home"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5 className="lh-sm me-3">Địa chỉ</h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">:</td>
-                          <td className="py-2 px-3">
-                            <h5
-                              className="lh-lg fw-normal text-body-secondary"
-                              style={{
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {userInfo.dia_chi}
-                            </h5>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="mail"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5 className="lh-sm me-4">Email</h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">: </td>
-                          <td className="py-2 px-3">
-                            <h5 className="lh-sm fw-normal text-body-secondary">
-                              {userInfo.email}
-                            </h5>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 ps-0">
-                            <div className="d-flex">
-                              <span
-                                className="fs-3 me-2"
-                                data-feather="phone"
-                                style={{ height: 16, width: 16 }}
-                              >
-                                {" "}
-                              </span>
-                              <h5
-                                className="lh-sm me-4"
-                                style={{
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                Số điện thoại
-                              </h5>
-                            </div>
-                          </td>
-                          <td className="py-2 fw-bold lh-sm">: </td>
-                          <td className="py-2 px-3">
-                            <h5 className="lh-sm fw-normal text-body-secondary">
-                              {userInfo.dien_thoai}
-                            </h5>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    <div className="row g-3 mt-3">
+                      <div className="col-12">
+                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">
+                          Họ tên
+                        </span>
+                        <input
+                          className="form-control mt-1"
+                          id="ho_ten"
+                          name="ho_ten"
+                          type="text"
+                          value={formData.ho_ten}
+                          onChange={handleChange}
+                          required
+                          autoComplete="off"
+                        />
+                      </div>
+                      <div className="col-12">
+                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">
+                          Email
+                        </span>
+                        <input
+                          className="form-control mt-1"
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          autoComplete="off"
+                        />
+                      </div>
+                      <div className="col-12">
+                        <span className="d-inline-block text-body-emphasis fw-bold ms-2">
+                          Số điện thoại
+                        </span>
+                        <input
+                          className="form-control mt-1"
+                          id="dien_thoai"
+                          name="dien_thoai"
+                          type="text"
+                          value={formData.dien_thoai}
+                          onChange={handleChange}
+                          required
+                          autoComplete="off"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-
                 <div className="card mt-lg-3">
                   <div className="card-body">
                     <div className="d-flex align-items-end">
@@ -951,38 +991,30 @@ const Checkout = () => {
                               <div className="d-flex align-items-center">
                                 <img
                                   className="me-2 ms-1"
-                                  src={`${baseUrl}${product.chi_tiet_san_pham.images}`}
+                                  src={`${baseUrl}${product.images}`}
                                   width={40}
-                                  alt={
-                                    product.chi_tiet_san_pham.ten_san_pham ||
-                                    "Sản phẩm"
-                                  }
+                                  alt={product.ten_san_pham || "Sản phẩm"}
                                 />
                                 <h6 className="fw-semibold text-body-highlight lh-base">
-                                  {product.chi_tiet_san_pham.ten_san_pham}{" "}
-                                  {/* Tên sản phẩm */}
-                                  {product.thuoc_tinh.length > 0 && (
-                                    <div>
-                                      {product.thuoc_tinh.map(
-                                        (thuocTinh, index) => (
-                                          <span key={index}>
-                                            <strong
-                                              style={{
-                                                color: "#dc2626",
-                                                fontWeight: "600",
-                                              }}
-                                            >
-                                              {thuocTinh.ten_gia_tri}
-                                            </strong>
-                                            {index <
-                                              product.thuoc_tinh.length - 1 &&
-                                              ", "}
-                                            {/* Thêm dấu phẩy nếu không phải phần tử cuối */}
-                                          </span>
-                                        )
-                                      )}
-                                    </div>
-                                  )}
+                                  {product.ten_san_pham} {/* Tên sản phẩm */}
+                                  <div>
+                                    <span>
+                                      <strong
+                                        style={{
+                                          color: "#dc2626",
+                                          fontWeight: "600",
+                                        }}
+                                      >
+                                        {product.bien_the &&
+                                        Array.isArray(product.bien_the) &&
+                                        product.bien_the.length > 0
+                                          ? product.bien_the
+                                              .map((item) => item.ten_gia_tri)
+                                              .join(" - ")
+                                          : "N/A"}
+                                      </strong>
+                                    </span>
+                                  </div>
                                 </h6>
                               </div>
                             </div>
@@ -1006,8 +1038,11 @@ const Checkout = () => {
                                   whiteSpace: "nowrap",
                                 }}
                               >
-                                {parseInt(product.gia).toLocaleString()} VNĐ
-                              </h5>{" "}
+                                {Math.floor(
+                                  parseInt(product.tong_tien)
+                                ).toLocaleString()}{" "}
+                                VNĐ
+                              </h5>
                               {/* Giá */}
                             </div>
                           </div>
@@ -1020,7 +1055,7 @@ const Checkout = () => {
                     <div className="d-flex justify-content-between mb-2">
                       <h5 className="text-body fw-semibold">Tổng tiền</h5>
                       <h5 className="text-body fw-semibold">
-                        {subtotal.toLocaleString()} VNĐ
+                        {Math.floor(subtotal).toLocaleString()} VNĐ
                       </h5>
                     </div>
 
@@ -1029,7 +1064,9 @@ const Checkout = () => {
                       <h5 className="text-body fw-semibold">Giảm giá</h5>
                       <h5 className="text-danger fw-semibold">
                         {isVoucherApplied && discountAmount > 0
-                          ? `- ${discountAmount.toLocaleString()} VNĐ` // Hiển thị giảm giá
+                          ? `- ${Math.floor(
+                              discountAmount
+                            ).toLocaleString()} VNĐ` // Hiển thị giảm giá
                           : "0"}
                       </h5>
                     </div>
@@ -1039,7 +1076,7 @@ const Checkout = () => {
                       <h5 className="text-body fw-semibold">Phí vận chuyển</h5>
                       <h5 className="text-body fw-semibold">
                         {shippingCost > 0
-                          ? `${shippingCost.toLocaleString()} VNĐ`
+                          ? `${Math.floor(shippingCost).toLocaleString()} VNĐ`
                           : "0"}
                       </h5>
                     </div>
@@ -1048,7 +1085,9 @@ const Checkout = () => {
                   {/* Total */}
                   <div className="d-flex justify-content-between border-dashed-y pt-3">
                     <h4 className="mb-0">Cần thanh toán</h4>
-                    <h4 className="mb-0">{total.toLocaleString()} VNĐ</h4>
+                    <h4 className="mb-0">
+                      {Math.floor(total).toLocaleString()} VNĐ
+                    </h4>
                   </div>
                 </div>
               </div>
@@ -1152,6 +1191,7 @@ const Checkout = () => {
                     <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
                   </svg>
                 </div>
+
                 <h1>Mua hàng thành công!</h1>
                 <p
                   style={{
@@ -1217,10 +1257,11 @@ const Checkout = () => {
                       </button>
                     </div>
                     <span
-                      className={`codeboxinput__dropdown--content1 ${errorMessage
-                        ? "error_codebox_input"
-                        : "success_codebox_input"
-                        }`}
+                      className={`codeboxinput__dropdown--content1 ${
+                        errorMessage
+                          ? "error_codebox_input"
+                          : "success_codebox_input"
+                      }`}
                     >
                       {errorMessage || successMessage}
                     </span>

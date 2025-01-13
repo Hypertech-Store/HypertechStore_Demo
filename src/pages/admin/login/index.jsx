@@ -34,7 +34,7 @@ const LoginPage = () => {
         const mockUser = {
           id: 1,
           ten_dang_nhap: "Admin User",
-          role: 1, // 1 là quản trị viên
+          role: 0, // 1 là quản trị viên
           anh_nguoi_dung: defaultAvatar, // Ảnh mặc định
           trang_thai: 1, // Trạng thái hoạt động
         };

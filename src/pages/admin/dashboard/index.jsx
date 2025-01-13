@@ -326,12 +326,6 @@ const Dashboard = () => {
 
   const totalPages = Math.ceil(totalProducts / 10);
 
-  // Xử lý thay đổi trang
-  // const handlePageChange = (newPage) => {
-  //   if (newPage >= 1 && newPage <= lastPage) {
-  //     setCurrentPage(newPage);
-  //   }
-  // };
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -507,11 +501,11 @@ const Dashboard = () => {
                               <span className="badge-label">
                                 {thongKeDonHang7Ngay?.ti_le_chenh_lech % 1 === 0
                                   ? `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
-                                      0
-                                    )}%`
+                                    0
+                                  )}%`
                                   : `${thongKeDonHang7Ngay?.ti_le_chenh_lech.toFixed(
-                                      1
-                                    )}%`}
+                                    1
+                                  )}%`}
                               </span>
                             </span>
                           </h5>
@@ -538,11 +532,11 @@ const Dashboard = () => {
                           <h6 className="text-body fw-semibold mb-0">
                             {thongKeDonHang7Ngay?.ti_le_hoan_thanh % 1 === 0
                               ? `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
-                                  0
-                                )}%`
+                                0
+                              )}%`
                               : `${thongKeDonHang7Ngay?.ti_le_hoan_thanh.toFixed(
-                                  1
-                                )}%`}
+                                1
+                              )}%`}
                           </h6>
                         </div>
                         <div className="d-flex align-items-center">
@@ -552,13 +546,13 @@ const Dashboard = () => {
                           </h6>
                           <h6 className="text-body fw-semibold mb-0">
                             {thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh % 1 ===
-                            0
+                              0
                               ? `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
-                                  0
-                                )}%`
+                                0
+                              )}%`
                               : `${thongKeDonHang7Ngay?.ti_le_chua_hoan_thanh.toFixed(
-                                  1
-                                )}%`}
+                                1
+                              )}%`}
                           </h6>
                         </div>
                       </div>
@@ -577,13 +571,13 @@ const Dashboard = () => {
                               <span className="badge-label">
                                 {thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech %
                                   1 ===
-                                0
+                                  0
                                   ? `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
-                                      0
-                                    )}%`
+                                    0
+                                  )}%`
                                   : `${thongKeKhachHangMoi7Ngay?.ti_le_chenh_lech.toFixed(
-                                      1
-                                    )}%`}
+                                    1
+                                  )}%`}
                               </span>
                             </span>
                           </h5>
@@ -742,6 +736,20 @@ const Dashboard = () => {
                         <td>
                           <p className="fs-9 fw-semibold text-body-highlight mb-0">
                             {review.binh_luan}
+
+                            <br />
+                            <div>
+                              {Array.isArray(review.chi_tiet_danh_gias) &&
+                                review.chi_tiet_danh_gias.map((detail) => (
+                                  <img
+                                    key={detail.id}
+                                    src={`http://127.0.0.1:8000/storage/${detail.hinh_anh_duong_dan}`}
+                                    alt="Chi tiết đánh giá"
+                                    width={50}
+                                    className="me-2 mt-1"
+                                  />
+                                ))}
+                            </div>
                           </p>
                         </td>
                         <td className="align-middle text-start status ps-0">
@@ -766,18 +774,23 @@ const Dashboard = () => {
                         </td>
                         <td className="align-middle white-space-nowrap text-end pe-0">
                           <div>
-                            <button
-                              className="btn btn-sm btn-phoenix-secondary me-1 fs-10"
-                              onClick={() => handleUpdateStatus(review, 1)}
-                            >
-                              <span className="fas fa-check" />
-                            </button>
-                            <button
-                              className="btn btn-sm btn-phoenix-secondary fs-10"
-                              onClick={() => handleUpdateStatus(review, 2)}
-                            >
-                              <span className="fas fa-trash" />
-                            </button>
+                            {/* Chỉ hiển thị các nút khi trạng thái là "Chưa duyệt" */}
+                            {review.trang_thai === 0 && (
+                              <>
+                                <button
+                                  className="btn btn-sm btn-phoenix-secondary me-1 fs-10"
+                                  onClick={() => handleUpdateStatus(review, 1)}
+                                >
+                                  <span className="fas fa-check" />
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-phoenix-secondary fs-10"
+                                  onClick={() => handleUpdateStatus(review, 2)}
+                                >
+                                  <span className="fas fa-trash" />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -817,9 +830,8 @@ const Dashboard = () => {
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
                         key={index}
-                        className={`page-item ${
-                          currentPage === index + 1 ? "active" : ""
-                        }`}
+                        className={`page-item ${currentPage === index + 1 ? "active" : ""
+                          }`}
                       >
                         <button
                           className="page-link"
@@ -845,28 +857,11 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis pt-6 pb-9 border-top">
-          <div className="row g-6">
-            <div className="col-12 col-xl-12">
-              <div>
-                <h3>Tỷ lệ khách hàng quay lại</h3>
-                <p className="mb-1 text-body-tertiary">
-                  Tỷ lệ khách hàng quay lại cửa hàng của bạn theo thời gian
-                </p>
-              </div>
-              <div
-                className="echart-returning-customer"
-                style={{ height: 300 }}
-              />
-            </div>
-          </div>
-        </div>
-
         <footer className="footer position-absolute">
           <div className="row g-0 justify-content-between align-items-center h-100">
             <div className="col-12 col-sm-auto text-center">
               <p className="mb-0 mt-2 mt-sm-0 text-body">
-                Thank you for creating with Phoenix
+                Cảm ơn bạn đã đến với Hypertech Store
                 <span className="d-none d-sm-inline-block" />
                 <span className="d-none d-sm-inline-block mx-1">|</span>
                 <br className="d-sm-none" />

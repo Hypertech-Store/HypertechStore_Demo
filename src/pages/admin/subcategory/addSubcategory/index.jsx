@@ -21,8 +21,14 @@ const addSubcategory = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/danh-muc/getAll");
-        setCategories(response.data);
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/danh-muc/getAll"
+        );
+        const filteredCategories = response.data.filter(
+          (category) => category.trang_thai === 1
+        ); // Lọc các mục có trang_thai = 1
+        setCategories(filteredCategories); // Set các mục đã lọc vào state
+        console.log(response.data);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -87,8 +93,6 @@ const addSubcategory = () => {
       alert("Thêm danh mục con thất bại!");
     }
   };
-
-
 
   return (
     <div className="content">
@@ -156,7 +160,6 @@ const addSubcategory = () => {
                         objectFit: "contain",
                       }}
                     />
-                    
                   </div>
                 </div>
               ) : (
@@ -169,8 +172,6 @@ const addSubcategory = () => {
                 </div>
               )}
             </div>
-
-
           </div>
           <div className="col-12 col-xl-5" style={{ width: "35%" }}>
             <div className="row g-2">
@@ -192,7 +193,9 @@ const addSubcategory = () => {
                           <select
                             className="form-select"
                             value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            onChange={(e) =>
+                              setSelectedCategory(e.target.value)
+                            }
                           >
                             <option value="">Chọn danh mục</option>
                             {categories.map((category) => (
@@ -203,8 +206,6 @@ const addSubcategory = () => {
                           </select>
                         </div>
                       </div>
-
-
                     </div>
                   </div>
                 </div>

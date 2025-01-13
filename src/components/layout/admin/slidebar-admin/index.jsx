@@ -481,7 +481,7 @@ const SlidebarAdmin = () => {
                 </div>
 
                 {/* parent pages*/}
-                <div className="nav-item-wrapper">
+                <li className="nav-item">
                   <a
                     className={`nav-link dropdown-indicator label-1 ${
                       activeItem === "account" ? "active" : ""
@@ -514,124 +514,58 @@ const SlidebarAdmin = () => {
                           <circle cx={12} cy={7} r={4} />
                         </svg>
                       </span>
-                      <span className="nav-link-text">Người dùng</span>
+                      <span className="nav-link-text">Tài khoản</span>
                     </div>
                   </a>
-                  <div className="parent-wrapper label-1">
+                  <div className="parent-wrapper">
                     <ul
                       className="nav collapse parent"
                       data-bs-parent="#navbarVerticalCollapse"
                       id="account"
                     >
-                      <li className="collapsed-nav-item-title d-none">
-                        Người dùng
-                      </li>
                       <li className="nav-item">
-                        <a
-                          className={`nav-link dropdown-indicator ${
-                            activeItem === "admin" ? "active" : ""
+                        <Link
+                          className={`nav-link ${
+                            activeItem === "listAdmin" ? "active" : ""
                           }`}
-                          href="#nv-admin"
-                          data-bs-toggle="collapse"
-                          aria-expanded="true"
-                          aria-controls="nv-admin"
-                          onClick={() => handleClick("admin")}
+                          to="danh-sach-quan-tri"
+                          onClick={() => handleClick("listAdmin")}
                         >
                           <div className="d-flex align-items-center">
-                            <div className="dropdown-indicator-icon-wrapper">
-                              <span className="fas fa-caret-right dropdown-indicator-icon" />
-                            </div>
-                            <span className="nav-link-text">Admin</span>
+                            <span className="nav-link-text">Quản trị viên</span>
                           </div>
-                        </a>
-                        {/* more inner pages*/}
-                        <div className="parent-wrapper">
-                          <ul
-                            className="nav collapse parent show"
-                            data-bs-parent="#e-commerce"
-                            id="nv-admin"
-                          >
-                            {/* <li className="nav-item">
-                              <Link
-                                className={`nav-link ${
-                                  activeItem === "addAdmin" ? "active" : ""
-                                }`}
-                                to="them-san-pham"
-                                onClick={() => handleClick("addAdmin")}
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Add admin
-                                  </span>
-                                </div>
-                              </Link>
-                            </li> */}
-
-                            <li className="nav-item">
-                              <Link
-                                className={`nav-link ${
-                                  activeItem === "listAdmin" ? "active" : ""
-                                }`}
-                                to="danh-sach-quan-tri"
-                                onClick={() => handleClick("listAdmin")}
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Danh sách admin
-                                  </span>
-                                </div>
-                              </Link>
-                            </li>
-                          </ul>
-                        </div>
+                        </Link>
                       </li>
-                      <li className="nav-item">
-                        <a
-                          className={`nav-link dropdown-indicator ${
-                            activeItem === "customer" ? "active" : ""
+                      {/* <li className="nav-item">
+                        <Link
+                          className={`nav-link ${
+                            activeItem === "listStaff" ? "active" : ""
                           }`}
-                          href="#category"
-                          data-bs-toggle="collapse"
-                          aria-expanded="true"
-                          aria-controls="category"
-                          onClick={() => handleClick("customer")}
+                          to="danh-sach-quan-tri"
+                          onClick={() => handleClick("listStaff")}
                         >
                           <div className="d-flex align-items-center">
-                            <div className="dropdown-indicator-icon-wrapper">
-                              <span className="fas fa-caret-right dropdown-indicator-icon" />
-                            </div>
+                            <span className="nav-link-text">Nhân viên</span>
+                          </div>
+                        </Link>
+                      </li> */}
+
+                      <li className="nav-item">
+                        <Link
+                          className={`nav-link ${
+                            activeItem === "listCustomer" ? "active" : ""
+                          }`}
+                          onClick={() => handleClick("listCustomer")}
+                          to="danh-sach-khach-hang"
+                        >
+                          <div className="d-flex align-items-center">
                             <span className="nav-link-text">Khách hàng</span>
                           </div>
-                        </a>
-                        {/* more inner pages*/}
-                        <div className="parent-wrapper">
-                          <ul
-                            className="nav collapse parent show"
-                            data-bs-parent="#e-commerce"
-                            id="category"
-                          >
-                            <li className="nav-item">
-                              <Link
-                                className={`nav-link ${
-                                  activeItem === "listCustomer" ? "active" : ""
-                                }`}
-                                onClick={() => handleClick("listCustomer")}
-                                to="danh-sach-khach-hang"
-                              >
-                                <div className="d-flex align-items-center">
-                                  <span className="nav-link-text">
-                                    Danh sách khách hàng
-                                  </span>
-                                </div>
-                              </Link>
-                              {/* more inner pages*/}
-                            </li>
-                          </ul>
-                        </div>
+                        </Link>
                       </li>
                     </ul>
                   </div>
-                </div>
+                </li>
 
                 <li className="nav-item">
                   <div className="nav-item-wrapper">
@@ -867,130 +801,6 @@ const SlidebarAdmin = () => {
                     </div>
                   </Link>
                 </div>
-
-                {/* parent pages*/}
-                <div className="nav-item-wrapper">
-                  <Link
-                    className={`nav-link dropdown-indicator label-1 ${
-                      activeItem === "email" ? "active" : ""
-                    }`}
-                    to="#nv-email"
-                    role="button"
-                    data-bs-toggle="collapse"
-                    aria-expanded="false"
-                    aria-controls="nv-email"
-                    onClick={() => handleClick("email")} // Xử lý khi click vào
-                  >
-                    <div className="d-flex align-items-center">
-                      <div className="dropdown-indicator-icon-wrapper">
-                        <span className="fas fa-caret-right dropdown-indicator-icon" />
-                      </div>
-                      <span className="nav-link-icon">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16px"
-                          height="16px"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="feather feather-mail"
-                        >
-                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                          <polyline points="22,6 12,13 2,6" />
-                        </svg>
-                      </span>
-                      <span className="nav-link-text">Email</span>
-                    </div>
-                  </Link>
-
-                  <div className="parent-wrapper label-1">
-                    <ul
-                      className="nav collapse parent"
-                      data-bs-parent="#navbarVerticalCollapse"
-                      id="nv-email"
-                    >
-                      <li className="collapsed-nav-item-title d-none">Email</li>
-                      <li className="nav-item">
-                        <Link
-                          className={`nav-link ${
-                            activeItem === "inbox" ? "active" : ""
-                          }`}
-                          to="apps/email/inbox.html"
-                          onClick={() => handleClick("inbox")} // Cập nhật active khi click vào Inbox
-                        >
-                          <div className="d-flex align-items-center">
-                            <span className="nav-link-text">Inbox</span>
-                          </div>
-                        </Link>
-                      </li>
-                      <li className="nav-item">
-                        <Link
-                          className={`nav-link ${
-                            activeItem === "email-detail" ? "active" : ""
-                          }`}
-                          to="apps/email/email-detail.html"
-                          onClick={() => handleClick("email-detail")} // Cập nhật active khi click vào Email detail
-                        >
-                          <div className="d-flex align-items-center">
-                            <span className="nav-link-text">Email detail</span>
-                          </div>
-                        </Link>
-                      </li>
-                      <li className="nav-item">
-                        <Link
-                          className={`nav-link ${
-                            activeItem === "compose" ? "active" : ""
-                          }`}
-                          to="apps/email/compose.html"
-                          onClick={() => handleClick("compose")} // Cập nhật active khi click vào Compose
-                        >
-                          <div className="d-flex align-items-center">
-                            <span className="nav-link-text">Compose</span>
-                          </div>
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="nav-item-wrapper">
-                  <Link
-                    className={`nav-link label-1 ${
-                      activeItem === "noti" ? "active" : ""
-                    }`}
-                    to="pages/notifications.html"
-                    role="button"
-                    data-bs-toggle
-                    aria-expanded="false"
-                    onClick={() => handleClick("noti")}
-                  >
-                    <div className="d-flex align-items-center">
-                      <span className="nav-link-icon">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16px"
-                          height="16px"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="feather feather-bell"
-                        >
-                          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                        </svg>
-                      </span>
-                      <span className="nav-link-text-wrapper">
-                        <span className="nav-link-text">Notifications</span>
-                      </span>
-                    </div>
-                  </Link>
-                </div>
-                {/* parent pages*/}
               </li>
             </ul>
           </div>

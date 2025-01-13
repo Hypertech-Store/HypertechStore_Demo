@@ -142,7 +142,7 @@ const Listsale = () => {
       .then((data) => {
         console.log("Sale details fetched:", data.data); // Log the entire fetched sale details
 
-        // Log product information with the name from san_pham.ten_san_pham
+        // alert("Thêm sản phẩm sale thành công");
         console.log(
           "Product Name (san_pham.ten_san_pham):",
           data.data.san_pham.ten_san_pham
@@ -249,43 +249,6 @@ const Listsale = () => {
       });
   };
 
-  const handleDeleteSale = async (id) => {
-    // Xác nhận trước khi xóa
-    const isConfirmed = window.confirm(
-      "Bạn có chắc chắn muốn xóa biến thể sản phẩm này?"
-    );
-
-    if (!isConfirmed) return;
-
-    try {
-      // Gửi yêu cầu xóa biến thể sản phẩm qua API
-      const response = await axios.delete(
-        `http://127.0.0.1:8000/api/sale-san-pham/${id}`
-      );
-
-      if (response.status === 200) {
-        // Nếu xóa thành công, thông báo và cập nhật lại danh sách
-        alert("Xóa sản phẩm sale thành công!");
-
-        // Cập nhật lại danh sách trong state (setData hoặc tương tự)
-        setSales((prev) => prev.filter((prevSales) => prevSales.id !== id));
-
-        fetch("http://127.0.0.1:8000/api/san-pham/san-pham-chua-sale")
-          .then((response) => response.json())
-          .then((data) => {
-            setProducts(data.data);
-          })
-          .catch((error) => console.error("Error fetching products:", error));
-      } else {
-        // Nếu có lỗi khác, thông báo cho người dùng
-        alert("Không thể xóa sản phẩm sale.");
-      }
-    } catch (error) {
-      console.error("Lỗi khi xóa sản phẩm sale:", error);
-      // Thông báo lỗi nếu có sự cố
-      alert("Không thể xóa sản phẩm sale. Vui lòng thử lại.");
-    }
-  };
 
   return (
     <>
@@ -430,7 +393,6 @@ const Listsale = () => {
                             <button
                               className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                               type="button"
-                              onClick={() => handleDeleteSale(sale.id)} // Assume this is for the delete function
                             >
                               <span className="fa-solid fa-trash fs-9" />
                             </button>

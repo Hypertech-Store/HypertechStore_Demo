@@ -1,6 +1,6 @@
 import icon from "../../../../assets/img/icons/image-icon.png";
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 const AddProducts = () => {
   const breadcrumbTitles = {
     "admin/them-san-pham": "Thêm sản phẩm", // Đây là URL không có "/"
@@ -8,7 +8,7 @@ const AddProducts = () => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean);
-
+  const navigate = useNavigate();
   // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
   const currentTitle =
     breadcrumbTitles[pathnames.join("/")] ||
@@ -135,7 +135,11 @@ const AddProducts = () => {
       );
       const data = await response.json();
       if (response.ok) {
-        setCategories(data); // Đảm bảo API trả về danh sách phù hợp
+        // Lọc các danh mục có trang_thai = 1
+        const filteredCategories = data.filter(
+          (category) => category.trang_thai === 1
+        );
+        setCategories(filteredCategories); // Set các danh mục đã lọc vào state
       } else {
         console.error("Failed to fetch categories:", data);
       }
@@ -177,10 +181,10 @@ const AddProducts = () => {
       prev.map((option, i) =>
         i === index
           ? {
-            ...option,
-            attributeId,
-            selectedValues: [],
-          }
+              ...option,
+              attributeId,
+              selectedValues: [],
+            }
           : option
       )
     );
@@ -191,11 +195,11 @@ const AddProducts = () => {
       prev.map((option, index) =>
         index === optionIndex
           ? {
-            ...option,
-            selectedValues: option.selectedValues.includes(valueId)
-              ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
-              : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
-          }
+              ...option,
+              selectedValues: option.selectedValues.includes(valueId)
+                ? option.selectedValues.filter((id) => id !== valueId) // Bỏ chọn nếu đã tồn tại
+                : [...option.selectedValues, valueId], // Thêm nếu chưa tồn tại
+            }
           : option
       )
     );
@@ -317,9 +321,12 @@ const AddProducts = () => {
       );
 
       const result = await response.json();
+      console.log(result);
 
       if (response.ok) {
         alert("Sản phẩm đã được tạo thành công!");
+        navigate("/admin/danh-sach-san-pham");
+
         console.log(result);
       } else {
         console.error("Lỗi:", result);
@@ -466,7 +473,6 @@ const AddProducts = () => {
                   onChange={handleInputChange}
                 />
               </div>
-
             </div>
 
             <div className="col-12 col-xl-4">
@@ -476,7 +482,6 @@ const AddProducts = () => {
                     <div className="card-body">
                       <h4 className="card-title mb-4">Chi tiết</h4>
                       <div className="row gx-3">
-                        {/* Danh mục */}
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
@@ -503,8 +508,6 @@ const AddProducts = () => {
                             </select>
                           </div>
                         </div>
-
-                        {/* Danh mục con */}
                         <div className="col-12 col-sm-6 col-xl-12">
                           <div className="mb-4">
                             <div className="d-flex flex-wrap mb-2">
@@ -635,7 +638,7 @@ const AddProducts = () => {
               </div>
             </div>
           </div>
-        </form >
+        </form>
         <footer className="footer position-absolute">
           <div className="row g-0 justify-content-between align-items-center h-100">
             <div className="col-12 col-sm-auto text-center">
@@ -655,7 +658,7 @@ const AddProducts = () => {
             </div>
           </div>
         </footer>
-      </div >
+      </div>
     </>
   );
 };

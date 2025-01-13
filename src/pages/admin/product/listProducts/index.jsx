@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
 const ListProducts = () => {
   const breadcrumbTitles = {
     "admin/danh-sach-san-pham": "Danh sách sản phẩm", // Đây là URL không có "/"
@@ -20,6 +21,7 @@ const ListProducts = () => {
   const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  // const [selectedCategory, setSelectedCategory] = useState("");
 
   const productsPerPage = 10; // Số sản phẩm trên mỗi trang
   const link = "http://127.0.0.1:8000/storage/";
@@ -71,27 +73,84 @@ const ListProducts = () => {
     }
   };
 
+  const [categories2, setCategories2] = useState([]);
+  const [subCategories2, setSubCategories2] = useState([]);
+  const [selectedCategory2, setSelectedCategory2] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Lấy danh sách danh mục
+  useEffect(() => {
+    axios
+      .get("http://127.0.0.1:8000/api/danh-muc/getAll")
+      .then((response) => {
+        console.log(response);
+        setCategories2(response.data);
+      })
+      .catch((error) => console.error("Error fetching categories:", error));
+  }, []);
+
+  // Lấy danh mục con khi danh mục cha thay đổi
+  useEffect(() => {
+    console.log(selectedCategory2);
+
+    if (selectedCategory2) {
+      axios
+        .get(`http://127.0.0.1:8000/api/danh-muc-con/${selectedCategory2}`)
+        .then((response) => {
+          console.log(response.data.data);
+          setSubCategories2(response.data.data);
+        })
+        .catch((error) =>
+          console.error("Error fetching subcategories:", error)
+        );
+    } else {
+      setSubCategories2([]);
+    }
+  }, [selectedCategory2]);
+
+  const [selectedSubCategory2, setSelectedSubCategory2] = useState("");
+
+  // Hàm thay đổi danh mục
+  const handleCategoryChange = (e) => {
+    setSelectedCategory2(e.target.value);
+    setSelectedSubCategory2(""); // Reset danh mục con khi thay đổi danh mục
+  };
+
+  // Hàm thay đổi danh mục con
+  const handleSubCategoryChange = (e) => {
+    setSelectedSubCategory2(e.target.value);
+  };
+
+  // Hàm thay đổi từ khóa tìm kiếm
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const [isSearching] = useState(false);
+
   // Lấy sản phẩm
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/san-pham/allProductAdmin?page=${currentPage}&limit=${productsPerPage}`
-        );
-        const data = await response.json();
-        if (data.status === "success" && Array.isArray(data.data.data)) {
-          setProducts(data.data.data);
-          setTotalProducts(data.data.total);
-        } else {
-          console.error("Failed to fetch products:", data);
+    if (!isSearching) {
+      const fetchProducts = async () => {
+        try {
+          const response = await fetch(
+            `http://127.0.0.1:8000/api/san-pham/allProductAdmin?page=${currentPage}&limit=${productsPerPage}`
+          );
+          const data = await response.json();
+          if (data.status === "success" && Array.isArray(data.data.data)) {
+            setProducts(data.data.data);
+            setTotalProducts(data.data.total);
+          } else {
+            console.error("Failed to fetch products:", data);
+          }
+        } catch (error) {
+          console.error("Error fetching products:", error);
         }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
+      };
 
-    fetchProducts();
-  }, [currentPage]);
+      fetchProducts();
+    }
+  }, [isSearching, currentPage]);
 
   const totalPages = Math.ceil(totalProducts / productsPerPage); // Tính tổng số trang
 
@@ -103,6 +162,47 @@ const ListProducts = () => {
     fetchCategories();
     fetchSubCategories();
   }, []);
+
+  const handleProductSubmit = async (type) => {
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/san-pham/tim-kiem",
+        {
+          params: {
+            searchQuery,
+            categoryId: selectedCategory2 || "",
+            subCategoryId: selectedSubCategory2 || "",
+            page: currentPage, // You can change this based on the pagination logic
+            number_row: 10, // Adjust the number of rows per page
+          },
+        }
+      );
+
+      console.log(response);
+
+      setProducts(response.data.data);
+      setTotalProducts(response.data.total);
+
+      // Additional handling based on type, like opening a modal after filter
+      if (type === "filter") {
+        // You could trigger modal close or reset states here after filter submission
+        // Example: close modal if 'filter' type was triggered
+        // closeModal();
+      }
+    } catch (error) {
+      console.error("Error fetching products", error);
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    handleProductSubmit("search");
+  };
+
+  const handleFilterSubmit = (e) => {
+    e.preventDefault();
+    handleProductSubmit("filter");
+  };
 
   // Lấy tên danh mục theo ID
   const getCategoryNameById = (id) => {
@@ -119,27 +219,6 @@ const ListProducts = () => {
     return subCategory ? subCategory.ten_danh_muc_con : "N/A";
   };
 
-  // Xóa sản phẩm
-  const handleRemove = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      try {
-        await fetch(`http://127.0.0.1:8000/api/san-pham/delete/${id}`, {
-          method: "DELETE",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        });
-        alert("Sản phẩm đã được xóa thành công.");
-        setProducts((prevProducts) =>
-          prevProducts.filter((product) => product.id !== id)
-        );
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        alert("Đã xảy ra lỗi khi xóa sản phẩm. Vui lòng thử lại.");
-      }
-    }
-  };
   const handleAddProductClick = () => {
     navigate("/admin/them-san-pham"); // Navigate to the 'thêm-san-pham' page
   };
@@ -147,6 +226,40 @@ const ListProducts = () => {
   const handleEditProductClick = (id) => {
     navigate(`/admin/sua-san-pham/${id}`);
   };
+
+  const handleToggleStatus = async (productId, newStatus) => {
+    try {
+      // Gửi yêu cầu PUT tới API để cập nhật trạng thái
+      const response = await axios.put(
+        "http://127.0.0.1:8000/api/san-pham/trang-thai",
+        {
+          san_pham_id: productId, // ID sản phẩm
+          trang_thai_ton_kho: newStatus ? 1 : 0, // Chuyển đổi trạng thái true/false thành 1/0
+        }
+      );
+
+      // Nếu API trả về kết quả thành công
+      if (response.data.success) {
+        // Cập nhật lại trạng thái trong danh sách sản phẩm
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === productId
+              ? { ...product, trang_thai_ton_kho: newStatus ? 1 : 0 }
+              : product
+          )
+        );
+
+        alert(response.data.message || "Cập nhật trạng thái thành công!");
+      } else {
+        console.error("Lỗi từ API:", response.data);
+        alert("Cập nhật trạng thái thất bại. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API:", error);
+      alert("Đã xảy ra lỗi khi cập nhật trạng thái. Vui lòng kiểm tra lại.");
+    }
+  };
+
   return (
     <>
       <div className="content">
@@ -161,6 +274,7 @@ const ListProducts = () => {
             </li>
           </ol>
         </nav>
+
         <div className="mb-9">
           <div className="row g-3 mb-4">
             <div className="col-auto">
@@ -172,45 +286,175 @@ const ListProducts = () => {
             id="products"
             data-list='{"valueNames":["product","price","category","tags","vendor","time"],"page":10,"pagination":true}'
           >
-            <div className="mb-4">
-              <div className="d-flex flex-wrap gap-3">
-                <div className="search-box">
-                  <form className="position-relative">
-                    <input
-                      className="form-control search-input search"
-                      type="search"
-                      placeholder="Search products"
-                      aria-label="Search"
-                    />
-                    <span className="fas fa-search search-box-icon" />
-                  </form>
+            <div className="row g-3 justify-content-between mb-4">
+              <div className="col-auto">
+                <div className="d-md-flex justify-content-between">
+                  <div>
+                    <button
+                      className="btn btn-primary me-4"
+                      onClick={handleAddProductClick}
+                    >
+                      <span className="fas fa-plus me-2" />
+                      Thêm sản phẩm
+                    </button>
+                  </div>
                 </div>
-
-                <div className="ms-xxl-auto">
+              </div>
+              <div className="col-auto">
+                <div className="d-flex">
+                  <div className="search-box me-2">
+                    <form
+                      className="position-relative"
+                      onSubmit={handleSearchSubmit}
+                    >
+                      <input
+                        className="form-control search-input search"
+                        type="search"
+                        placeholder="Tìm kiếm sản phẩm"
+                        aria-label="Search"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                      />
+                      <span className="fas fa-search search-box-icon" />
+                    </form>
+                  </div>
+                  {/* <div className="flatpickr-input-container me-2">
+                    <input
+                      className="form-control ps-6 datetimepicker"
+                      id="datepicker"
+                      type="date"
+                      data-options='{"dateFormat":"M j, Y","disableMobile":true,"defaultDate":"Mar 1, 2022"}'
+                    />
+                    <span className="uil uil-calendar-alt flatpickr-icon text-body-tertiary" />
+                  </div> */}
                   <button
-                    className="btn btn-primary"
-                    onClick={handleAddProductClick}
-                    id="addBtn"
+                    className="btn px-3 btn-phoenix-secondary"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#filterModal"
+                    data-boundary="window"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    data-bs-reference="parent"
                   >
-                    <span className="fas fa-plus me-2" />
-                    Thêm sản phẩm
+                    <span
+                      className="fa-solid fa-filter text-primary"
+                      data-fa-transform="down-3"
+                    />
                   </button>
+                  <div className="modal fade" id="filterModal" tabIndex={-1}>
+                    <div className="modal-dialog modal-dialog-centered">
+                      <div className="modal-content border border-translucent">
+                        <form
+                          id="addEventForm"
+                          autoComplete="off"
+                          onSubmit={handleFilterSubmit}
+                        >
+                          <div className="modal-header border-translucent p-4 justify-content-between">
+                            <h5 className="modal-title text-body-highlight fs-6 lh-sm">
+                              Bộ lọc
+                            </h5>
+                            <button
+                              className="btn p-1 text-danger"
+                              type="button"
+                              data-bs-dismiss="modal"
+                              aria-label="Close"
+                            >
+                              <span className="fas fa-times fs-9" />
+                            </button>
+                          </div>
+
+                          <div className="modal-body pt-4 pb-2 px-4">
+                            <div className="mb-3">
+                              <label
+                                className="fw-bold mb-2 text-body-highlight"
+                                htmlFor="leadStatus"
+                              >
+                                Danh mục
+                              </label>
+                              <select
+                                className="form-select"
+                                id="leadStatus"
+                                value={selectedCategory2}
+                                onChange={handleCategoryChange}
+                              >
+                                <option value="newLead" selected="selected">
+                                  Chọn danh mục...
+                                </option>
+                                {categories2.map((category) => (
+                                  <option key={category.id} value={category.id}>
+                                    {category.ten_danh_muc}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="mb-3">
+                              <label
+                                className="fw-bold mb-2 text-body-highlight"
+                                htmlFor="createDate"
+                              >
+                                Danh mục con
+                              </label>
+                              <select
+                                className="form-select"
+                                id="createDate"
+                                value={selectedSubCategory2}
+                                onChange={handleSubCategoryChange}
+                              >
+                                <option value="today" selected="selected">
+                                  Chọn danh mục con...
+                                </option>
+                                {subCategories2.map((subCategory) => (
+                                  <option
+                                    key={subCategory.id}
+                                    value={subCategory.id}
+                                  >
+                                    {subCategory.ten_danh_muc_con}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                          <div className="modal-footer d-flex justify-content-end align-items-center px-4 pb-4 border-0 pt-3">
+                            <button
+                              className="btn btn-sm btn-phoenix-primary px-4 fs-10 my-0"
+                              type="submit"
+                            >
+                              {""}
+                              <span className="fas fa-arrows-rotate me-2 fs-10" />
+                              Reset
+                            </button>
+                            <button
+                              className="btn btn-sm btn-primary px-9 fs-10 my-0"
+                              type="submit"
+                              onClick={handleFilterSubmit}
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+
             <div className="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-body-emphasis border-top border-bottom border-translucent position-relative top-1">
               <div className="table-responsive scrollbar mx-n1 px-1">
                 <table className="table fs-9 mb-0">
                   <thead>
                     <tr>
                       <th style={{ width: "5%" }}>STT</th>
-                      <th style={{ width: "20%" }}>Hình ảnh</th>
-                      <th style={{ width: "35%" }}>Tên sản phẩm</th>
+                      <th style={{ width: "10%" }}>Hình ảnh</th>
+                      <th style={{ width: "30%" }}>Tên sản phẩm</th>
                       <th style={{ width: "10%" }}>Giá</th>
                       <th style={{ width: "10%" }}>Danh mục</th>
-                      <th style={{ width: "10%" }}>Tags</th>
-                      <th style={{ width: "10%" }}>Danh mục con</th>
+                      <th style={{ width: "6%" }}>Tags</th>
+                      <th style={{ width: "12%" }}>Danh mục con</th>
                       <th style={{ width: "10%" }}>Ngày tạo</th>
+                      <th style={{ width: "10%" }}>Trạng thái</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -245,6 +489,19 @@ const ListProducts = () => {
                         <td>
                           {new Date(product.created_at).toLocaleDateString()}
                         </td>
+                        <td className="ps-3">
+                          <input
+                            className="form-check-status ms-0 me-2"
+                            type="checkbox"
+                            id={`customer_${product.id}`}
+                            checked={product.trang_thai_ton_kho === 1} // If trang_thai_ton_kho is 1, checkbox will be checked
+                            onChange={
+                              (e) =>
+                                handleToggleStatus(product.id, e.target.checked) // Call handleToggleStatus on toggle
+                            }
+                          />
+                        </td>
+
                         <td className="align-middle white-space-nowrap text-end pe-0 ps-4 btn-reveal-trigger">
                           <div className="btn-reveal-trigger position-static">
                             <button
@@ -264,17 +521,13 @@ const ListProducts = () => {
                               </a>
                               <a
                                 className="dropdown-item"
-                                onClick={() => handleEditProductClick(product.id)}
+                                onClick={() =>
+                                  handleEditProductClick(product.id)
+                                }
                               >
                                 Chỉnh sửa
                               </a>
                               <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                onClick={() => handleRemove(product.id)}
-                              >
-                                Xóa
-                              </a>
                             </div>
                           </div>
                         </td>
@@ -308,8 +561,9 @@ const ListProducts = () => {
                       {Array.from({ length: totalPages }, (_, index) => (
                         <li
                           key={index}
-                          className={`page-item ${currentPage === index + 1 ? "active" : ""
-                            }`}
+                          className={`page-item ${
+                            currentPage === index + 1 ? "active" : ""
+                          }`}
                         >
                           <button
                             className="page-link"
@@ -330,15 +584,6 @@ const ListProducts = () => {
                       <span className="fas fa-chevron-right" />
                     </button>
                   </div>
-                </div>
-
-                {/* Hiển thị sản phẩm */}
-                <div className="row">
-                  {products.map((product) => (
-                    <div key={product.id} className="col-12 mb-3">
-                      <div className="product-item">{product.name}</div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>

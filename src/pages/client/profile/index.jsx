@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 import haha from "../../../assets/img/e-commerce/image-removebg-preview.png";
 import defaultAvatar from "../../../assets/img/team/image-default.png";
 
@@ -11,12 +13,18 @@ function Profile() {
   const [orders, setOrders] = useState([]);
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
   const [totalOrderPages, setTotalOrderPages] = useState(1);
-  const [totalOrder, setTotalOrder] = useState(1);
+  const [totalOrder, setTotalOrder] = useState(0);
   const ordersPerPage = 5; // Number of orders per page
   const [totalSpent, setTotalSpent] = useState(0); // Tổng tiền đã chi tiêu
   const [lastOrderDate, setLastOrderDate] = useState(""); // Thời gian đơn hàng cuối
   // eslint-disable-next-line no-unused-vars
-  const [totalOrders, setTotalOrders] = useState(0); // Tổng số đơn hàng
+  const [totalOrders, setTotalOrders] = useState(0);
+
+  const [passwordVisible, setPasswordVisible] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
 
   const storedUserInfo = localStorage.getItem("userInfo");
   const [formData, setFormData] = useState({});
@@ -26,6 +34,17 @@ function Profile() {
   const userId = user.id;
 
   console.log(orders);
+
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  const breadcrumbTitles = {
+    "thong-tin-tai-khoan": "Thông tin tài khoản", // Đây là URL không có "/"
+  };
+  // Ghép lại các phần đường dẫn thành chuỗi để tìm trong breadcrumbTitles
+  const currentTitle =
+    breadcrumbTitles[pathnames.join("/")] ||
+    pathnames[pathnames.length - 1]?.toUpperCase(); // Fallback nếu không tìm thấy
 
   useEffect(() => {
     fetch(
@@ -157,7 +176,6 @@ function Profile() {
         submitData.append(key, formData[key]);
       }
       submitData.append("_method", "PUT");
-
       const response = await fetch(url, {
         method: "POST",
         body: submitData,
@@ -176,7 +194,7 @@ function Profile() {
           email: data?.data?.email,
           dien_thoai: data?.data?.dien_thoai,
           dia_chi: data?.data?.dia_chi,
-          ngay_sinh: data?.data?.ngay_sinh
+          ngay_sinh: data?.data?.ngay_sinh,
         };
 
         localStorage.setItem("userInfo", JSON.stringify(updatedUser));
@@ -198,25 +216,23 @@ function Profile() {
   //   Handle form data change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
+
     setFormData((prevData) => {
       const updatedData = {
         ...prevData,
         [name]: value, // Chỉ cập nhật trường đang thay đổi
       };
-  
+
       // Chỉ cập nhật `ngay_sinh` nếu có đủ `ngay`, `thang`, `nam`
       if (updatedData.nam && updatedData.thang && updatedData.ngay) {
         updatedData.ngay_sinh = `${updatedData.nam}-${updatedData.thang}-${updatedData.ngay}`;
       } else {
         updatedData.ngay_sinh = prevData.ngay_sinh; // Giữ nguyên nếu thiếu thông tin
       }
-  
+
       return updatedData;
     });
   };
-  
-  
 
   const years = Array.from({ length: 2025 - 1990 + 1 }, (v, i) => 1990 + i);
 
@@ -244,6 +260,38 @@ function Profile() {
       })
       .catch((error) => console.error("Error fetching wishlist data:", error));
   }, [userId]);
+
+
+  const [reviews, setReviews] = useState([]);
+  const [reviewPerPage] = useState(10);
+  const [currentReviewPage, setCurrentReviewPage] = useState(1);
+  const [totalReviewPages, setTotalReviewPages] = useState(1);
+  const [totalReview, setTotalReview] = useState(1);
+  useEffect(() => {
+    // Fetch data for the current page
+    axios
+      .get(
+        `http://127.0.0.1:8000/api/danh-gia/khach-hang/${userId}?page=${currentReviewPage}&limit=${reviewPerPage}`
+      )
+      .then((response) => {
+        console.log(response);
+        setTotalReview(response.data.data.total);
+
+        setReviews(response.data.data.data); // Dữ liệu của trang hiện tại
+        setTotalReviewPages(response.data.data.last_page); // Tổng số trang
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, [currentReviewPage]);
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalReviewPages) {
+      setCurrentPage(page);
+    }
+  };
+  console.log(reviews);
+
 
   useEffect(() => {
     return () => {
@@ -280,6 +328,7 @@ function Profile() {
         fetch(`http://127.0.0.1:8000/api/danh-sach-yeu-thich/destroy`, {
           method: "POST",
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -322,27 +371,182 @@ function Profile() {
     }
   };
 
+  const handleCancelOrder = (orderId, currentStatusId) => {
+    const newStatusId = 2; // Trạng thái "Đã hủy"
+
+    if (currentStatusId !== 1) {
+      alert("Chỉ có thể hủy đơn hàng khi ở trạng thái mới.");
+      return;
+    }
+
+    // Yêu cầu nhập lý do hủy
+    const reason = prompt("Vui lòng nhập lý do hủy đơn hàng:");
+    if (!reason) {
+      alert("Lý do hủy không được để trống.");
+      return;
+    }
+
+    // Đẩy lý do hủy lên request
+    fetch(`http://127.0.0.1:8000/api/don-hang/update/${orderId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        trang_thai_don_hang_id: newStatusId,
+        ly_do_huy_don: reason,
+        nguoi_huy: "user_" + userId,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        alert("Đơn hàng đã được hủy.");
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === orderId
+              ? {
+                ...order,
+                trang_thai_don_hang_id: newStatusId,
+                trang_thai_don_hang: getStatusName(newStatusId),
+                ly_do_huy_don: reason,
+                nguoi_huy: "user_" + userId,
+              }
+              : order
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Lỗi khi cập nhật trạng thái:", error);
+        alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+      });
+  };
+
+
+  const handleConfirmReceived = (orderId) => {
+    const newStatusId = 7; // Trạng thái "Đã hoàn thành"
+
+    if (confirm("Bạn có chắc chắn muốn xác nhận đã nhận hàng không?")) {
+      // Gửi yêu cầu cập nhật trạng thái
+      fetch(`http://127.0.0.1:8000/api/don-hang/update/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trang_thai_don_hang_id: newStatusId,
+        }),
+      })
+        .then((response) => response.json())
+        .then(() => {
+          alert("Đơn hàng đã được xác nhận là đã nhận.");
+          setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+              order.id === orderId
+                ? {
+                  ...order,
+                  trang_thai_don_hang_id: newStatusId,
+                  trang_thai_don_hang: getStatusName(newStatusId),
+                  nguoi_xac_nhan: "client_" + userId,
+                }
+                : order
+            )
+          );
+        })
+        .catch((error) => {
+          console.error("Lỗi khi cập nhật trạng thái:", error);
+          alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+        });
+    }
+  };
+  const [orderStatusList, setOrderStatusList] = useState([]);
+  const handleReturnOrder = (orderId) => {
+    const newStatusId = 8;
+  
+    const reason = prompt("Vui lòng nhập lý do hoàn hàng:");
+    if (!reason) {
+      alert("Lý do không được để trống.");
+      return;
+    }
+    if (confirm("Bạn có chắc chắn muốn xác nhận hoàn hàng không?")) {
+      // Gửi yêu cầu cập nhật trạng thái
+      fetch(`http://127.0.0.1:8000/api/don-hang/update/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trang_thai_don_hang_id: newStatusId,
+          ly_do_hoan_hang: reason,
+        }),
+      })
+        .then((response) => response.json())
+        .then(() => {
+          alert("Đã gửi yêu cầu hoàn hàng.");
+          setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+              order.id === orderId
+                ? {
+                    ...order,
+                    trang_thai_don_hang_id: newStatusId,
+                    trang_thai_don_hang: getStatusName(newStatusId),
+                    nguoi_xac_nhan: "client_" + userId,
+                  }
+                : order
+            )
+          );
+        })
+        .catch((error) => {
+          console.error("Lỗi khi cập nhật trạng thái:", error);
+          alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
+        });
+    }
+  };
+  useEffect(() => {
+    // Fetch trạng thái đơn hàng từ API
+    fetch("http://127.0.0.1:8000/api/getAllTrangThaiDonHang")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Dữ liệu trạng thái:", data);
+        setOrderStatusList(data);
+      })
+      .catch((error) => {
+        console.error("Lỗi khi lấy dữ liệu trạng thái:", error);
+      });
+  }, []);
+
+  function getStatusName(statusId) {
+    const status = orderStatusList.find((status) => status.id === statusId);
+    return status ? status.ten_trang_thai : "Chưa rõ";
+  }
+
+  
   // Hàm để lấy class theo trạng thái đơn hàng
   function getBadgeClass(statusId) {
     switch (statusId) {
       case 1:
         return "badge-phoenix-warning"; // Chờ xác nhận
       case 2:
-        return "badge-phoenix-info"; // Chờ lấy hàng
+        return "badge-phoenix-danger"; // Đã hủy
       case 3:
-        return "badge-phoenix-primary"; // Chờ giao hàng
+        return "badge-phoenix-info"; // Đang lấy hàng
       case 4:
-        return "badge-phoenix-secondary"; // Đang vận chuyển
+        return "badge-phoenix-primary"; // Chờ giao hàng
       case 5:
-        return "badge-phoenix-success"; // Đã giao hàng
-      // case 6:
-      //   return "badge-phoenix-success"; // Hoàn thành đơn
+        return "badge-phoenix-secondary"; // Đang vận chuyển
       case 6:
-        return "badge-phoenix-danger"; // Đơn giao thất bại
+        return "badge-phoenix-success"; // Đã giao hàng
+      case 7:
+        return "badge-phoenix-dark"; // Đã hoàn thành
+      case 8:
+        return "badge-phoenix-warning-light"; // Hoàn trả hàng
+      case 9:
+        return "badge-phoenix-success-light"; // Trả hàng thành công
       default:
         return "badge-phoenix-light"; // Mặc định
     }
   }
+
+  // Function to toggle the visibility of a specific password input
+  const togglePasswordVisibility = (field) => {
+    setPasswordVisible((prevState) => ({
+      ...prevState,
+      [field]: !prevState[field],
+    }));
+  };
 
   return (
     <section className="pt-5 pb-9">
@@ -350,13 +554,11 @@ function Profile() {
         <nav className="mb-3" aria-label="breadcrumb">
           <ol className="breadcrumb mb-0">
             <li className="breadcrumb-item">
-              <a href="#!">Page 1</a>
+              <Link to="/">Trang chủ</Link>
             </li>
-            <li className="breadcrumb-item">
-              <a href="#!">Page 2</a>
-            </li>
+
             <li className="breadcrumb-item active" aria-current="page">
-              Default
+              {currentTitle}
             </li>
           </ol>
         </nav>
@@ -373,7 +575,15 @@ function Profile() {
                 </button>
               </div>
               <div className="col-auto">
-                <button className="btn btn-phoenix-secondary">
+                <button
+                  className="btn btn-phoenix-secondary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#changePassword"
+                  data-boundary="window"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  data-bs-reference="parent"
+                >
                   <span className="fas fa-key me-2" />
                   Đặt lại mật khẩu
                 </button>
@@ -514,7 +724,7 @@ function Profile() {
                 >
                   <span className="fas fa-star me-2" />
                   Đánh giá
-                  <span className="text-body-tertiary fw-normal"> (24)</span>
+                  <span className="text-body-tertiary fw-normal"> ({totalReview})</span>
                 </a>
               </li>
               <li className="nav-item me-3">
@@ -524,7 +734,7 @@ function Profile() {
                   data-bs-toggle="tab"
                   href="#tab-wishlist"
                   role="tab"
-                  aria-controls="tab-orders"
+                  aria-controls="tab-wishlist"
                   aria-selected="true"
                 >
                   <span className="fas fa-heart me-2" />
@@ -732,7 +942,7 @@ function Profile() {
                           className="white-space-nowrap align-middle pe-3 ps-0"
                           scope="col"
                           data-sort="order"
-                          style={{ width: "15%", minWidth: 140 }}
+                          style={{ width: "10%", minWidth: 120 }}
                         >
                           Mã đơn hàng
                         </th>
@@ -740,7 +950,7 @@ function Profile() {
                           className="align-middle pe-3"
                           scope="col"
                           data-sort="status"
-                          style={{ width: "20%", minWidth: 180 }}
+                          style={{ width: "15%", minWidth: 150 }}
                         >
                           Trạng thái
                         </th>
@@ -748,15 +958,32 @@ function Profile() {
                           className="align-middle text-start"
                           scope="col"
                           data-sort="delivery"
-                          style={{ width: "30%", minWidth: 160 }}
+                          style={{ width: "20%", minWidth: 200 }}
                         >
                           Phương thức thanh toán
                         </th>
+
                         <th
-                          className="align-middle pe-0 text-start"
+                          className="align-middle text-start"
+                          scope="col"
+                          data-sort="delivery"
+                          style={{ width: "30%", minWidth: 180 }}
+                        >
+                          Hình thức vận chuyển
+                        </th>
+                        <th
+                          className="align-middle text-start"
+                          scope="col"
+                          data-sort="delivery"
+                          style={{ width: "25%", minWidth: 150 }}
+                        >
+                          Địa chỉ nhận hàng
+                        </th>
+                        <th
+                          className="align-middle pe-0 ps-5"
                           scope="col"
                           data-sort="date"
-                          style={{ width: "30%", minWidth: 100 }}
+                          style={{ width: "25%", minWidth: 200 }}
                         >
                           Ngày đặt hàng
                         </th>
@@ -764,7 +991,7 @@ function Profile() {
                           className="align-middle text-start"
                           scope="col"
                           data-sort="total"
-                          style={{ width: "20%", minWidth: 200 }}
+                          style={{ width: "20%", minWidth: 150 }}
                         >
                           Tổng tiền
                         </th>
@@ -796,7 +1023,7 @@ function Profile() {
                               )}`}
                             >
                               <span className="badge-label">
-                                {order.trang_thai_don_hang.ten_trang_thai}
+                                {order.trang_thai_don_hang}
                               </span>
                             </span>
                           </td>
@@ -804,7 +1031,13 @@ function Profile() {
                           <td className="delivery align-middle white-space-nowrap text-body py-2">
                             {order.phuong_thuc_thanh_toan.ten_phuong_thuc}
                           </td>
-                          <td className="total align-middle text-body-tertiary text-start py-2">
+                          <td className="delivery align-middle white-space-nowrap text-body py-2">
+                            {order.hinh_thuc_van_chuyen.ten_van_chuyen}
+                          </td>
+                          <td className="delivery align-middle white-space-nowrap text-body py-2">
+                            {order.dia_chi_giao_hang}
+                          </td>
+                          <td className="total align-middle text-body-tertiary text-start py-2  ps-5">
                             {new Date(order.created_at).toLocaleString()}
                           </td>
                           <td className="date align-middle fw-semibold text-start py-2 text-body-highlight">
@@ -812,45 +1045,6 @@ function Profile() {
                               order.tong_tien
                             ) + " VNĐ"}
                           </td>
-
-                          {/* <td className="details align-middle text-end white-space-nowrap py-2">
-                            <button
-                              className="btn btn-sm btn-info"
-                              data-bs-toggle="collapse"
-                              data-bs-target={`#orderDetails${order.id}`}
-                              aria-expanded="false"
-                              aria-controls={`orderDetails${order.id}`}
-                            >
-                              Xem chi tiết
-                            </button>
-                            <div
-                              className="collapse"
-                              id={`orderDetails${order.id}`}
-                            >
-                              <div className="mt-2">
-                                {order.chi_tiet_don_hangs.map((detail) => (
-                                  <div key={detail.id}>
-                                    <p>
-                                      <strong>
-                                        {detail.san_pham.ten_san_pham}
-                                      </strong>
-                                    </p>
-                                    <ul>
-                                      {detail.thuoc_tinh.map(
-                                        (attribute, index) => (
-                                          <li key={index}>
-                                            {attribute.ten_gia_tri}
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                    <p>Số lượng: {detail.so_luong}</p>
-                                    <p>Giá: {detail.gia}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </td> */}
                           <td className="align-middle text-end white-space-nowrap pe-0 action py-2">
                             <div className="btn-reveal-trigger position-static">
                               <button
@@ -865,27 +1059,68 @@ function Profile() {
                                 <span className="fas fa-ellipsis-h fs-10" />
                               </button>
                               <div className="dropdown-menu dropdown-menu-end py-2">
-                                <a className="dropdown-item" href="#!">
+                                <a
+                                  href={`chi-tiet-don-hang/${order.id}`}
+                                  className="dropdown-item"
+                                >
                                   Chi tiết
                                 </a>
-                                <a className="dropdown-item" href="#!">
-                                  Export
-                                </a>
-                                <div className="dropdown-divider" />
-                                <a
-                                  className="dropdown-item text-danger"
-                                  href="#!"
-                                >
-                                  Hủy đơn
-                                </a>
+                                {order.trang_thai_don_hang_id !== 6 && (
+                                  <>
+                                    <a className="dropdown-item">
+                                      Trạng thái
+                                    </a>
+                                  </>
+                                )}
+
+                                {order.trang_thai_don_hang_id === 1 && (
+                                  <>
+                                    <div className="dropdown-divider" />
+                                    <a
+                                      className="dropdown-item text-danger"
+                                      onClick={() => handleCancelOrder(order.id, order.trang_thai_don_hang_id)}
+                                    >
+                                      Hủy đơn
+                                    </a>
+                                  </>
+                                )}
+
+                                {order.trang_thai_don_hang_id === 6 && (
+                                  <>
+                                    <a
+                                      className="dropdown-item text-success"
+                                      onClick={() => handleConfirmReceived(order.id)}
+                                    >
+                                      Xác nhận đã nhận hàng
+                                    </a>
+                                    <a
+                                      className="dropdown-item text-warning"
+                                      onClick={() => handleReturnOrder(order.id)}
+                                    >
+                                      Hoàn trả hàng
+                                    </a>
+                                  </>
+                                )}
+
+                                {order.trang_thai_don_hang_id === 7 && (
+                                  <>
+                                    <a
+                                      className="dropdown-item text-success"
+                                    >
+                                      Đánh giá
+                                    </a>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </td>
+
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
+
                 <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
                   <div className="col-auto">
                     <p className="mb-0">
@@ -903,9 +1138,8 @@ function Profile() {
                   </div>
                   <div className="col-auto d-flex">
                     <button
-                      className={`page-link ${
-                        currentOrderPage === 1 ? "disabled" : ""
-                      }`}
+                      className={`page-link ${currentOrderPage === 1 ? "disabled" : ""
+                        }`}
                       data-list-pagination="prev"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage - 1)
@@ -933,9 +1167,8 @@ function Profile() {
                       ))}
                     </ul>
                     <button
-                      className={`page-link ${
-                        currentOrderPage === totalOrderPages ? "disabled" : ""
-                      }`}
+                      className={`page-link ${currentOrderPage === totalOrderPages ? "disabled" : ""
+                        }`}
                       data-list-pagination="next"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage + 1)
@@ -965,554 +1198,117 @@ function Profile() {
                     <thead>
                       <tr>
                         <th
-                          className="white-space-nowrap align-middle"
+                          className="white-space-nowrap align-middle ps-0"
                           scope="col"
-                          style={{ minWidth: 220 }}
+                          style={{ width: "10%" }}
+                        >
+                          Hình ảnh
+                        </th>
+                        <th
+                          className="white-space-nowrap align-middle ps-0"
+                          scope="col"
+                          style={{ width: "30%" }}
                           data-sort="product"
                         >
-                          PRODUCT
+                          Sản phẩm
                         </th>
                         <th
                           className="align-middle"
                           scope="col"
                           data-sort="rating"
-                          style={{ maxWidth: "10%" }}
+                          style={{ width: "10%" }}
                         >
-                          RATING
+                          Đánh giá
                         </th>
                         <th
                           className="align-middle"
                           scope="col"
-                          style={{ minWidth: 480 }}
                           data-sort="review"
+                          style={{ width: "30%" }}
                         >
-                          REVIEW
+                          Nhận xét
                         </th>
                         <th
                           className="align-middle"
                           scope="col"
-                          style={{ maxWidth: "12%" }}
+                          style={{ width: "10%" }}
                           data-sort="status"
                         >
-                          STATUS
+                          Trạng thái
                         </th>
                         <th
                           className="text-end align-middle"
                           scope="col"
-                          style={{ maxWidth: "10%" }}
+                          style={{ width: "10%" }}
                           data-sort="date"
                         >
-                          DATE
-                        </th>
-                        <th
-                          className="text-end pe-0 align-middle"
-                          scope="col"
-                          style={{ width: "7%" }}
-                        >
-                          {" "}
+                          Ngày tạo
                         </th>
                       </tr>
                     </thead>
                     <tbody className="list" id="profile-review-table-body">
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            Fitbit Sense Advanced Smartwatch with Tools for
-                            Heart Health, Stress Management &amp; Skin
-                            Temperature Trends, Carbon/Graphite, One Size (S
-                            &amp; L Bands)
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            This Fitbit is fantastic! I was trying to be in
-                            better shape and needed some motivation, so I
-                            decided to treat myself to a new Fitbit.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            Approaved
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
+                      {reviews.map((review) => (
+                        <tr className="hover-actions-trigger btn-reveal-trigger position-static">
+                          <td className="align-middle product white-space-nowrap py-0 ps-0">
+                            <img
+                              src={`http://127.0.0.1:8000/storage/${review.san_pham.duong_dan_anh}`}
+                              width={50}
+                              alt="product"
                             />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">Just now</p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
+                          </td>
+                          <td className="align-middle product pe-3">
+                            {review.san_pham.ten_san_pham}
+                          </td>
+                          <td className="align-middle rating white-space-nowrap fs-10">
+                            {Array.from({ length: review.danh_gia }).map(
+                              (_, idx) => (
+                                <span
+                                  key={idx}
+                                  className="fa fa-star text-warning"
+                                />
+                              )
+                            )}
+                          </td>
+                          <td className="align-middle review pe-7">
+                            <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
+                              {review.binh_luan}
+                            </p>
+                            <br />
+                            <div>
+                              {Array.isArray(review.chi_tiet_danh_gias) &&
+                                review.chi_tiet_danh_gias.map((detail) => (
+                                  <img
+                                    key={detail.id}
+                                    src={`http://127.0.0.1:8000/storage/${detail.hinh_anh_duong_dan}`}
+                                    alt="Chi tiết đánh giá"
+                                    width={50}
+                                    className="me-2 mt-1"
+                                  />
+                                ))}
                             </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            iPhone 13 pro max-Pacific Blue-128GB storage
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            The order was delivered ahead of schedule. To give
-                            us additional time, you should leave the packaging
-                            sealed with plastic.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
-                            Pending
-                            <span
-                              className="ms-1"
-                              data-feather="clock"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Dec 9, 2:28 PM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            Apple MacBook Pro 13 inch-M1-8/256GB-space
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star-half-alt star-icon text-warning" />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            It's a Mac, after all. Once you've gone Mac, there's
-                            no going back. My first Mac lasted over nine years,
-                            and this is my second.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            Approaved
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Dec 4, 12:56 PM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            Apple iMac 24" 4K Retina Display M1 8 Core CPU, 7
-                            Core GPU, 256GB SSD, Green (MJV83ZP/A) 2021
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            Personally, I like the minimalist style, but I
-                            wouldn't choose it if I were searching for a
-                            computer that I would use frequently. It's not
-                            horrible in terms of speed and power
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            Approaved
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Nov 28, 7:28 PM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            Razer Kraken v3 x Wired 7.1 Surroung Sound Gaming
-                            headset
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            It performs exactly as expected. There are three of
-                            these in the family.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-secondary">
-                            Cancelled
-                            <span
-                              className="ms-1"
-                              data-feather="x"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Nov 24, 10:16 AM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            PlayStation 5 DualSense Wireless Controller
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            The controller is quite comfy for me. Despite its
-                            increased size, the controller still fits well in my
-                            hands.
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-success">
-                            Approaved
-                            <span
-                              className="ms-1"
-                              data-feather="check"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">Just now</p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="hover-actions-trigger btn-reveal-trigger position-static">
-                        <td className="align-middle product pe-3">
-                          <a
-                            className="fw-semibold line-clamp-1"
-                            href="product-details.html"
-                          >
-                            2021 Apple 12.9-inch iPad Pro (Wi‑Fi, 128GB) - Space
-                            Gray
-                          </a>
-                        </td>
-                        <td className="align-middle rating white-space-nowrap fs-10">
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span className="fa fa-star text-warning" />
-                          <span
-                            className="fa-regular fa-star text-warning-light"
-                            data-bs-theme="light"
-                          />
-                        </td>
-                        <td className="align-middle review pe-7">
-                          <p className="fw-semibold text-body-highlight mb-0 line-clamp-2">
-                            The response time and service I received when
-                            contacted the designers were Phenomenal!
-                          </p>
-                        </td>
-                        <td className="align-middle status pe-9">
-                          <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
-                            Pending
-                            <span
-                              className="ms-1"
-                              data-feather="fas fa-stopwatch"
-                              style={{ height: "12.8px", width: "12.8px" }}
-                            />
-                          </span>
-                        </td>
-                        <td className="align-middle text-end date white-space-nowrap">
-                          <p className="text-body-tertiary mb-0">
-                            Nov 07, 9:00 PM
-                          </p>
-                        </td>
-                        <td className="align-middle white-space-nowrap text-end pe-0">
-                          <div className="btn-reveal-trigger position-static">
-                            <button
-                              className="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              data-boundary="window"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                              data-bs-reference="parent"
-                            >
-                              <span className="fas fa-ellipsis-h fs-10" />
-                            </button>
-                            <div className="dropdown-menu dropdown-menu-end py-2">
-                              <a className="dropdown-item" href="#!">
-                                View
-                              </a>
-                              <a className="dropdown-item" href="#!">
-                                Export
-                              </a>
-                              <div className="dropdown-divider" />
-                              <a
-                                className="dropdown-item text-danger"
-                                href="#!"
-                              >
-                                Remove
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
+                          </td>
+                          <td className="align-middle status pe-9">
+                            {review.trang_thai === 1 ? (
+                              <span className="badge badge-phoenix fs-10 badge-phoenix-success">
+                                Đã duyệt
+                              </span>
+                            ) : review.trang_thai === 0 ? (
+                              <span className="badge badge-phoenix fs-10 badge-phoenix-warning">
+                                Chưa duyệt
+                              </span>
+                            ) : review.trang_thai === 2 ? (
+                              <span className="badge badge-phoenix fs-10 badge-phoenix-secondary">
+                                Đã hủy
+                              </span>
+                            ) : null}
+                          </td>
+                          <td className="align-middle text-end date white-space-nowrap">
+                            <h6 className="text-body-highlight mb-0">
+                              {new Date(review.created_at).toLocaleString()}
+                            </h6>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -1579,7 +1375,7 @@ function Profile() {
                             data-sort="image"
                             style={{ width: "20%" }} // Tăng chiều rộng cho hình ảnh
                           >
-                            IMAGE
+                            HÌNH ẢNH
                           </th>
                           <th
                             className="white-space-nowrap align-middle"
@@ -1587,7 +1383,7 @@ function Profile() {
                             style={{ width: "35%", minWidth: 250 }} // Tăng chiều rộng cho sản phẩm
                             data-sort="products"
                           >
-                            PRODUCTS
+                            SẢN PHẨM
                           </th>
                           <th
                             className="align-middle text-body"
@@ -1595,7 +1391,7 @@ function Profile() {
                             data-sort="price"
                             style={{ width: "15%" }} // Cân đối chiều rộng cho giá
                           >
-                            PRICE
+                            GIÁ
                           </th>
                           <th
                             className="align-middle text-body"
@@ -1607,7 +1403,7 @@ function Profile() {
                               alignItems: "center",
                             }}
                           >
-                            ACTION
+                            HÀNH ĐỘNG
                           </th>
                         </tr>
                       </thead>
@@ -1624,7 +1420,7 @@ function Profile() {
                                 href="product-details.html"
                               >
                                 <img
-                                  src={product.image}
+                                  src={`${link}${product.image}`}
                                   alt={product.name}
                                   width={55}
                                 />
@@ -1644,16 +1440,15 @@ function Profile() {
                               )}{" "}
                               VNĐ
                             </td>
-                            <td className="total align-middle fw-bold text-body-highlight text-end text-nowrap pe-0">
+                            <td className="total align-middle fw-bold text-body-highlight text-nowrap pe-0 ps-14">
                               <button
-                                className="btn btn-sm text-body-quaternary text-body-tertiary-hover me-2"
+                                className=" text-body-quaternary text-body-tertiary-hover me-2"
                                 onClick={() => removeFromWishlist(product.id)}
                               >
-                                <span className="fas fa-trash" />
+                                <span className="fa-solid fa-trash" />
                               </button>
-                              <button className="btn btn-primary fs-10">
-                                <span className="fas fa-shopping-cart me-1 fs-10" />
-                                Add to cart
+                              <button className="btn btn-sm text-body-quaternary text-body-tertiary-hover me-2">
+                                <span className="fa-solid fa-cart-plus" />
                               </button>
                             </td>
                           </tr>
@@ -1679,9 +1474,8 @@ function Profile() {
                     </div>
                     <div className="col-auto d-flex">
                       <button
-                        className={`page-link ${
-                          currentPage === 1 ? "disabled" : ""
-                        }`}
+                        className={`page-link ${currentPage === 1 ? "disabled" : ""
+                          }`}
                         data-list-pagination="prev"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -1707,9 +1501,8 @@ function Profile() {
                         ))}
                       </ul>
                       <button
-                        className={`page-link ${
-                          currentPage === totalPages ? "disabled" : ""
-                        }`}
+                        className={`page-link ${currentPage === totalPages ? "disabled" : ""
+                          }`}
                         data-list-pagination="next"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
@@ -1739,6 +1532,157 @@ function Profile() {
         </div>
       </div>
       {/* end of .container*/}
+      <div
+        className="modal fade"
+        id="changePassword"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+        tabIndex={-1}
+        aria-labelledby="changePassword"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-l modal-dialog-centered">
+          <div className="modal-content bg-body-highlight p-6">
+            <div className="modal-header justify-content-between border-0 p-0 mb-2">
+              <h3 className="mb-0">Đổi mật khẩu</h3>
+              <button
+                className="btn btn-sm btn-phoenix-secondary"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <span className="fas fa-times text-danger" />
+              </button>
+            </div>
+            <div className="modal-body px-0 mt-1">
+              <form>
+                <div className="row g-4">
+                  {/* Mật khẩu hiện tại */}
+                  <div className="col-lg-12">
+                    <div className="mb-4">
+                      <label
+                        htmlFor="currentPassword"
+                        className="text-body-highlight fw-bold mb-2"
+                      >
+                        Mật khẩu hiện tại
+                      </label>
+                      <input
+                        id="currentPassword"
+                        className="form-control"
+                        type={
+                          passwordVisible.currentPassword ? "text" : "password"
+                        }
+                        placeholder="Nhập mật khẩu hiện tại"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="btn px-3 py-0 position-absolute end-0 fs-7 text-body-tertiary"
+                        style={{ marginTop: "-2pc" }}
+                        onClick={() =>
+                          togglePasswordVisibility("currentPassword")
+                        }
+                      >
+                        <span
+                          className={
+                            passwordVisible.currentPassword
+                              ? "uil uil-eye-slash"
+                              : "uil uil-eye"
+                          }
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Mật khẩu mới */}
+                  <div className="col-lg-12">
+                    <div className="mb-4">
+                      <label
+                        htmlFor="newPassword"
+                        className="text-body-highlight fw-bold mb-2"
+                      >
+                        Mật khẩu mới
+                      </label>
+                      <input
+                        id="newPassword"
+                        className="form-control"
+                        type={passwordVisible.newPassword ? "text" : "password"}
+                        placeholder="Nhập mật khẩu mới"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="btn px-3 py-0 position-absolute end-0 fs-7 text-body-tertiary"
+                        style={{ marginTop: "-2pc" }}
+                        onClick={() => togglePasswordVisibility("newPassword")}
+                      >
+                        <span
+                          className={
+                            passwordVisible.newPassword
+                              ? "uil uil-eye-slash"
+                              : "uil uil-eye"
+                          }
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Nhập lại mật khẩu mới */}
+                  <div className="col-lg-12">
+                    <div className="mb-4">
+                      <label
+                        htmlFor="confirmPassword"
+                        className="text-body-highlight fw-bold mb-2"
+                      >
+                        Xác nhận mật khẩu mới
+                      </label>
+                      <div className="position-relative">
+                        <input
+                          id="confirmPassword"
+                          className="form-control"
+                          type={
+                            passwordVisible.confirmPassword
+                              ? "text"
+                              : "password"
+                          }
+                          placeholder="Xác nhận mật khẩu"
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="btn px-3 py-0 h-100 position-absolute top-0 end-0 fs-7 text-body-tertiary"
+                          onClick={() =>
+                            togglePasswordVisibility("confirmPassword")
+                          }
+                        >
+                          <span
+                            className={
+                              passwordVisible.confirmPassword
+                                ? "uil uil-eye-slash"
+                                : "uil uil-eye"
+                            }
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div className="modal-footer border-0 pt-0 px-0 pb-0">
+              <button
+                className="btn btn-link text-danger px-3 my-0"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                Hủy bỏ
+              </button>
+              <button type="submit" className="btn btn-primary my-0">
+                Cập nhật
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

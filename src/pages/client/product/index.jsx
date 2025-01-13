@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FadeLoader } from "react-spinners"; // Thêm import FadeLoader
-
+import soldout from "../../../assets/img/e-commerce/outstock.png";
 const Shop = () => {
   document.title = "Hypertech Store - Cửa hàng";
   const baseUrl = "http://127.0.0.1:8000/storage/";
@@ -15,52 +15,52 @@ const Shop = () => {
   // eslint-disable-next-line no-unused-vars
   const [currentTime, setCurrentTime] = useState(new Date());
   const [currentPage, setCurrentPage] = useState(1);
+  // eslint-disable-next-line no-unused-vars
   const [totalProducts, setTotalProducts] = useState(0);
-  const [productsPerPage] = useState(9); // Set max 9 products per page
+  const [totalPages, setTotalPages] = useState(1);
+  const [productsPerPage] = useState(9); // Số sản phẩm mỗi trang (max 9 sản phẩm)
+
   // eslint-disable-next-line no-unused-vars
   const [wishlistData, setWishlistData] = useState(null);
   const [error, setError] = useState(null);
 
-  // Calculate total pages based on total products and products per page
-  const totalPages = Math.ceil(totalProducts / productsPerPage);
   useEffect(() => {
     const fetchProducts = async () => {
-      setLoading(true); // Hiển thị loader khi bắt đầu gọi API
+      setLoading(true);
       try {
         const response = await fetch(
-          `http://127.0.0.1:8000/api/san-pham/allProductClient?page=${currentPage}&limit=${productsPerPage}`
+          `http://127.0.0.1:8000/api/san-pham/allProductClient?page=${currentPage}&number_row=${productsPerPage}`
         );
         const data = await response.json();
 
+        // Kiểm tra nếu dữ liệu hợp lệ và có mảng
         if (data.status === "success" && Array.isArray(data.data.data)) {
+
           setProducts(data.data.data);
+
           setTotalProducts(data.data.total);
+          setTotalPages(data.data.last_page);
         } else {
-          console.error(
-            "Error: Expected an array but got",
-            typeof data.data.data
-          );
+          console.error("API response không hợp lệ:", data);
         }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Lỗi khi lấy sản phẩm:", error);
+        setError(error);
       } finally {
-        setLoading(false); // Dừng loader khi dữ liệu được tải xong
+        setLoading(false); // Ẩn loader
       }
     };
 
     fetchProducts();
+  }, [currentPage, productsPerPage]);
 
-    // Timeout 10 giây để đảm bảo dừng `loading` ngay cả khi lỗi xảy ra
-    const timeout = setTimeout(() => setLoading(false), 10000);
-
-    return () => clearTimeout(timeout); // Dọn dẹp timeout khi component unmount
-  }, [currentPage]);
-
+  // Hàm xử lý thay đổi trang
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page); // Update the current page
+      setCurrentPage(page); // Cập nhật trang hiện tại
     }
   };
+
 
   // Hàm để lấy sản phẩm mới
   const fetchNewProducts = async () => {
@@ -1278,6 +1278,19 @@ const Shop = () => {
                           <div className="d-flex flex-column justify-content-between h-100">
                             <div>
                               <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                                {product.so_luong_ton_kho === 0 && (
+                                  <div className="sold-out-overlay">
+                                    {/* Bạn có thể dùng một hình ảnh biểu tượng hoặc văn bản */}
+                                    <img
+                                      src={soldout}
+                                      alt="Sold Out"
+                                      style={{
+                                        width: "90%",
+                                        objectFit: "contain",
+                                      }}
+                                    />
+                                  </div>
+                                )}
                                 {label && (
                                   <div
                                     style={{
@@ -1311,9 +1324,8 @@ const Shop = () => {
                                 )}
 
                                 <button
-                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${
-                                    wishlistStatus[product.id] ? "active" : ""
-                                  }`}
+                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${wishlistStatus[product.id] ? "active" : ""
+                                    }`}
                                   data-bs-toggle="tooltip"
                                   data-bs-placement="top"
                                   title={
@@ -1327,17 +1339,15 @@ const Shop = () => {
                                   disabled={loading}
                                 >
                                   <span
-                                    className={`fas fa-heart d-block-hover ${
-                                      wishlistStatus[product.id] ? "d-none" : ""
-                                    }`}
+                                    className={`fas fa-heart d-block-hover ${wishlistStatus[product.id] ? "d-none" : ""
+                                      }`}
                                     data-fa-transform="down-1"
                                   />
                                   <span
-                                    className={`far fa-heart d-none-hover ${
-                                      !wishlistStatus[product.id]
-                                        ? "d-block"
-                                        : ""
-                                    }`}
+                                    className={`far fa-heart d-none-hover ${!wishlistStatus[product.id]
+                                      ? "d-block"
+                                      : ""
+                                      }`}
                                     data-fa-transform="down-1"
                                   />
                                 </button>
@@ -1416,15 +1426,14 @@ const Shop = () => {
                   );
                 })}
               </div>
-              ;
+
               <div className="d-flex justify-content-end">
                 <nav aria-label="Page navigation example">
                   <ul className="pagination mb-0">
                     {/* Previous Button */}
                     <li
-                      className={`page-item ${
-                        currentPage === 1 ? "disabled" : ""
-                      }`}
+                      className={`page-item ${currentPage === 1 ? "disabled" : ""
+                        }`}
                     >
                       <a
                         className="page-link"
@@ -1440,31 +1449,29 @@ const Shop = () => {
                     </li>
 
                     {/* Page Numbers */}
-                    {Array.from({ length: totalPages }, (_, index) => (
-                      <li
-                        className={`page-item ${
-                          currentPage === index + 1 ? "active" : ""
-                        }`}
-                        key={index}
-                      >
-                        <a
-                          className="page-link"
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handlePageChange(index + 1);
-                          }}
+                    { Array.from({ length: totalPages }, (_, index) => (
+                        <li
+                          className={`page-item ${currentPage === index + 1 ? "active" : ""
+                            }`}
+                          key={index}
                         >
-                          {index + 1}
-                        </a>
-                      </li>
-                    ))}
-
+                          <a
+                            className="page-link"
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(index + 1);
+                            }}
+                          >
+                            {index + 1}
+                          </a>
+                        </li>
+                      ))}
+                    
                     {/* Next Button */}
                     <li
-                      className={`page-item ${
-                        currentPage === totalPages ? "disabled" : ""
-                      }`}
+                      className={`page-item ${currentPage === totalPages ? "disabled" : ""
+                        }`}
                     >
                       <a
                         className="page-link"
@@ -1481,6 +1488,8 @@ const Shop = () => {
                   </ul>
                 </nav>
               </div>
+
+              
             </div>
           </div>
         </div>
