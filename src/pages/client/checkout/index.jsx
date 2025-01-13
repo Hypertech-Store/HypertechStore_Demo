@@ -247,7 +247,7 @@ const Checkout = () => {
 
   useEffect(() => {
     // Fetching data from the API
-    fetch("http://127.0.0.1:8000/api/phuong-thuc-thanh-toan")
+    fetch("http://127.0.0.1:8000/api/get-phuong-thuc-thanh-toan")
       .then((response) => response.json())
       .then((data) => {
         // Filter to show only methods with trang_thai === 1 (active)

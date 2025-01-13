@@ -393,7 +393,7 @@ function Profile() {
       body: JSON.stringify({
         trang_thai_don_hang_id: newStatusId,
         ly_do_huy_don: reason,
-        nguoi_huy: "client_" + userId,
+        nguoi_huy: "user_" + userId,
       }),
     })
       .then((response) => response.json())
@@ -407,7 +407,7 @@ function Profile() {
                 trang_thai_don_hang_id: newStatusId,
                 trang_thai_don_hang: getStatusName(newStatusId),
                 ly_do_huy_don: reason,
-                nguoi_huy: "client_" + userId,
+                nguoi_huy: "user_" + userId,
               }
               : order
           )
@@ -422,7 +422,7 @@ function Profile() {
 
   const handleConfirmReceived = (orderId) => {
     const newStatusId = 7; // Trạng thái "Đã hoàn thành"
-  
+
     if (confirm("Bạn có chắc chắn muốn xác nhận đã nhận hàng không?")) {
       // Gửi yêu cầu cập nhật trạng thái
       fetch(`http://127.0.0.1:8000/api/don-hang/update/${orderId}`, {
@@ -439,11 +439,11 @@ function Profile() {
             prevOrders.map((order) =>
               order.id === orderId
                 ? {
-                    ...order,
-                    trang_thai_don_hang_id: newStatusId,
-                    trang_thai_don_hang: getStatusName(newStatusId),
-                    nguoi_xac_nhan: "client_" + userId,
-                  }
+                  ...order,
+                  trang_thai_don_hang_id: newStatusId,
+                  trang_thai_don_hang: getStatusName(newStatusId),
+                  nguoi_xac_nhan: "client_" + userId,
+                }
                 : order
             )
           );
@@ -454,7 +454,7 @@ function Profile() {
         });
     }
   };
-
+  const [orderStatusList, setOrderStatusList] = useState([]);
   const handleReturnOrder = (orderId) => {
     const newStatusId = 8;
   
@@ -495,24 +495,46 @@ function Profile() {
         });
     }
   };
+  useEffect(() => {
+    // Fetch trạng thái đơn hàng từ API
+    fetch("http://127.0.0.1:8000/api/getAllTrangThaiDonHang")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Dữ liệu trạng thái:", data);
+        setOrderStatusList(data);
+      })
+      .catch((error) => {
+        console.error("Lỗi khi lấy dữ liệu trạng thái:", error);
+      });
+  }, []);
 
+  function getStatusName(statusId) {
+    const status = orderStatusList.find((status) => status.id === statusId);
+    return status ? status.ten_trang_thai : "Chưa rõ";
+  }
+
+  
   // Hàm để lấy class theo trạng thái đơn hàng
   function getBadgeClass(statusId) {
     switch (statusId) {
       case 1:
         return "badge-phoenix-warning"; // Chờ xác nhận
       case 2:
-        return "badge-phoenix-info"; // Chờ lấy hàng
+        return "badge-phoenix-danger"; // Đã hủy
       case 3:
-        return "badge-phoenix-primary"; // Chờ giao hàng
+        return "badge-phoenix-info"; // Đang lấy hàng
       case 4:
-        return "badge-phoenix-secondary"; // Đang vận chuyển
+        return "badge-phoenix-primary"; // Chờ giao hàng
       case 5:
-        return "badge-phoenix-success"; // Đã giao hàng
-      // case 6:
-      //   return "badge-phoenix-success"; // Hoàn thành đơn
+        return "badge-phoenix-secondary"; // Đang vận chuyển
       case 6:
-        return "badge-phoenix-danger"; // Đơn giao thất bại
+        return "badge-phoenix-success"; // Đã giao hàng
+      case 7:
+        return "badge-phoenix-dark"; // Đã hoàn thành
+      case 8:
+        return "badge-phoenix-warning-light"; // Hoàn trả hàng
+      case 9:
+        return "badge-phoenix-success-light"; // Trả hàng thành công
       default:
         return "badge-phoenix-light"; // Mặc định
     }
@@ -1001,7 +1023,7 @@ function Profile() {
                               )}`}
                             >
                               <span className="badge-label">
-                                {order.trang_thai_don_hang.ten_trang_thai}
+                                {order.trang_thai_don_hang}
                               </span>
                             </span>
                           </td>
@@ -1098,6 +1120,7 @@ function Profile() {
                     </tbody>
                   </table>
                 </div>
+
                 <div className="row align-items-center justify-content-between py-2 pe-0 fs-9">
                   <div className="col-auto">
                     <p className="mb-0">
