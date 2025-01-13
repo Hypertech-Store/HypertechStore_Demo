@@ -414,6 +414,7 @@ const Checkout = () => {
       ma_giam_gia: discountCode || null,
       dia_chi_giao_hang: address,
       products: products.map((product) => ({
+        chi_tiet_id: product.chi_tiet_id,
         san_pham_id: product.san_pham_id,
         bien_the_san_pham_id: product.bien_the_san_pham_id,
         attributes: product.bien_the.map((item) => ({
@@ -516,20 +517,34 @@ const Checkout = () => {
         console.log("Đơn hàng đã được gửi:", data);
       }
 
-      // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
-      if (khachHangId) {
-        const deleteCartResponse = await fetch(
-          `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${khachHangId}`,
-          {
-            method: "DELETE",
+      // Xử lý xóa từng sản phẩm khỏi giỏ hàng qua API
+      for (const product of orderData.products) {
+        try {
+          const response = await fetch(
+            `http://127.0.0.1:8000/api/gio-hang/xoa-san-pham-gio-hang/${product.chi_tiet_id}`,
+            {
+              method: "DELETE",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (!response.ok) {
+            console.error(
+              `Không thể xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}`
+            );
+          } else {
+            console.log(
+              `Đã xóa sản phẩm chi_tiet_id=${product.chi_tiet_id} khỏi giỏ hàng.`
+            );
           }
-        );
-
-        if (!deleteCartResponse.ok) {
-          throw new Error("Xóa giỏ hàng thất bại");
+        } catch (error) {
+          console.error(
+            `Lỗi khi gọi API xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}:`,
+            error
+          );
         }
-
-        console.log("Giỏ hàng đã được xóa cho khách hàng:", khachHangId);
       }
 
       // Đóng spinner modal sau khi thanh toán thành công và mở modal thành công
@@ -560,23 +575,19 @@ const Checkout = () => {
   };
 
   const handleVNPAYReturn = () => {
-    // Lấy các tham số từ URL
     const urlParams = new URLSearchParams(window.location.search);
     const vnp_ResponseCode = urlParams.get("vnp_ResponseCode");
 
-    // Kiểm tra nếu vnp_ResponseCode là NULL hoặc không có giá trị
     if (!vnp_ResponseCode) {
       console.error("Mã phản hồi không hợp lệ hoặc không có.");
-      return; // Dừng hàm nếu không có mã phản hồi
+      return;
     }
 
-    // Kiểm tra mã phản hồi từ VNPAY
     if (vnp_ResponseCode === "00") {
-      // Lấy orderData từ localStorage
       const orderData = JSON.parse(localStorage.getItem("orderData"));
 
       if (orderData) {
-        // Gửi thông tin đơn hàng vào hệ thống
+        // Gửi đơn hàng
         fetch("http://127.0.0.1:8000/api/donhang/orders", {
           method: "POST",
           headers: {
@@ -587,35 +598,52 @@ const Checkout = () => {
         })
           .then((orderResponse) => {
             if (!orderResponse.ok) {
-              throw new Error("Gửi đơn hàng thất bại");
+              return orderResponse.json().then((errData) => {
+                console.error("Gửi đơn hàng thất bại:", errData);
+                throw new Error("Gửi đơn hàng thất bại");
+              });
             }
+            console.log("Đơn hàng đã được gửi:", orderResponse);
             return orderResponse.json();
           })
           .then((data) => {
+            // Kiểm tra nếu dữ liệu trả về có lỗi
+            if (data.error) {
+              console.error("Lỗi từ server:", data.error);
+              throw new Error("Gửi đơn hàng thất bại");
+            }
             console.log("Đơn hàng đã được gửi:", data);
 
-            // Sau khi thanh toán thành công, xóa giỏ hàng bằng khach_hang_id
-            const khachHangId = orderData.khach_hang_id;
-            if (khachHangId) {
-              return fetch(
-                `http://127.0.0.1:8000/api/gio-hang/xoa-gio-hang/${khachHangId}`,
-                {
-                  method: "DELETE",
-                }
+            const products = orderData.products;
+            if (products && products.length > 0) {
+              // Xóa sản phẩm trong giỏ hàng
+              return Promise.all(
+                products.map((product) =>
+                  fetch(
+                    `http://127.0.0.1:8000/api/gio-hang/xoa-san-pham-gio-hang/${product.chi_tiet_id}`,
+                    { method: "DELETE" }
+                  ).then((response) => {
+                    if (!response.ok) {
+                      console.error(
+                        `Không thể xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}`
+                      );
+                      throw new Error(
+                        `Không thể xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}`
+                      );
+                    }
+                    console.log(
+                      `Đã xóa sản phẩm chi_tiet_id=${product.chi_tiet_id}`
+                    );
+                  })
+                )
               );
             }
+            // Nếu không có sản phẩm để xóa, tiếp tục thực hiện các bước kế tiếp
+            return Promise.resolve();
           })
-          .then((deleteCartResponse) => {
-            if (deleteCartResponse && !deleteCartResponse.ok) {
-              throw new Error("Xóa giỏ hàng thất bại");
-            }
 
-            console.log(
-              "Giỏ hàng đã được xóa cho khách hàng:",
-              orderData.khach_hang_id
-            );
-
-            // Gửi email thông báo thanh toán thành công
+          .then(() => {
+            // Gửi email thông báo thành công
             return fetch("http://127.0.0.1:8000/api/donhang/send-mail", {
               method: "POST",
               headers: {
@@ -631,38 +659,32 @@ const Checkout = () => {
             });
           })
           .then((mailResponse) => {
-            if (mailResponse && !mailResponse.ok) {
+            if (!mailResponse.ok) {
+              console.error("Gửi email thất bại");
               throw new Error("Gửi email thất bại");
             }
-
             console.log("Email thông báo thanh toán thành công đã được gửi.");
           })
           .then(() => {
-            // Đóng spinner modal và hiển thị modal thành công
+            // Thông báo thành công và ẩn modal
             const spinnerModalElement = document.getElementById(
               "paymentSpinnerModal"
             );
             if (spinnerModalElement) {
               const spinnerModal = new bootstrap.Modal(spinnerModalElement);
-              spinnerModal.hide(); // Ẩn spinner modal
+              spinnerModal.hide();
             }
 
-            // Mở modal thành công sau 3 giây
             const successModalElement = document.getElementById(
               "paymentSuccessModal"
             );
             if (successModalElement) {
               const successModal = new bootstrap.Modal(successModalElement);
-              setTimeout(() => {
-                successModal.show();
-              }, 3000); // Đợi 3 giây để hiển thị spinner trước khi mở modal thành công
-            } else {
-              console.error("Không tìm thấy modal thành công trong DOM.");
+              setTimeout(() => successModal.show(), 3000);
             }
           })
           .catch((error) => {
             console.error("Lỗi:", error);
-
             // Đóng modal spinner và hiển thị lỗi
             const spinnerModalElement = document.getElementById(
               "paymentSpinnerModal"
@@ -670,13 +692,13 @@ const Checkout = () => {
             if (spinnerModalElement) {
               const spinnerModal = new bootstrap.Modal(spinnerModalElement);
               setTimeout(() => {
-                spinnerModal.hide(); // Ẩn spinner modal
+                spinnerModal.hide();
                 alert("Đã có lỗi xảy ra, vui lòng thử lại sau.");
-              }, 3000); // Đợi 3 giây trước khi ẩn spinner
+              }, 3000);
             }
           })
           .finally(() => {
-            // Xóa orderData khỏi localStorage sau khi xử lý xong
+            // Clean up
             localStorage.removeItem("orderData");
           });
       } else {
@@ -684,7 +706,6 @@ const Checkout = () => {
       }
     } else {
       console.error("Thanh toán không thành công, mã lỗi:", vnp_ResponseCode);
-      // Xử lý khi thanh toán không thành công
       alert("Thanh toán thất bại. Vui lòng thử lại.");
     }
   };
@@ -985,9 +1006,12 @@ const Checkout = () => {
                                         }}
                                       >
                                         {product.bien_the &&
-                                        Array.isArray(product.bien_the)
-                                          ? product.bien_the.join(" - ")
-                                          : product.bien_the}
+                                        Array.isArray(product.bien_the) &&
+                                        product.bien_the.length > 0
+                                          ? product.bien_the
+                                              .map((item) => item.ten_gia_tri)
+                                              .join(" - ")
+                                          : "N/A"}
                                       </strong>
                                     </span>
                                   </div>
