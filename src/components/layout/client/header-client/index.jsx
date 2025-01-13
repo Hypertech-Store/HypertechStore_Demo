@@ -1186,11 +1186,11 @@ const HeaderClient = () => {
                 Checkout
               </NavLink>
             </li> */}
-            <li className="nav-item" data-nav-item="data-nav-item">
+            {/* <li className="nav-item" data-nav-item="data-nav-item">
               <NavLink className="nav-link" to="/hoa-don">
                 Hóa đơn
               </NavLink>
-            </li>
+            </li> */}
           </ul>
         </div>
       </nav>
