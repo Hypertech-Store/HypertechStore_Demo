@@ -23,14 +23,12 @@ const LayoutClient = () => {
       setIsLoading(false); // Giả lập đã tải dữ liệu xong
     }, 6000); // Bạn có thể thay đổi thời gian này tùy vào thời gian tải thực tế
 
-
-
     return () => clearTimeout(timer); // Dọn dẹp khi component unmount
   }, []);
 
   return (
     <>
-      {/* Hiển thị GIF loading nếu đang tải, bọc ngoài toàn bộ trang */}
+      {/* Hiển thị GIF loading nếu đang tải và không phải là các đường dẫn được loại trừ */}
       {isLoading && !shouldHideHeaderFooter && (
         <div className="loading">
           <Lottie
@@ -42,13 +40,16 @@ const LayoutClient = () => {
       )}
 
       {/* Hiển thị Header và Footer, trừ khi chúng bị ẩn */}
-      <div style={{ display: isLoading ? "none" : "block" }}>
-        {!shouldHideHeaderFooter && <HeaderClient />}
+      {!shouldHideHeaderFooter && !isLoading && (
+        <>
+          <HeaderClient />
+          <Outlet />
+          <FooterClient />
+        </>
+      )}
 
-        <Outlet />
-
-        {!shouldHideHeaderFooter && <FooterClient />}
-      </div>
+      {/* Chỉ hiển thị Outlet nếu là các đường dẫn loại trừ */}
+      {shouldHideHeaderFooter && <Outlet />}
     </>
   );
 };
