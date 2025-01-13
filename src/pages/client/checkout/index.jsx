@@ -52,9 +52,6 @@ const Checkout = () => {
     breadcrumbTitles[pathnames[0]] ||
     pathnames[pathnames.length - 1]?.toUpperCase();
 
-  const handleEditClick = () => {
-    navigate("/thong-tin-tai-khoan"); // Chuyển hướng đến trang thông tin tài khoản
-  };
   const [userInfo, setUserInfo] = useState({});
 
   useEffect(() => {

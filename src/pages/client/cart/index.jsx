@@ -451,15 +451,20 @@ const Cart = () => {
                             </a>
                           </td>
                           <td
-                            className="color align-middle white-space-nowrap fs-9 text-body"
+                            className="color align-middle white-space-nowrap fs-9"
                             style={{
                               marginLeft: "20px",
                               color: "#dc2626",
                               fontWeight: "600",
                             }} // Thêm thuộc tính màu sắc
                           >
-                            {item.bien_the.join(" - ")}{" "}
-                            {/* Nối các giá trị trong mảng bằng dấu gạch ngang */}
+                            {item?.bien_the?.map((bienTheItem, index) => (
+                              <span key={bienTheItem.gia_tri_thuoc_tinh_id}>
+                                {bienTheItem.ten_gia_tri}
+                                {index < item.bien_the.length - 1 && " - "}{" "}
+                                {/* Thêm dấu " - " nếu không phải phần tử cuối cùng */}
+                              </span>
+                            ))}
                           </td>
 
                           <td className="price align-middle fs-9 fw-semibold ps-3">
