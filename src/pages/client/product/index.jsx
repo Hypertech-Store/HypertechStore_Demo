@@ -20,6 +20,16 @@ const Shop = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [productsPerPage] = useState(9); // Số sản phẩm mỗi trang (max 9 sản phẩm)
 
+  // State to keep track of selected main categories
+  const [selectedCategory, setSelectedCategory] = useState({});
+
+  const handleCategoryChange = (category) => {
+    // Toggle the selected category when clicked
+    setSelectedCategory((prevState) => ({
+      ...prevState,
+      [category]: !prevState[category],
+    }));
+  };
   // eslint-disable-next-line no-unused-vars
   const [wishlistData, setWishlistData] = useState(null);
   const [error, setError] = useState(null);
@@ -277,7 +287,7 @@ const Shop = () => {
                   aria-controls="collapseAvailability"
                 >
                   <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Availability</div>
+                    <div className="fs-8 text-body-highlight">Danh mục</div>
                     <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
                   </div>
                 </a>
@@ -286,196 +296,212 @@ const Shop = () => {
                     <div className="form-check mb-0">
                       <input
                         className="form-check-input mt-0"
-                        id="inStockInput"
+                        id="phone"
                         type="checkbox"
-                        name="color"
-                        defaultChecked
+                        name="categories"
+                        checked={selectedCategory["phones"]}
+                        onChange={() => handleCategoryChange("phones")}
                       />
                       <label
                         className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="inStockInput"
+                        htmlFor="phone"
                       >
-                        In stock
+                        Điện thoại
                       </label>
                     </div>
                     <div className="form-check mb-0">
                       <input
                         className="form-check-input mt-0"
-                        id="preBookInput"
+                        id="laptop"
                         type="checkbox"
-                        name="color"
+                        name="categories"
+                        checked={selectedCategory["computers"]}
+                        onChange={() => handleCategoryChange("computers")}
                       />
                       <label
                         className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="preBookInput"
+                        htmlFor="laptop"
                       >
-                        Pre-book
+                        Máy tính
                       </label>
                     </div>
                     <div className="form-check mb-0">
                       <input
                         className="form-check-input mt-0"
-                        id="outOfStockInput"
+                        id="watch"
                         type="checkbox"
-                        name="color"
+                        name="categories"
+                        checked={selectedCategory["watches"]}
+                        onChange={() => handleCategoryChange("watches")}
                       />
                       <label
                         className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="outOfStockInput"
+                        htmlFor="watch"
                       >
-                        Out of stock
+                        Đồng hồ
                       </label>
                     </div>
                   </div>
                 </div>
-                <a
-                  className="btn px-0 d-block collapse-indicator"
-                  data-bs-toggle="collapse"
-                  href="#collapseColorFamily"
-                  role="button"
-                  aria-expanded="true"
-                  aria-controls="collapseColorFamily"
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Color family</div>
-                    <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                  </div>
-                </a>
-                <div className="collapse show" id="collapseColorFamily">
-                  <div className="mb-2">
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="flexCheckBlack"
-                        type="checkbox"
-                        name="color"
-                        defaultChecked
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="flexCheckBlack"
-                      >
-                        Black
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="flexCheckBlue"
-                        type="checkbox"
-                        name="color"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="flexCheckBlue"
-                      >
-                        Blue
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="flexCheckRed"
-                        type="checkbox"
-                        name="color"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="flexCheckRed"
-                      >
-                        Red
-                      </label>
+                {selectedCategory["phones"] && (
+                  <div>
+                    <a
+                      className="btn px-0 d-block collapse-indicator"
+                      data-bs-toggle="collapse"
+                      href="#collapsePhones"
+                      role="button"
+                      aria-expanded={
+                        selectedCategory["phones"] ? "true" : "false"
+                      }
+                      aria-controls="collapsePhones"
+                    >
+                      <div className="d-flex align-items-center justify-content-between w-100">
+                        <div className="fs-8 text-body-highlight">
+                          Danh mục con - Điện thoại
+                        </div>
+                        <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
+                      </div>
+                    </a>
+                    <div className="collapse show" id="collapsePhones">
+                      <div className="mb-2">
+                        <div className="form-check mb-0">
+                          <input
+                            className="form-check-input mt-0"
+                            id="blackberryInput"
+                            type="checkbox"
+                            name="brands"
+                          />
+                          <label
+                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                            htmlFor="blackberryInput"
+                          >
+                            Blackberry
+                          </label>
+                        </div>
+                        <div className="form-check mb-0">
+                          <input
+                            className="form-check-input mt-0"
+                            id="appleInput"
+                            type="checkbox"
+                            name="brands"
+                          />
+                          <label
+                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                            htmlFor="appleInput"
+                          >
+                            Apple
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <a
-                  className="btn px-0 d-block collapse-indicator"
-                  data-bs-toggle="collapse"
-                  href="#collapseBrands"
-                  role="button"
-                  aria-expanded="true"
-                  aria-controls="collapseBrands"
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Brands</div>
-                    <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                  </div>
-                </a>
-                <div className="collapse show" id="collapseBrands">
-                  <div className="mb-2">
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="flexCheckBlackberry"
-                        type="checkbox"
-                        name="brands"
-                        defaultChecked
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="flexCheckBlackberry"
-                      >
-                        Blackberry
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="flexCheckApple"
-                        type="checkbox"
-                        name="brands"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="flexCheckApple"
-                      >
-                        Apple
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="flexCheckNokia"
-                        type="checkbox"
-                        name="brands"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="flexCheckNokia"
-                      >
-                        Nokia
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="flexCheckSony"
-                        type="checkbox"
-                        name="brands"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="flexCheckSony"
-                      >
-                        Sony
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="flexCheckLG"
-                        type="checkbox"
-                        name="brands"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body mb-0 fw-normal"
-                        htmlFor="flexCheckLG"
-                      >
-                        LG
-                      </label>
+                )}
+                {selectedCategory["computers"] && (
+                  <div>
+                    <a
+                      className="btn px-0 d-block collapse-indicator"
+                      data-bs-toggle="collapse"
+                      href="#collapsePhones"
+                      role="button"
+                      aria-expanded={
+                        selectedCategory["computers"] ? "true" : "false"
+                      }
+                      aria-controls="collapsePhones"
+                    >
+                      <div className="d-flex align-items-center justify-content-between w-100">
+                        <div className="fs-8 text-body-highlight">
+                          Danh mục con - Máy Tính
+                        </div>
+                        <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
+                      </div>
+                    </a>
+                    <div className="collapse show" id="collapsePhones">
+                      <div className="mb-2">
+                        <div className="form-check mb-0">
+                          <input
+                            className="form-check-input mt-0"
+                            id="blackberryInput"
+                            type="checkbox"
+                            name="brands"
+                          />
+                          <label
+                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                            htmlFor="blackberryInput"
+                          >
+                            Dell
+                          </label>
+                        </div>
+                        <div className="form-check mb-0">
+                          <input
+                            className="form-check-input mt-0"
+                            id="appleInput"
+                            type="checkbox"
+                            name="brands"
+                          />
+                          <label
+                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                            htmlFor="appleInput"
+                          >
+                            HP
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+                {selectedCategory["watches"] && (
+                  <div>
+                    <a
+                      className="btn px-0 d-block collapse-indicator"
+                      data-bs-toggle="collapse"
+                      href="#collapsePhones"
+                      role="button"
+                      aria-expanded={
+                        selectedCategory["watches"] ? "true" : "false"
+                      }
+                      aria-controls="collapsePhones"
+                    >
+                      <div className="d-flex align-items-center justify-content-between w-100">
+                        <div className="fs-8 text-body-highlight">
+                          Danh mục con - Đồng hồ
+                        </div>
+                        <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
+                      </div>
+                    </a>
+                    <div className="collapse show" id="collapsePhones">
+                      <div className="mb-2">
+                        <div className="form-check mb-0">
+                          <input
+                            className="form-check-input mt-0"
+                            id="blackberryInput"
+                            type="checkbox"
+                            name="brands"
+                          />
+                          <label
+                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                            htmlFor="blackberryInput"
+                          >
+                            Casio
+                          </label>
+                        </div>
+                        <div className="form-check mb-0">
+                          <input
+                            className="form-check-input mt-0"
+                            id="appleInput"
+                            type="checkbox"
+                            name="brands"
+                          />
+                          <label
+                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                            htmlFor="appleInput"
+                          >
+                            Seiko
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <a
                   className="btn px-0 d-block collapse-indicator"
                   data-bs-toggle="collapse"
@@ -485,7 +511,7 @@ const Shop = () => {
                   aria-controls="collapsePriceRange"
                 >
                   <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Price range</div>
+                    <div className="fs-8 text-body-highlight">Mức giá</div>
                     <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
                   </div>
                 </a>
@@ -522,7 +548,7 @@ const Shop = () => {
                   aria-controls="collapseRating"
                 >
                   <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Rating</div>
+                    <div className="fs-8 text-body-highlight">Xếp hạng</div>
                     <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
                   </div>
                 </a>
@@ -555,7 +581,6 @@ const Shop = () => {
                       className="fa-regular fa-star text-warning-light fs-9 me-1"
                       data-bs-theme="light"
                     />
-                    <p className="ms-1 mb-0">&amp; above</p>
                   </div>
                   <div className="d-flex align-items-center mb-1">
                     <input
@@ -575,7 +600,6 @@ const Shop = () => {
                       className="fa-regular fa-star text-warning-light fs-9 me-1"
                       data-bs-theme="light"
                     />
-                    <p className="ms-1 mb-0">&amp; above </p>
                   </div>
                   <div className="d-flex align-items-center mb-1">
                     <input
@@ -598,7 +622,6 @@ const Shop = () => {
                       className="fa-regular fa-star text-warning-light fs-9 me-1"
                       data-bs-theme="light"
                     />
-                    <p className="ms-1 mb-0">&amp; above</p>
                   </div>
                   <div className="d-flex align-items-center mb-3">
                     <input
@@ -624,595 +647,6 @@ const Shop = () => {
                       className="fa-regular fa-star text-warning-light fs-9 me-1"
                       data-bs-theme="light"
                     />
-                    <p className="ms-1 mb-0">&amp; above </p>
-                  </div>
-                </div>
-                <a
-                  className="btn px-0 d-block collapse-indicator"
-                  data-bs-toggle="collapse"
-                  href="#collapseDisplayType"
-                  role="button"
-                  aria-expanded="true"
-                  aria-controls="collapseDisplayType"
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Display type</div>
-                    <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                  </div>
-                </a>
-                <div className="collapse show" id="collapseDisplayType">
-                  <div className="mb-2">
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="lcdInput"
-                        type="checkbox"
-                        name="displayType"
-                        defaultChecked
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="lcdInput"
-                      >
-                        LCD
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="ipsInput"
-                        type="checkbox"
-                        name="displayType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="ipsInput"
-                      >
-                        IPS
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="oledInput"
-                        type="checkbox"
-                        name="displayType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="oledInput"
-                      >
-                        OLED
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="amoledInput"
-                        type="checkbox"
-                        name="displayType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="amoledInput"
-                      >
-                        AMOLED
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="retinaInput"
-                        type="checkbox"
-                        name="displayType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="retinaInput"
-                      >
-                        Retina
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <a
-                  className="btn px-0 d-block collapse-indicator"
-                  data-bs-toggle="collapse"
-                  href="#collapseCondition"
-                  role="button"
-                  aria-expanded="true"
-                  aria-controls="collapseCondition"
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Condition</div>
-                    <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                  </div>
-                </a>
-                <div className="collapse show" id="collapseCondition">
-                  <div className="mb-2">
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="newInput"
-                        type="checkbox"
-                        name="condition"
-                        defaultChecked
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="newInput"
-                      >
-                        New
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="usedInput"
-                        type="checkbox"
-                        name="condition"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="usedInput"
-                      >
-                        Used
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="refurbrishedInput"
-                        type="checkbox"
-                        name="condition"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="refurbrishedInput"
-                      >
-                        Refurbrished
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <a
-                  className="btn px-0 d-block collapse-indicator"
-                  data-bs-toggle="collapse"
-                  href="#collapseDelivery"
-                  role="button"
-                  aria-expanded="true"
-                  aria-controls="collapseDelivery"
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Delivery</div>
-                    <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                  </div>
-                </a>
-                <div className="collapse show" id="collapseDelivery">
-                  <div className="mb-2">
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="freeShippingInput"
-                        type="checkbox"
-                        name="delivery"
-                        defaultChecked
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="freeShippingInput"
-                      >
-                        Free Shipping
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="oneDayShippingInput"
-                        type="checkbox"
-                        name="delivery"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="oneDayShippingInput"
-                      >
-                        One-day Shipping
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="codInput"
-                        type="checkbox"
-                        name="delivery"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="codInput"
-                      >
-                        Cash on Delivery
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <a
-                  className="btn px-0 d-block collapse-indicator"
-                  data-bs-toggle="collapse"
-                  href="#collapseCampaign"
-                  role="button"
-                  aria-expanded="true"
-                  aria-controls="collapseCampaign"
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Campaign</div>
-                    <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                  </div>
-                </a>
-                <div className="collapse show" id="collapseCampaign">
-                  <div className="mb-2">
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="summerSaleInput"
-                        type="checkbox"
-                        name="campaign"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="summerSaleInput"
-                      >
-                        Summer Sale
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="marchMadnessInput"
-                        type="checkbox"
-                        name="campaign"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="marchMadnessInput"
-                      >
-                        March Madness
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="flashSaleInput"
-                        type="checkbox"
-                        name="campaign"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="flashSaleInput"
-                      >
-                        Flash Sale
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="bogoBlastInput"
-                        type="checkbox"
-                        name="campaign"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="bogoBlastInput"
-                      >
-                        BOGO Blast
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <a
-                  className="btn px-0 d-block collapse-indicator"
-                  data-bs-toggle="collapse"
-                  href="#collapseWarranty"
-                  role="button"
-                  aria-expanded="true"
-                  aria-controls="collapseWarranty"
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">Warranty</div>
-                    <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                  </div>
-                </a>
-                <div className="collapse show" id="collapseWarranty">
-                  <div className="mb-2">
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="threeMonthInput"
-                        type="checkbox"
-                        name="warranty"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="threeMonthInput"
-                      >
-                        3 months
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="sixMonthInput"
-                        type="checkbox"
-                        name="warranty"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="sixMonthInput"
-                      >
-                        6 months
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="oneYearInput"
-                        type="checkbox"
-                        name="warranty"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="oneYearInput"
-                      >
-                        1 year
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="twoYearsInput"
-                        type="checkbox"
-                        name="warranty"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="twoYearsInput"
-                      >
-                        2 years
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="threeYearsInput"
-                        type="checkbox"
-                        name="warranty"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="threeYearsInput"
-                      >
-                        3 years
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="fiveYearsInput"
-                        type="checkbox"
-                        name="warranty"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="fiveYearsInput"
-                      >
-                        5 years
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <a
-                  className="btn px-0 d-block collapse-indicator"
-                  data-bs-toggle="collapse"
-                  href="#collapseWarrantyType"
-                  role="button"
-                  aria-expanded="true"
-                  aria-controls="collapseWarrantyType"
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">
-                      Warranty Type
-                    </div>
-                    <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                  </div>
-                </a>
-                <div className="collapse show" id="collapseWarrantyType">
-                  <div className="mb-2">
-                    <div className="form-check mb-0x">
-                      <input
-                        className="form-check-input mt-0"
-                        id="replacementInput"
-                        type="checkbox"
-                        name="warrantyType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="replacementInput"
-                      >
-                        Replacement
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="serviceInput"
-                        type="checkbox"
-                        name="warrantyType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="serviceInput"
-                      >
-                        Service
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="partialCoveregeInput"
-                        type="checkbox"
-                        name="warrantyType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="partialCoveregeInput"
-                      >
-                        Partial Coverage
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="appleCareInput"
-                        type="checkbox"
-                        name="warrantyType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="appleCareInput"
-                      >
-                        Apple Care
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="moneyBackInput"
-                        type="checkbox"
-                        name="warrantyType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="moneyBackInput"
-                      >
-                        Money back
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="extendableInput"
-                        type="checkbox"
-                        name="warrantyType"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="extendableInput"
-                      >
-                        Extendable
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <a
-                  className="btn px-0 d-block collapse-indicator"
-                  data-bs-toggle="collapse"
-                  href="#collapseCertification"
-                  role="button"
-                  aria-expanded="true"
-                  aria-controls="collapseCertification"
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <div className="fs-8 text-body-highlight">
-                      Certification
-                    </div>
-                    <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                  </div>
-                </a>
-                <div className="collapse show" id="collapseCertification">
-                  <div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="rohsInput"
-                        type="checkbox"
-                        name="certification"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="rohsInput"
-                      >
-                        RoHS
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="fccInput"
-                        type="checkbox"
-                        name="certification"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="fccInput"
-                      >
-                        FCC
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="conflictInput"
-                        type="checkbox"
-                        name="certification"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="conflictInput"
-                      >
-                        Conflict Free
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="isoOneInput"
-                        type="checkbox"
-                        name="certification"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="isoOneInput"
-                      >
-                        ISO 9001:2015
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="isoTwoInput"
-                        type="checkbox"
-                        name="certification"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="isoTwoInput"
-                      >
-                        ISO 27001:2013
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="isoThreeInput"
-                        type="checkbox"
-                        name="certification"
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="isoThreeInput"
-                      >
-                        IEC 61000-4-2
-                      </label>
-                    </div>
                   </div>
                 </div>
               </div>
