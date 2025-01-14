@@ -20,12 +20,6 @@ function Profile() {
   // eslint-disable-next-line no-unused-vars
   const [totalOrders, setTotalOrders] = useState(0);
 
-  const [passwordVisible, setPasswordVisible] = useState({
-    currentPassword: false,
-    newPassword: false,
-    confirmPassword: false,
-  });
-
   const storedUserInfo = localStorage.getItem("userInfo");
   const [formData, setFormData] = useState({});
   const [avatar, setAvatar] = useState(null);
@@ -457,7 +451,7 @@ function Profile() {
   const [orderStatusList, setOrderStatusList] = useState([]);
   const handleReturnOrder = (orderId) => {
     const newStatusId = 8;
-  
+
     const reason = prompt("Vui lòng nhập lý do hoàn hàng:");
     if (!reason) {
       alert("Lý do không được để trống.");
@@ -480,11 +474,11 @@ function Profile() {
             prevOrders.map((order) =>
               order.id === orderId
                 ? {
-                    ...order,
-                    trang_thai_don_hang_id: newStatusId,
-                    trang_thai_don_hang: getStatusName(newStatusId),
-                    nguoi_xac_nhan: "client_" + userId,
-                  }
+                  ...order,
+                  trang_thai_don_hang_id: newStatusId,
+                  trang_thai_don_hang: getStatusName(newStatusId),
+                  nguoi_xac_nhan: "client_" + userId,
+                }
                 : order
             )
           );
@@ -513,7 +507,7 @@ function Profile() {
     return status ? status.ten_trang_thai : "Chưa rõ";
   }
 
-  
+
   // Hàm để lấy class theo trạng thái đơn hàng
   function getBadgeClass(statusId) {
     switch (statusId) {
@@ -540,12 +534,59 @@ function Profile() {
     }
   }
 
-  // Function to toggle the visibility of a specific password input
+  // // Function to toggle the visibility of a specific password input
+  // const togglePasswordVisibility = (field) => {
+  //   setPasswordVisible((prevState) => ({
+  //     ...prevState,
+  //     [field]: !prevState[field],
+  //   }));
+  // };
+
+
+  const [passwords, setPasswords] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const [passwordVisible, setPasswordVisible] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
+
+  const handleChange = (e) => {
+    setPasswords({ ...passwords, [e.target.id]: e.target.value });
+  };
+
   const togglePasswordVisibility = (field) => {
-    setPasswordVisible((prevState) => ({
-      ...prevState,
-      [field]: !prevState[field],
+    setPasswordVisible((prev) => ({
+      ...prev,
+      [field]: !prev[field],
     }));
+  };
+
+  const handleSubmitPassword = async (e) => {
+    e.preventDefault();
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      alert("Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/khach-hang/doi-mat-khau", {
+        khach_hang_id: userId, // Hoặc lấy từ state hiện tại
+        current_password: passwords.currentPassword,
+        new_password: passwords.newPassword,
+        new_password_confirmation: passwords.confirmPassword,
+      });
+
+      alert(response.data.message);
+      setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error) {
+      alert(error.response?.data?.message || "Có lỗi xảy ra");
+    }
   };
 
   return (
@@ -1554,131 +1595,66 @@ function Profile() {
               </button>
             </div>
             <div className="modal-body px-0 mt-1">
-              <form>
+              <form onSubmit={handleSubmitPassword}>
                 <div className="row g-4">
                   {/* Mật khẩu hiện tại */}
                   <div className="col-lg-12">
-                    <div className="mb-4">
-                      <label
-                        htmlFor="currentPassword"
-                        className="text-body-highlight fw-bold mb-2"
-                      >
-                        Mật khẩu hiện tại
-                      </label>
-                      <input
-                        id="currentPassword"
-                        className="form-control"
-                        type={
-                          passwordVisible.currentPassword ? "text" : "password"
-                        }
-                        placeholder="Nhập mật khẩu hiện tại"
-                        required
-                      />
-                      <button
-                        type="button"
-                        className="btn px-3 py-0 position-absolute end-0 fs-7 text-body-tertiary"
-                        style={{ marginTop: "-2pc" }}
-                        onClick={() =>
-                          togglePasswordVisibility("currentPassword")
-                        }
-                      >
-                        <span
-                          className={
-                            passwordVisible.currentPassword
-                              ? "uil uil-eye-slash"
-                              : "uil uil-eye"
-                          }
-                        />
-                      </button>
-                    </div>
+                    <label htmlFor="currentPassword" className="fw-bold mb-2">
+                      Mật khẩu hiện tại
+                    </label>
+                    <input
+                      id="currentPassword"
+                      className="form-control"
+                      type={
+                        passwordVisible.currentPassword ? "text" : "password"
+                      }
+                      placeholder="Nhập mật khẩu hiện tại"
+                      value={passwords.currentPassword}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
 
                   {/* Mật khẩu mới */}
                   <div className="col-lg-12">
-                    <div className="mb-4">
-                      <label
-                        htmlFor="newPassword"
-                        className="text-body-highlight fw-bold mb-2"
-                      >
-                        Mật khẩu mới
-                      </label>
-                      <input
-                        id="newPassword"
-                        className="form-control"
-                        type={passwordVisible.newPassword ? "text" : "password"}
-                        placeholder="Nhập mật khẩu mới"
-                        required
-                      />
-                      <button
-                        type="button"
-                        className="btn px-3 py-0 position-absolute end-0 fs-7 text-body-tertiary"
-                        style={{ marginTop: "-2pc" }}
-                        onClick={() => togglePasswordVisibility("newPassword")}
-                      >
-                        <span
-                          className={
-                            passwordVisible.newPassword
-                              ? "uil uil-eye-slash"
-                              : "uil uil-eye"
-                          }
-                        />
-                      </button>
-                    </div>
+                    <label htmlFor="newPassword" className="fw-bold mb-2">
+                      Mật khẩu mới
+                    </label>
+                    <input
+                      id="newPassword"
+                      className="form-control"
+                      type={passwordVisible.newPassword ? "text" : "password"}
+                      placeholder="Nhập mật khẩu mới"
+                      value={passwords.newPassword}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
 
-                  {/* Nhập lại mật khẩu mới */}
+                  {/* Nhập lại mật khẩu */}
                   <div className="col-lg-12">
-                    <div className="mb-4">
-                      <label
-                        htmlFor="confirmPassword"
-                        className="text-body-highlight fw-bold mb-2"
-                      >
-                        Xác nhận mật khẩu mới
-                      </label>
-                      <div className="position-relative">
-                        <input
-                          id="confirmPassword"
-                          className="form-control"
-                          type={
-                            passwordVisible.confirmPassword
-                              ? "text"
-                              : "password"
-                          }
-                          placeholder="Xác nhận mật khẩu"
-                          required
-                        />
-                        <button
-                          type="button"
-                          className="btn px-3 py-0 h-100 position-absolute top-0 end-0 fs-7 text-body-tertiary"
-                          onClick={() =>
-                            togglePasswordVisibility("confirmPassword")
-                          }
-                        >
-                          <span
-                            className={
-                              passwordVisible.confirmPassword
-                                ? "uil uil-eye-slash"
-                                : "uil uil-eye"
-                            }
-                          />
-                        </button>
-                      </div>
-                    </div>
+                    <label htmlFor="confirmPassword" className="fw-bold mb-2">
+                      Xác nhận mật khẩu mới
+                    </label>
+                    <input
+                      id="confirmPassword"
+                      className="form-control"
+                      type={
+                        passwordVisible.confirmPassword ? "text" : "password"
+                      }
+                      placeholder="Xác nhận mật khẩu mới"
+                      value={passwords.confirmPassword}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                 </div>
+                <div className="modal-footer border-0 pt-0 px-0 pb-0">
+                  <button type="submit" className="btn btn-primary my-0">
+                    Cập nhật
+                  </button>
+                </div>
               </form>
-            </div>
-            <div className="modal-footer border-0 pt-0 px-0 pb-0">
-              <button
-                className="btn btn-link text-danger px-3 my-0"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                Hủy bỏ
-              </button>
-              <button type="submit" className="btn btn-primary my-0">
-                Cập nhật
-              </button>
             </div>
           </div>
         </div>
