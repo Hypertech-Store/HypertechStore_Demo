@@ -35,7 +35,6 @@ const Shop = () => {
 
         // Kiểm tra nếu dữ liệu hợp lệ và có mảng
         if (data.status === "success" && Array.isArray(data.data.data)) {
-
           setProducts(data.data.data);
 
           setTotalProducts(data.data.total);
@@ -60,7 +59,6 @@ const Shop = () => {
       setCurrentPage(page); // Cập nhật trang hiện tại
     }
   };
-
 
   // Hàm để lấy sản phẩm mới
   const fetchNewProducts = async () => {
@@ -262,7 +260,7 @@ const Shop = () => {
                 style={{ top: 92 }}
               >
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h3 className="mb-0">Filters</h3>
+                  <h3 className="mb-0">Bộ lọc</h3>
                   <button
                     className="btn d-lg-none p-0"
                     data-phoenix-dismiss="offcanvas"
@@ -1324,8 +1322,9 @@ const Shop = () => {
                                 )}
 
                                 <button
-                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${wishlistStatus[product.id] ? "active" : ""
-                                    }`}
+                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${
+                                    wishlistStatus[product.id] ? "active" : ""
+                                  }`}
                                   data-bs-toggle="tooltip"
                                   data-bs-placement="top"
                                   title={
@@ -1339,15 +1338,17 @@ const Shop = () => {
                                   disabled={loading}
                                 >
                                   <span
-                                    className={`fas fa-heart d-block-hover ${wishlistStatus[product.id] ? "d-none" : ""
-                                      }`}
+                                    className={`fas fa-heart d-block-hover ${
+                                      wishlistStatus[product.id] ? "d-none" : ""
+                                    }`}
                                     data-fa-transform="down-1"
                                   />
                                   <span
-                                    className={`far fa-heart d-none-hover ${!wishlistStatus[product.id]
-                                      ? "d-block"
-                                      : ""
-                                      }`}
+                                    className={`far fa-heart d-none-hover ${
+                                      !wishlistStatus[product.id]
+                                        ? "d-block"
+                                        : ""
+                                    }`}
                                     data-fa-transform="down-1"
                                   />
                                 </button>
@@ -1432,8 +1433,9 @@ const Shop = () => {
                   <ul className="pagination mb-0">
                     {/* Previous Button */}
                     <li
-                      className={`page-item ${currentPage === 1 ? "disabled" : ""
-                        }`}
+                      className={`page-item ${
+                        currentPage === 1 ? "disabled" : ""
+                      }`}
                     >
                       <a
                         className="page-link"
@@ -1449,29 +1451,31 @@ const Shop = () => {
                     </li>
 
                     {/* Page Numbers */}
-                    { Array.from({ length: totalPages }, (_, index) => (
-                        <li
-                          className={`page-item ${currentPage === index + 1 ? "active" : ""
-                            }`}
-                          key={index}
+                    {Array.from({ length: totalPages }, (_, index) => (
+                      <li
+                        className={`page-item ${
+                          currentPage === index + 1 ? "active" : ""
+                        }`}
+                        key={index}
+                      >
+                        <a
+                          className="page-link"
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(index + 1);
+                          }}
                         >
-                          <a
-                            className="page-link"
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handlePageChange(index + 1);
-                            }}
-                          >
-                            {index + 1}
-                          </a>
-                        </li>
-                      ))}
-                    
+                          {index + 1}
+                        </a>
+                      </li>
+                    ))}
+
                     {/* Next Button */}
                     <li
-                      className={`page-item ${currentPage === totalPages ? "disabled" : ""
-                        }`}
+                      className={`page-item ${
+                        currentPage === totalPages ? "disabled" : ""
+                      }`}
                     >
                       <a
                         className="page-link"
@@ -1488,8 +1492,6 @@ const Shop = () => {
                   </ul>
                 </nav>
               </div>
-
-              
             </div>
           </div>
         </div>
