@@ -170,6 +170,7 @@ function Profile() {
         submitData.append(key, formData[key]);
       }
       submitData.append("_method", "PUT");
+      console.log("Submit: ", submitData);
       const response = await fetch(url, {
         method: "POST",
         body: submitData,
@@ -255,7 +256,6 @@ function Profile() {
       .catch((error) => console.error("Error fetching wishlist data:", error));
   }, [userId]);
 
-
   const [reviews, setReviews] = useState([]);
   const [reviewPerPage] = useState(10);
   const [currentReviewPage, setCurrentReviewPage] = useState(1);
@@ -285,7 +285,6 @@ function Profile() {
     }
   };
   console.log(reviews);
-
 
   useEffect(() => {
     return () => {
@@ -397,12 +396,12 @@ function Profile() {
           prevOrders.map((order) =>
             order.id === orderId
               ? {
-                ...order,
-                trang_thai_don_hang_id: newStatusId,
-                trang_thai_don_hang: getStatusName(newStatusId),
-                ly_do_huy_don: reason,
-                nguoi_huy: "user_" + userId,
-              }
+                  ...order,
+                  trang_thai_don_hang_id: newStatusId,
+                  trang_thai_don_hang: getStatusName(newStatusId),
+                  ly_do_huy_don: reason,
+                  nguoi_huy: "user_" + userId,
+                }
               : order
           )
         );
@@ -412,7 +411,6 @@ function Profile() {
         alert("Đã xảy ra lỗi khi cập nhật trạng thái.");
       });
   };
-
 
   const handleConfirmReceived = (orderId) => {
     const newStatusId = 7; // Trạng thái "Đã hoàn thành"
@@ -433,11 +431,11 @@ function Profile() {
             prevOrders.map((order) =>
               order.id === orderId
                 ? {
-                  ...order,
-                  trang_thai_don_hang_id: newStatusId,
-                  trang_thai_don_hang: getStatusName(newStatusId),
-                  nguoi_xac_nhan: "client_" + userId,
-                }
+                    ...order,
+                    trang_thai_don_hang_id: newStatusId,
+                    trang_thai_don_hang: getStatusName(newStatusId),
+                    nguoi_xac_nhan: "client_" + userId,
+                  }
                 : order
             )
           );
@@ -474,11 +472,11 @@ function Profile() {
             prevOrders.map((order) =>
               order.id === orderId
                 ? {
-                  ...order,
-                  trang_thai_don_hang_id: newStatusId,
-                  trang_thai_don_hang: getStatusName(newStatusId),
-                  nguoi_xac_nhan: "client_" + userId,
-                }
+                    ...order,
+                    trang_thai_don_hang_id: newStatusId,
+                    trang_thai_don_hang: getStatusName(newStatusId),
+                    nguoi_xac_nhan: "client_" + userId,
+                  }
                 : order
             )
           );
@@ -506,7 +504,6 @@ function Profile() {
     const status = orderStatusList.find((status) => status.id === statusId);
     return status ? status.ten_trang_thai : "Chưa rõ";
   }
-
 
   // Hàm để lấy class theo trạng thái đơn hàng
   function getBadgeClass(statusId) {
@@ -542,7 +539,6 @@ function Profile() {
   //   }));
   // };
 
-
   const [passwords, setPasswords] = useState({
     currentPassword: "",
     newPassword: "",
@@ -575,15 +571,22 @@ function Profile() {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/khach-hang/doi-mat-khau", {
-        khach_hang_id: userId, // Hoặc lấy từ state hiện tại
-        current_password: passwords.currentPassword,
-        new_password: passwords.newPassword,
-        new_password_confirmation: passwords.confirmPassword,
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/khach-hang/doi-mat-khau",
+        {
+          khach_hang_id: userId, // Hoặc lấy từ state hiện tại
+          current_password: passwords.currentPassword,
+          new_password: passwords.newPassword,
+          new_password_confirmation: passwords.confirmPassword,
+        }
+      );
 
       alert(response.data.message);
-      setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswords({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     } catch (error) {
       alert(error.response?.data?.message || "Có lỗi xảy ra");
     }
@@ -667,7 +670,15 @@ function Profile() {
                     <div className="col-12 col-sm-auto flex-1">
                       <h3>{formData.ho_ten || "Your Name"}</h3>
                       <p className="text-body-secondary">
-                        Joined {formData.joinedDate || "Date not available"}
+                        {formData.joinedDate
+                          ? `Tham gia ngày ${new Date(
+                              formData.joinedDate
+                            ).getDate()}, tháng ${
+                              new Date(formData.joinedDate).getMonth() + 1
+                            } năm ${new Date(
+                              formData.joinedDate
+                            ).getFullYear()}`
+                          : "Ngày tham gia không khả dụng"}
                       </p>
 
                       <div>
@@ -765,7 +776,10 @@ function Profile() {
                 >
                   <span className="fas fa-star me-2" />
                   Đánh giá
-                  <span className="text-body-tertiary fw-normal"> ({totalReview})</span>
+                  <span className="text-body-tertiary fw-normal">
+                    {" "}
+                    ({totalReview})
+                  </span>
                 </a>
               </li>
               <li className="nav-item me-3">
@@ -1108,9 +1122,7 @@ function Profile() {
                                 </a>
                                 {order.trang_thai_don_hang_id !== 6 && (
                                   <>
-                                    <a className="dropdown-item">
-                                      Trạng thái
-                                    </a>
+                                    <a className="dropdown-item">Trạng thái</a>
                                   </>
                                 )}
 
@@ -1119,7 +1131,12 @@ function Profile() {
                                     <div className="dropdown-divider" />
                                     <a
                                       className="dropdown-item text-danger"
-                                      onClick={() => handleCancelOrder(order.id, order.trang_thai_don_hang_id)}
+                                      onClick={() =>
+                                        handleCancelOrder(
+                                          order.id,
+                                          order.trang_thai_don_hang_id
+                                        )
+                                      }
                                     >
                                       Hủy đơn
                                     </a>
@@ -1130,13 +1147,17 @@ function Profile() {
                                   <>
                                     <a
                                       className="dropdown-item text-success"
-                                      onClick={() => handleConfirmReceived(order.id)}
+                                      onClick={() =>
+                                        handleConfirmReceived(order.id)
+                                      }
                                     >
                                       Xác nhận đã nhận hàng
                                     </a>
                                     <a
                                       className="dropdown-item text-warning"
-                                      onClick={() => handleReturnOrder(order.id)}
+                                      onClick={() =>
+                                        handleReturnOrder(order.id)
+                                      }
                                     >
                                       Hoàn trả hàng
                                     </a>
@@ -1145,9 +1166,7 @@ function Profile() {
 
                                 {order.trang_thai_don_hang_id === 7 && (
                                   <>
-                                    <a
-                                      className="dropdown-item text-success"
-                                    >
+                                    <a className="dropdown-item text-success">
                                       Đánh giá
                                     </a>
                                   </>
@@ -1155,7 +1174,6 @@ function Profile() {
                               </div>
                             </div>
                           </td>
-
                         </tr>
                       ))}
                     </tbody>
@@ -1179,8 +1197,9 @@ function Profile() {
                   </div>
                   <div className="col-auto d-flex">
                     <button
-                      className={`page-link ${currentOrderPage === 1 ? "disabled" : ""
-                        }`}
+                      className={`page-link ${
+                        currentOrderPage === 1 ? "disabled" : ""
+                      }`}
                       data-list-pagination="prev"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage - 1)
@@ -1208,8 +1227,9 @@ function Profile() {
                       ))}
                     </ul>
                     <button
-                      className={`page-link ${currentOrderPage === totalOrderPages ? "disabled" : ""
-                        }`}
+                      className={`page-link ${
+                        currentOrderPage === totalOrderPages ? "disabled" : ""
+                      }`}
                       data-list-pagination="next"
                       onClick={() =>
                         handleOrderPageChange(currentOrderPage + 1)
@@ -1515,8 +1535,9 @@ function Profile() {
                     </div>
                     <div className="col-auto d-flex">
                       <button
-                        className={`page-link ${currentPage === 1 ? "disabled" : ""
-                          }`}
+                        className={`page-link ${
+                          currentPage === 1 ? "disabled" : ""
+                        }`}
                         data-list-pagination="prev"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -1542,8 +1563,9 @@ function Profile() {
                         ))}
                       </ul>
                       <button
-                        className={`page-link ${currentPage === totalPages ? "disabled" : ""
-                          }`}
+                        className={`page-link ${
+                          currentPage === totalPages ? "disabled" : ""
+                        }`}
                         data-list-pagination="next"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
@@ -1649,7 +1671,7 @@ function Profile() {
                     />
                   </div>
                 </div>
-                <div className="modal-footer border-0 pt-0 px-0 pb-0">
+                <div className="modal-footer border-0 pt-0 px-0 pb-0 mt-5">
                   <button type="submit" className="btn btn-primary my-0">
                     Cập nhật
                   </button>
