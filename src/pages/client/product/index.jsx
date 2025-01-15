@@ -20,16 +20,22 @@ const Shop = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [productsPerPage] = useState(9); // Số sản phẩm mỗi trang (max 9 sản phẩm)
 
-  // State to keep track of selected main categories
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState({});
 
-  const handleCategoryChange = (category) => {
-    // Toggle the selected category when clicked
-    setSelectedCategory((prevState) => ({
-      ...prevState,
-      [category]: !prevState[category],
-    }));
-  };
+  useEffect(() => {
+    // Fetch categories from the API
+    axios
+      .get("http://127.0.0.1:8000/api/danh-muc/getAll")
+      .then((response) => {
+        setCategories(response.data);
+      })
+      .catch((error) => {
+        console.error("There was an error fetching the categories:", error);
+      });
+  }, []);
+
+
   // eslint-disable-next-line no-unused-vars
   const [wishlistData, setWishlistData] = useState(null);
   const [error, setError] = useState(null);
@@ -230,6 +236,95 @@ const Shop = () => {
     fetchWishlist();
   }, [userId]); // Dùng [] để gọi API chỉ 1 lần khi component mount
 
+
+  //các hàm xử lý lọc sản phẩm
+  const [filters, setFilters] = useState({
+    danh_muc_id: [],
+    danh_muc_con_id: [],
+    min_price: null,
+    max_price: null,
+    min_rating: null,
+  });
+
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory((prevState) => {
+      const updatedState = {
+        ...prevState,
+        [categoryId]: !prevState[categoryId],
+      };
+
+      // Lấy danh sách `danh_muc_id` dựa trên trạng thái mới
+      const danh_muc_id = Object.keys(updatedState)
+        .filter((key) => updatedState[key]) // Lọc các danh mục được chọn
+        .map(Number); // Chuyển key sang số
+
+      // Gọi API với bộ lọc đã cập nhật
+      callFilterAPI({ ...filters, danh_muc_id });
+
+      return updatedState;
+    });
+
+    // Cập nhật `filters` state
+    setFilters((prevFilters) => {
+      const updatedDanhMucId = prevFilters.danh_muc_id.includes(categoryId)
+        ? prevFilters.danh_muc_id.filter((id) => id !== categoryId)
+        : [...prevFilters.danh_muc_id, categoryId];
+
+      return { ...prevFilters, danh_muc_id: updatedDanhMucId };
+    });
+  };
+
+
+  const handleSubCategoryChange = (id) => {
+    setFilters((prevFilters) => {
+      const danh_muc_con_id = prevFilters.danh_muc_con_id.includes(id)
+        ? prevFilters.danh_muc_con_id.filter((item) => item !== id)
+        : [...prevFilters.danh_muc_con_id, id];
+
+      callFilterAPI({ ...prevFilters, danh_muc_con_id });
+      return { ...prevFilters, danh_muc_con_id };
+    });
+  };
+
+  const handlePriceChange = (min, max) => {
+    setFilters((prevFilters) => {
+      callFilterAPI({ ...prevFilters, min_price: min, max_price: max });
+      return { ...prevFilters, min_price: min, max_price: max };
+    });
+  };
+
+  const handleRatingChange = (rating) => {
+    setFilters((prevFilters) => {
+      callFilterAPI({ ...prevFilters, min_rating: rating });
+      return { ...prevFilters, min_rating: rating };
+    });
+  };
+
+  const callFilterAPI = async (filterData) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/san-pham/filter-products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(filterData),
+      });
+  
+      const data = await response.json(); // Chuyển đổi dữ liệu nhận được thành JSON
+  
+      // Kiểm tra nếu dữ liệu hợp lệ và có mảng
+      if (data.status === "success" && Array.isArray(data.data)) {
+        setProducts(data.data); // Cập nhật state với sản phẩm nhận được
+      } else {
+        console.error("API response không hợp lệ:", data);
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API lọc sản phẩm:", error);
+      setError(error); // Cập nhật state lỗi nếu có
+    } 
+  };
+  
+
   if (loading) {
     return (
       <div
@@ -291,217 +386,68 @@ const Shop = () => {
                     <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
                   </div>
                 </a>
-                <div className="collapse show" id="collapseAvailability">
-                  <div className="mb-2">
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="phone"
-                        type="checkbox"
-                        name="categories"
-                        checked={selectedCategory["phones"]}
-                        onChange={() => handleCategoryChange("phones")}
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="phone"
-                      >
-                        Điện thoại
-                      </label>
+                {categories.map((category) => (
+                  <div key={category.id}>
+                    {" "}
+                    {/* Mỗi Danh mục chính */}
+                    {/* Danh mục chính */}
+                    <div className="mb-2">
+                      <div className="form-check mb-0">
+                        <input
+                          className="form-check-input mt-0"
+                          id={`category_${category.id}`}
+                          type="checkbox"
+                          name="categories"
+                          checked={selectedCategory[category.id]}
+                          onChange={() => handleCategoryChange(category.id)}
+                        />
+                        <label
+                          className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                          htmlFor={`category_${category.id}`}
+                        >
+                          {category.ten_danh_muc}{" "}
+                          {/* Hiển thị tên danh mục chính (Điện thoại, Máy tính, ...) */}
+                        </label>
+                      </div>
                     </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="laptop"
-                        type="checkbox"
-                        name="categories"
-                        checked={selectedCategory["computers"]}
-                        onChange={() => handleCategoryChange("computers")}
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="laptop"
-                      >
-                        Máy tính
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="watch"
-                        type="checkbox"
-                        name="categories"
-                        checked={selectedCategory["watches"]}
-                        onChange={() => handleCategoryChange("watches")}
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="watch"
-                      >
-                        Đồng hồ
-                      </label>
-                    </div>
+                    {/* Khi danh mục chính được chọn, mở danh mục con dưới đây */}
+                    {selectedCategory[category.id] &&
+                      category.danh_muc_cons && (
+                        <div className="ms-4">
+                          {" "}
+                          {/* Khoảng cách thêm cho danh mục con */}
+                          <div>
+                            <div className="fw-bold mb-2">
+                              Danh mục con - {category.ten_danh_muc}
+                            </div>{" "}
+                            {/* Tiêu đề cho nhóm danh mục con */}
+                            {category.danh_muc_cons.map((subCategory) => (
+                              <div
+                                key={subCategory.id}
+                                className="form-check mb-2"
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  id={`subCategory_${subCategory.id}`}
+                                  type="checkbox"
+                                  name="brands"
+                                  onChange={() => handleSubCategoryChange(subCategory.id)}
+                                />
+                                <label
+                                  className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                                  htmlFor={`subCategory_${subCategory.id}`}
+                                >
+                                  {subCategory.ten_danh_muc_con}{" "}
+                                  {/* Hiển thị tên danh mục con (IPHONE, SAMSUNG) */}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                   </div>
-                </div>
-                {selectedCategory["phones"] && (
-                  <div>
-                    <a
-                      className="btn px-0 d-block collapse-indicator"
-                      data-bs-toggle="collapse"
-                      href="#collapsePhones"
-                      role="button"
-                      aria-expanded={
-                        selectedCategory["phones"] ? "true" : "false"
-                      }
-                      aria-controls="collapsePhones"
-                    >
-                      <div className="d-flex align-items-center justify-content-between w-100">
-                        <div className="fs-8 text-body-highlight">
-                          Danh mục con - Điện thoại
-                        </div>
-                        <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                      </div>
-                    </a>
-                    <div className="collapse show" id="collapsePhones">
-                      <div className="mb-2">
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="blackberryInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="blackberryInput"
-                          >
-                            Blackberry
-                          </label>
-                        </div>
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="appleInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="appleInput"
-                          >
-                            Apple
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {selectedCategory["computers"] && (
-                  <div>
-                    <a
-                      className="btn px-0 d-block collapse-indicator"
-                      data-bs-toggle="collapse"
-                      href="#collapsePhones"
-                      role="button"
-                      aria-expanded={
-                        selectedCategory["computers"] ? "true" : "false"
-                      }
-                      aria-controls="collapsePhones"
-                    >
-                      <div className="d-flex align-items-center justify-content-between w-100">
-                        <div className="fs-8 text-body-highlight">
-                          Danh mục con - Máy Tính
-                        </div>
-                        <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                      </div>
-                    </a>
-                    <div className="collapse show" id="collapsePhones">
-                      <div className="mb-2">
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="blackberryInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="blackberryInput"
-                          >
-                            Dell
-                          </label>
-                        </div>
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="appleInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="appleInput"
-                          >
-                            HP
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {selectedCategory["watches"] && (
-                  <div>
-                    <a
-                      className="btn px-0 d-block collapse-indicator"
-                      data-bs-toggle="collapse"
-                      href="#collapsePhones"
-                      role="button"
-                      aria-expanded={
-                        selectedCategory["watches"] ? "true" : "false"
-                      }
-                      aria-controls="collapsePhones"
-                    >
-                      <div className="d-flex align-items-center justify-content-between w-100">
-                        <div className="fs-8 text-body-highlight">
-                          Danh mục con - Đồng hồ
-                        </div>
-                        <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                      </div>
-                    </a>
-                    <div className="collapse show" id="collapsePhones">
-                      <div className="mb-2">
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="blackberryInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="blackberryInput"
-                          >
-                            Casio
-                          </label>
-                        </div>
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="appleInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="appleInput"
-                          >
-                            Seiko
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                ))}
+
                 <a
                   className="btn px-0 d-block collapse-indicator"
                   data-bs-toggle="collapse"
@@ -523,22 +469,28 @@ const Shop = () => {
                         type="text"
                         aria-label="First name"
                         placeholder="Min"
+                        value={filters.min_price || ''}
+                        onChange={(e) => setFilters({ ...filters, min_price: e.target.value })}
                       />
                       <input
                         className="form-control"
                         type="text"
                         aria-label="Last name"
                         placeholder="Max"
+                        value={filters.max_price || ''}
+                        onChange={(e) => setFilters({ ...filters, max_price: e.target.value })}
                       />
                     </div>
                     <button
                       className="btn btn-phoenix-primary px-3"
                       type="button"
+                      onClick={() => handlePriceChange(filters.min_price, filters.max_price)}
                     >
                       Go
                     </button>
                   </div>
                 </div>
+
                 <a
                   className="btn px-0 y-4 d-block collapse-indicator"
                   data-bs-toggle="collapse"
@@ -559,6 +511,7 @@ const Shop = () => {
                       id="flexRadio1"
                       type="radio"
                       name="flexRadio"
+                      onChange={() => handleRatingChange(5)}
                     />
                     <span className="fa fa-star text-warning fs-9 me-1" />
                     <span className="fa fa-star text-warning fs-9 me-1" />
@@ -572,6 +525,7 @@ const Shop = () => {
                       id="flexRadio2"
                       type="radio"
                       name="flexRadio"
+                      onChange={() => handleRatingChange(4)}
                     />
                     <span className="fa fa-star text-warning fs-9 me-1" />
                     <span className="fa fa-star text-warning fs-9 me-1" />
@@ -588,6 +542,7 @@ const Shop = () => {
                       id="flexRadio3"
                       type="radio"
                       name="flexRadio"
+                      onChange={() => handleRatingChange(3)}
                     />
                     <span className="fa fa-star text-warning fs-9 me-1" />
                     <span className="fa fa-star text-warning fs-9 me-1" />
@@ -607,6 +562,7 @@ const Shop = () => {
                       id="flexRadio4"
                       type="radio"
                       name="flexRadio"
+                      onChange={() => handleRatingChange(2)}
                     />
                     <span className="fa fa-star text-warning fs-9 me-1" />
                     <span className="fa fa-star text-warning fs-9 me-1" />
@@ -629,6 +585,7 @@ const Shop = () => {
                       id="flexRadio5"
                       type="radio"
                       name="flexRadio"
+                      onChange={() => handleRatingChange(1)}
                     />
                     <span className="fa fa-star text-warning fs-9 me-1" />
                     <span
@@ -649,6 +606,7 @@ const Shop = () => {
                     />
                   </div>
                 </div>
+
               </div>
               <div
                 className="phoenix-offcanvas-backdrop d-lg-none"
@@ -756,9 +714,8 @@ const Shop = () => {
                                 )}
 
                                 <button
-                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${
-                                    wishlistStatus[product.id] ? "active" : ""
-                                  }`}
+                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${wishlistStatus[product.id] ? "active" : ""
+                                    }`}
                                   data-bs-toggle="tooltip"
                                   data-bs-placement="top"
                                   title={
@@ -772,17 +729,15 @@ const Shop = () => {
                                   disabled={loading}
                                 >
                                   <span
-                                    className={`fas fa-heart d-block-hover ${
-                                      wishlistStatus[product.id] ? "d-none" : ""
-                                    }`}
+                                    className={`fas fa-heart d-block-hover ${wishlistStatus[product.id] ? "d-none" : ""
+                                      }`}
                                     data-fa-transform="down-1"
                                   />
                                   <span
-                                    className={`far fa-heart d-none-hover ${
-                                      !wishlistStatus[product.id]
+                                    className={`far fa-heart d-none-hover ${!wishlistStatus[product.id]
                                         ? "d-block"
                                         : ""
-                                    }`}
+                                      }`}
                                     data-fa-transform="down-1"
                                   />
                                 </button>
@@ -867,9 +822,8 @@ const Shop = () => {
                   <ul className="pagination mb-0">
                     {/* Previous Button */}
                     <li
-                      className={`page-item ${
-                        currentPage === 1 ? "disabled" : ""
-                      }`}
+                      className={`page-item ${currentPage === 1 ? "disabled" : ""
+                        }`}
                     >
                       <a
                         className="page-link"
@@ -887,9 +841,8 @@ const Shop = () => {
                     {/* Page Numbers */}
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
-                        className={`page-item ${
-                          currentPage === index + 1 ? "active" : ""
-                        }`}
+                        className={`page-item ${currentPage === index + 1 ? "active" : ""
+                          }`}
                         key={index}
                       >
                         <a
@@ -907,9 +860,8 @@ const Shop = () => {
 
                     {/* Next Button */}
                     <li
-                      className={`page-item ${
-                        currentPage === totalPages ? "disabled" : ""
-                      }`}
+                      className={`page-item ${currentPage === totalPages ? "disabled" : ""
+                        }`}
                     >
                       <a
                         className="page-link"
