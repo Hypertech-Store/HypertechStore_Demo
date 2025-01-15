@@ -20,8 +20,20 @@ const Shop = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [productsPerPage] = useState(9); // Số sản phẩm mỗi trang (max 9 sản phẩm)
 
-  // State to keep track of selected main categories
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState({});
+
+  useEffect(() => {
+    // Fetch categories from the API
+    axios
+      .get("http://127.0.0.1:8000/api/danh-muc/getAll")
+      .then((response) => {
+        setCategories(response.data);
+      })
+      .catch((error) => {
+        console.error("There was an error fetching the categories:", error);
+      });
+  }, []);
 
   const handleCategoryChange = (category) => {
     // Toggle the selected category when clicked
@@ -30,6 +42,7 @@ const Shop = () => {
       [category]: !prevState[category],
     }));
   };
+
   // eslint-disable-next-line no-unused-vars
   const [wishlistData, setWishlistData] = useState(null);
   const [error, setError] = useState(null);
@@ -291,217 +304,67 @@ const Shop = () => {
                     <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
                   </div>
                 </a>
-                <div className="collapse show" id="collapseAvailability">
-                  <div className="mb-2">
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="phone"
-                        type="checkbox"
-                        name="categories"
-                        checked={selectedCategory["phones"]}
-                        onChange={() => handleCategoryChange("phones")}
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="phone"
-                      >
-                        Điện thoại
-                      </label>
+                {categories.map((category) => (
+                  <div key={category.id}>
+                    {" "}
+                    {/* Mỗi Danh mục chính */}
+                    {/* Danh mục chính */}
+                    <div className="mb-2">
+                      <div className="form-check mb-0">
+                        <input
+                          className="form-check-input mt-0"
+                          id={`category_${category.id}`}
+                          type="checkbox"
+                          name="categories"
+                          checked={selectedCategory[category.id]}
+                          onChange={() => handleCategoryChange(category.id)}
+                        />
+                        <label
+                          className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                          htmlFor={`category_${category.id}`}
+                        >
+                          {category.ten_danh_muc}{" "}
+                          {/* Hiển thị tên danh mục chính (Điện thoại, Máy tính, ...) */}
+                        </label>
+                      </div>
                     </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="laptop"
-                        type="checkbox"
-                        name="categories"
-                        checked={selectedCategory["computers"]}
-                        onChange={() => handleCategoryChange("computers")}
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="laptop"
-                      >
-                        Máy tính
-                      </label>
-                    </div>
-                    <div className="form-check mb-0">
-                      <input
-                        className="form-check-input mt-0"
-                        id="watch"
-                        type="checkbox"
-                        name="categories"
-                        checked={selectedCategory["watches"]}
-                        onChange={() => handleCategoryChange("watches")}
-                      />
-                      <label
-                        className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                        htmlFor="watch"
-                      >
-                        Đồng hồ
-                      </label>
-                    </div>
+                    {/* Khi danh mục chính được chọn, mở danh mục con dưới đây */}
+                    {selectedCategory[category.id] &&
+                      category.danh_muc_cons && (
+                        <div className="ms-4">
+                          {" "}
+                          {/* Khoảng cách thêm cho danh mục con */}
+                          <div>
+                            <div className="fw-bold mb-2">
+                              Danh mục con - {category.ten_danh_muc}
+                            </div>{" "}
+                            {/* Tiêu đề cho nhóm danh mục con */}
+                            {category.danh_muc_cons.map((subCategory) => (
+                              <div
+                                key={subCategory.id}
+                                className="form-check mb-2"
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  id={`subCategory_${subCategory.id}`}
+                                  type="checkbox"
+                                  name="brands"
+                                />
+                                <label
+                                  className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
+                                  htmlFor={`subCategory_${subCategory.id}`}
+                                >
+                                  {subCategory.ten_danh_muc_con}{" "}
+                                  {/* Hiển thị tên danh mục con (IPHONE, SAMSUNG) */}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                   </div>
-                </div>
-                {selectedCategory["phones"] && (
-                  <div>
-                    <a
-                      className="btn px-0 d-block collapse-indicator"
-                      data-bs-toggle="collapse"
-                      href="#collapsePhones"
-                      role="button"
-                      aria-expanded={
-                        selectedCategory["phones"] ? "true" : "false"
-                      }
-                      aria-controls="collapsePhones"
-                    >
-                      <div className="d-flex align-items-center justify-content-between w-100">
-                        <div className="fs-8 text-body-highlight">
-                          Danh mục con - Điện thoại
-                        </div>
-                        <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                      </div>
-                    </a>
-                    <div className="collapse show" id="collapsePhones">
-                      <div className="mb-2">
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="blackberryInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="blackberryInput"
-                          >
-                            Blackberry
-                          </label>
-                        </div>
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="appleInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="appleInput"
-                          >
-                            Apple
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {selectedCategory["computers"] && (
-                  <div>
-                    <a
-                      className="btn px-0 d-block collapse-indicator"
-                      data-bs-toggle="collapse"
-                      href="#collapsePhones"
-                      role="button"
-                      aria-expanded={
-                        selectedCategory["computers"] ? "true" : "false"
-                      }
-                      aria-controls="collapsePhones"
-                    >
-                      <div className="d-flex align-items-center justify-content-between w-100">
-                        <div className="fs-8 text-body-highlight">
-                          Danh mục con - Máy Tính
-                        </div>
-                        <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                      </div>
-                    </a>
-                    <div className="collapse show" id="collapsePhones">
-                      <div className="mb-2">
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="blackberryInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="blackberryInput"
-                          >
-                            Dell
-                          </label>
-                        </div>
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="appleInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="appleInput"
-                          >
-                            HP
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {selectedCategory["watches"] && (
-                  <div>
-                    <a
-                      className="btn px-0 d-block collapse-indicator"
-                      data-bs-toggle="collapse"
-                      href="#collapsePhones"
-                      role="button"
-                      aria-expanded={
-                        selectedCategory["watches"] ? "true" : "false"
-                      }
-                      aria-controls="collapsePhones"
-                    >
-                      <div className="d-flex align-items-center justify-content-between w-100">
-                        <div className="fs-8 text-body-highlight">
-                          Danh mục con - Đồng hồ
-                        </div>
-                        <span className="fa-solid fa-angle-down toggle-icon text-body-quaternary" />
-                      </div>
-                    </a>
-                    <div className="collapse show" id="collapsePhones">
-                      <div className="mb-2">
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="blackberryInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="blackberryInput"
-                          >
-                            Casio
-                          </label>
-                        </div>
-                        <div className="form-check mb-0">
-                          <input
-                            className="form-check-input mt-0"
-                            id="appleInput"
-                            type="checkbox"
-                            name="brands"
-                          />
-                          <label
-                            className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
-                            htmlFor="appleInput"
-                          >
-                            Seiko
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                ))}
+
                 <a
                   className="btn px-0 d-block collapse-indicator"
                   data-bs-toggle="collapse"
