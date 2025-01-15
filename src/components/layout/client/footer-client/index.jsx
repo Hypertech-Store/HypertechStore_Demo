@@ -1,9 +1,81 @@
+import { useEffect, useState } from "react";
+import Lottie from "react-lottie"; // Import Lottie component
 //import logo
 import logo from "../../../../assets/img/icons/logo1.png";
 import team from "../../../../assets/img/team/30.webp";
+import reply from "../../../../../reply.json";
 const Footer = () => {
   // Get the current year
   const currentYear = new Date().getFullYear();
+  const [isTyping, setIsTyping] = useState(false); // To track if the admin is "typing"
+
+  const [message, setMessage] = useState(""); // Current user message
+  const [messages, setMessages] = useState([]); // All messages (including admin replies)
+
+  useEffect(() => {
+    const chatContainer = document.querySelector(".card-body.chat");
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }, [messages]); // Ensures scroll goes down when messages change
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Hiển thị Lottie animation trong khi đang xử lý
+      setIsTyping(true);
+
+      // Hiển thị tên tệp hình ảnh trong chat
+      const newMessage = {
+        content: `Đã gửi ảnh: ${file.name}`,
+        imageUrl: URL.createObjectURL(file), // Tạo URL hình ảnh tạm thời để hiển thị
+        time: new Date().toLocaleTimeString(),
+        isAdmin: false, // Người dùng gửi ảnh
+      };
+
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+
+      // Tạo thời gian trễ để Lottie animation hoạt động (tùy chỉnh độ dài thời gian trễ)
+      setTimeout(() => {
+        // Tin nhắn phản hồi từ admin khi Lottie hoàn thành
+        const adminMessage = {
+          content: "Cảm ơn bạn đã gửi ảnh! Chúng tôi sẽ kiểm tra ngay.",
+          time: new Date().toLocaleTimeString(),
+          isAdmin: true, // Tin nhắn từ admin
+        };
+
+        setMessages((prevMessages) => [...prevMessages, adminMessage]);
+        setIsTyping(false); // Tắt trạng thái đang nhập khi admin trả lời
+      }, 2000); // 3 giây để Lottie hoạt động
+    }
+  };
+
+  const sendMessage = async () => {
+    if (message.trim()) {
+      const userMessage = {
+        content: message,
+        time: new Date().toLocaleTimeString(),
+        isAdmin: false, // Tin nhắn của người dùng
+      };
+
+      setMessages((prevMessages) => [...prevMessages, userMessage]);
+      setMessage("");
+      setIsTyping(true);
+
+      // Tạo thời gian trễ cho Lottie animation
+      setTimeout(() => {
+        // Tin nhắn trả lời tự động từ admin khi Lottie hoàn thành
+        const adminMessage = {
+          content:
+            "Cảm ơn bạn đã liên hệ! Chúng tôi sẽ trả lời bạn sớm nhất có thể.",
+          time: new Date().toLocaleTimeString(),
+          isAdmin: true, // Tin nhắn từ admin (server)
+        };
+
+        setMessages((prevMessages) => [...prevMessages, adminMessage]);
+        setIsTyping(false); // Tắt trạng thái đang nhập sau khi trả lời xong
+      }, 2000); // Điều chỉnh thời gian trễ tùy theo độ dài Lottie animation (3 giây trong trường hợp này)
+    }
+  };
+
   return (
     <div>
       <section className="bg-body-highlight dark__bg-gray-1100 py-9">
@@ -134,7 +206,7 @@ const Footer = () => {
               <span className="d-none d-sm-inline-block mx-1">|</span>
               <br className="d-sm-none" />
               {currentYear} ©
-              <a className="mx-1" href="https://themewagon.com/">
+              <a className="mx-1" href={"https://themewagon.com/"}>
                 Hypertech Store
               </a>
             </p>
@@ -144,111 +216,176 @@ const Footer = () => {
           </div>
         </div>
       </footer>
+
       <div className="support-chat-container">
         <div className="container-fluid support-chat">
           <div className="card bg-body-emphasis">
             <div className="card-header d-flex flex-between-center px-4 py-3 border-bottom border-translucent">
               <h5 className="mb-0 d-flex align-items-center gap-2">
-                Demo widget
+                Admin123
                 <span className="fa-solid fa-circle text-success fs-11" />
               </h5>
               <div className="btn-reveal-trigger">
                 <button
                   className="btn btn-link p-0 dropdown-toggle dropdown-caret-none transition-none d-flex"
                   type="button"
-                  id="support-chat-dropdown"
-                  data-bs-toggle="dropdown"
-                  data-boundary="window"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                  data-bs-reference="parent"
+                  id="themeControlToggle"
+                  defaultValue="light"
                 >
-                  <span className="fas fa-ellipsis-h text-body" />
+                  <span
+                    className="fas fa-solid fa-arrow-right-from-bracket text-body"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="left"
+                    data-bs-title="Đóng đoạn chat"
+                  />
                 </button>
-                <div
-                  className="dropdown-menu dropdown-menu-end py-2"
-                  aria-labelledby="support-chat-dropdown"
-                >
-                  <a className="dropdown-item" href="#!">
-                    Request a callback
-                  </a>
-                  <a className="dropdown-item" href="#!">
-                    Search in chat
-                  </a>
-                  <a className="dropdown-item" href="#!">
-                    Show history
-                  </a>
-                  <a className="dropdown-item" href="#!">
-                    Report to Admin
-                  </a>
-                  <a className="dropdown-item btn-support-chat" href="#!">
-                    Close Support
-                  </a>
-                </div>
               </div>
             </div>
-            <div className="card-body chat p-0">
-              <div className="d-flex flex-column-reverse scrollbar h-100 p-3">
-                <div className="text-end mt-6">
-                  <a
-                    className="mb-2 d-inline-flex align-items-center text-decoration-none text-body-emphasis bg-body-hover rounded-pill border border-primary py-2 ps-4 pe-3"
-                    href="#!"
-                  >
-                    <p className="mb-0 fw-semibold fs-9">
-                      I need help with something
-                    </p>
-                    <span className="fa-solid fa-paper-plane text-primary fs-9 ms-3" />
-                  </a>
-                  <a
-                    className="mb-2 d-inline-flex align-items-center text-decoration-none text-body-emphasis bg-body-hover rounded-pill border border-primary py-2 ps-4 pe-3"
-                    href="#!"
-                  >
-                    <p className="mb-0 fw-semibold fs-9">
-                      I can’t reorder a product I previously ordered
-                    </p>
-                    <span className="fa-solid fa-paper-plane text-primary fs-9 ms-3" />
-                  </a>
-                  <a
-                    className="mb-2 d-inline-flex align-items-center text-decoration-none text-body-emphasis bg-body-hover rounded-pill border border-primary py-2 ps-4 pe-3"
-                    href="#!"
-                  >
-                    <p className="mb-0 fw-semibold fs-9">
-                      How do I place an order?
-                    </p>
-                    <span className="fa-solid fa-paper-plane text-primary fs-9 ms-3" />
-                  </a>
-                  <a
-                    className="false d-inline-flex align-items-center text-decoration-none text-body-emphasis bg-body-hover rounded-pill border border-primary py-2 ps-4 pe-3"
-                    href="#!"
-                  >
-                    <p className="mb-0 fw-semibold fs-9">
-                      My payment method not working
-                    </p>
-                    <span className="fa-solid fa-paper-plane text-primary fs-9 ms-3" />
-                  </a>
-                </div>
-                <div className="text-center mt-auto">
+
+            <div
+              className="card-body chat p-0 scrollbar"
+              style={{
+                maxHeight: "50pc",
+
+                overflowX: "hidden",
+              }} // Added overflow-y for scrolling
+            >
+              <div className="d-flex flex-column-reverse scrollbar p-5">
+                <div className="text-center">
                   <div className="avatar avatar-3xl status-online">
                     <img
                       className="rounded-circle border border-3 border-light-subtle"
                       src={team}
-                      alt
+                      alt="Avatar"
                     />
                   </div>
-                  <h5 className="mt-2 mb-3">Eric</h5>
-                  <p className="text-center text-body-emphasis mb-0">
-                    Ask us anything – we’ll get back to you here or by email
-                    within 24 hours.
+                  <h5 className="mb-1 mt-2">Hypertech Store</h5>{" "}
+                  <p className="text-center text-body-emphasis mb-0 mt-3">
+                    Xin chào! Rất vui được hỗ trợ bạn bắt đầu cuộc trò chuyện
+                    với Hypertech Store
                   </p>
                 </div>
               </div>
+
+              {/* Display user and admin messages */}
+              {messages.map((msg, index) =>
+                msg.isAdmin ? (
+                  <div key={index} className="d-flex chat-message">
+                    <div className="d-flex mb-3 flex-1">
+                      <div className="w-xxl-40">
+                        <div className="d-flex ps-2">
+                          <div
+                            className="avatar avatar-m me-2 flex-shrink-0"
+                            style={{ width: "40px", height: "40px" }}
+                          >
+                            <img
+                              className="rounded-circle"
+                              src={team}
+                              alt="Admin"
+                            />
+                          </div>
+                          <div className="chat-message-content received me-2">
+                            <div className="mb-1 received-message-content border rounded-2 p-2 fs-9">
+                              <p className="mb-0">{msg.content}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="mb-0 fs-10 text-body-tertiary text-opacity-85 fw-semibold ms-8">
+                          {msg.time}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div key={index} className="d-flex chat-message">
+                    <div className="d-flex mb-2 justify-content-end flex-1">
+                      <div className="w-xxl-40">
+                        <div className="flex-end-center">
+                          <div className="me-2">
+                            <div className="mb-1 sent-message-content bg-primary rounded-2 p-2 text-white">
+                              {msg.imageUrl ? (
+                                <div>
+                                  <p className="mb-0 fw-semibold">
+                                    Hình ảnh đã gửi{" "}
+                                  </p>
+                                  <img
+                                    src={msg.imageUrl}
+                                    alt="Sent image"
+                                    style={{
+                                      objectFit: "cover",
+                                      width: "120px",
+                                      height: "180px",
+                                      marginTop: "10px",
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="d-flex justify-content-between">
+                                  <p className="fs-9 mb-0">{msg.content}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="mb-2 fs-10 text-body-tertiary text-opacity-85 fw-semibold">
+                            {msg.time}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+
+              {isTyping && (
+                <div className="d-flex mb-3 flex-1">
+                  <div className="w-xxl-40">
+                    <div className="d-flex ps-2">
+                      <div
+                        className="avatar avatar-m me-2 flex-shrink-0"
+                        style={{ width: "40px", height: "40px" }}
+                      >
+                        <img
+                          className="rounded-circle"
+                          src={team} // Thay thế với ảnh thực tế
+                          alt="Admin"
+                        />
+                      </div>
+
+                      <Lottie
+                        options={{
+                          loop: true,
+                          autoplay: true,
+                          animationData: reply, // file JSON của animation
+                          rendererSettings: {
+                            preserveAspectRatio: "xMidYMid slice",
+                          },
+                        }}
+                        height={30}
+                        width={50}
+                        isClickToPauseDisabled={true} // Ngừng dừng khi bấm vào
+                        style={{ pointerEvents: "none" }} // Thêm dòng này để ngừng chỉ thị cử chỉ tay
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="card-footer d-flex align-items-center gap-2 border-top border-translucent ps-3 pe-4 py-3">
-              <div className="d-flex align-items-center flex-1 gap-3 border border-translucent rounded-pill px-4">
+
+            <div className="card-footer d-flex align-items-center gap-2 border-top border-translucent ps-3 pe-4 py-2">
+              <div className="d-flex align-items-center flex-1 gap-3 border border-translucent rounded-pill px-3">
                 <input
                   className="form-control outline-none border-0 flex-1 fs-9 px-0"
                   type="text"
-                  placeholder="Write message"
+                  placeholder="Nhập nội dung"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && message.trim() !== "") {
+                      sendMessage(); // Gửi tin nhắn khi Enter được nhấn
+                    }
+                  }}
                 />
                 <label
                   className="btn btn-link d-flex p-0 text-body-quaternary fs-9 border-0"
@@ -261,29 +398,22 @@ const Footer = () => {
                   type="file"
                   accept="image/*"
                   id="supportChatPhotos"
-                />
-                <label
-                  className="btn btn-link d-flex p-0 text-body-quaternary fs-9 border-0"
-                  htmlFor="supportChatAttachment"
-                >
-                  {" "}
-                  <span className="fa-solid fa-paperclip" />
-                </label>
-                <input
-                  className="d-none"
-                  type="file"
-                  id="supportChatAttachment"
+                  onChange={handleFileUpload} // Thêm sự kiện khi chọn ảnh
                 />
               </div>
-              <button className="btn p-0 border-0 send-btn">
+              <button
+                className="btn p-0 border-0 send-btn"
+                onClick={sendMessage}
+              >
                 <span className="fa-solid fa-paper-plane fs-9" />
               </button>
             </div>
           </div>
         </div>
+
         <button className="btn btn-support-chat p-0 border border-translucent">
           <span className="fs-8 btn-text text-primary text-nowrap">
-            Chat demo
+            Hỗ trợ tư vấn
           </span>
           <span className="ping-icon-wrapper mt-n4 ms-n6 mt-sm-0 ms-sm-2 position-absolute position-sm-relative">
             <span className="ping-icon-bg" />
