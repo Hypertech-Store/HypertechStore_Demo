@@ -405,6 +405,7 @@ const listAdmin = () => {
                   aria-haspopup="true"
                   aria-expanded="false"
                   data-bs-reference="parent"
+                  disabled={adminRole !== "0"} 
                 >
                   <span className="fas fa-plus me-2" />
                   Thêm quản trị
@@ -524,11 +525,11 @@ const listAdmin = () => {
                           type="checkbox"
                           id={`customer_${admin.id}`} // ID độc nhất dựa trên admin ID
                           checked={admin.trang_thai === 1} // Nếu trạng thái là 1, checkbox sẽ bật
-                          onChange={(e) =>
-                            handleToggleStatus(admin.id, e.target.checked)
-                          } // Hàm xử lý sự kiện
+                          onChange={(e) => handleToggleStatus(admin.id, e.target.checked)} // Hàm xử lý sự kiện
+                          disabled={adminRole !== "0"} // Vô hiệu hóa nếu adminRole khác "0"
                         />
                       </td>
+
                       <td className="align-middle white-space-nowrap">
                         <button
                           className="btn btn-outline-warning btn-sm"
@@ -574,9 +575,8 @@ const listAdmin = () => {
                 {Array.from({ length: totalPages }, (_, index) => (
                   <li
                     key={index + 1}
-                    className={`page-item ${
-                      currentPage === index + 1 ? "active" : ""
-                    }`}
+                    className={`page-item ${currentPage === index + 1 ? "active" : ""
+                      }`}
                   >
                     <button
                       className="page-link"

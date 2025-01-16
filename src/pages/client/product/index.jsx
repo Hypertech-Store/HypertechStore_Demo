@@ -309,9 +309,9 @@ const Shop = () => {
         },
         body: JSON.stringify(filterData),
       });
-  
+
       const data = await response.json(); // Chuyển đổi dữ liệu nhận được thành JSON
-  
+
       // Kiểm tra nếu dữ liệu hợp lệ và có mảng
       if (data.status === "success" && Array.isArray(data.data)) {
         setProducts(data.data); // Cập nhật state với sản phẩm nhận được
@@ -321,9 +321,30 @@ const Shop = () => {
     } catch (error) {
       console.error("Lỗi khi gọi API lọc sản phẩm:", error);
       setError(error); // Cập nhật state lỗi nếu có
-    } 
+    }
   };
-  
+  const renderStars = (rating) => {
+    const filledStars = Math.floor(rating); // Số sao đầy
+    const halfStar = rating % 1 >= 0.5; // Kiểm tra nếu có sao nửa
+    let stars = [];
+
+    // Thêm sao đầy
+    for (let i = 0; i < filledStars; i++) {
+      stars.push(<span key={i} className="fa fa-star text-warning" />);
+    }
+
+    // Thêm sao nửa nếu có
+    if (halfStar) {
+      stars.push(<span key={filledStars} className="fa fa-star-half-alt text-warning" />);
+    }
+
+    // Thêm sao rỗng nếu cần
+    while (stars.length < 5) {
+      stars.push(<span key={stars.length} className="fa fa-star text-muted" />);
+    }
+
+    return stars;
+  };
 
   if (loading) {
     return (
@@ -735,8 +756,8 @@ const Shop = () => {
                                   />
                                   <span
                                     className={`far fa-heart d-none-hover ${!wishlistStatus[product.id]
-                                        ? "d-block"
-                                        : ""
+                                      ? "d-block"
+                                      : ""
                                       }`}
                                     data-fa-transform="down-1"
                                   />
@@ -761,13 +782,12 @@ const Shop = () => {
                               </a>
 
                               <p className="fs-9">
-                                <span className="fa fa-star text-warning" />
-                                <span className="fa fa-star text-warning" />
-                                <span className="fa fa-star text-warning" />
-                                <span className="fa fa-star text-warning" />
-                                <span className="fa fa-star text-warning" />
+                                {/* Hiển thị sao */}
+                                {renderStars(product.trung_binh_sao)}
+
+                                {/* Hiển thị tổng số đánh giá */}
                                 <span className="text-body-quaternary fw-semibold ms-1">
-                                  (50 đánh giá)
+                                  ({product.tong_so_danh_gia} đánh giá)
                                 </span>
                               </p>
                             </div>
