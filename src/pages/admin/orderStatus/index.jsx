@@ -170,6 +170,8 @@ const OrderStatus = () => {
 
                       <td className="align-middle white-space-nowrap ps-7">
                         <input
+                          disabled
+                          readOnly
                           className="form-check-status ms-0 me-2"
                           type="checkbox"
                           id={`customer_${status.id}`} // ID độc nhất dựa trên status ID
