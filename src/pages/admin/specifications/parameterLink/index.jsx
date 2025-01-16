@@ -274,6 +274,9 @@ const ParameterLink = () => {
         }
       );
 
+      console.log(response);
+      
+
       if (response.ok) {
         alert("Xóa thông số thành công!");
 
