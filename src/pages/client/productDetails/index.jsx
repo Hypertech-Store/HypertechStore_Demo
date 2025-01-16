@@ -44,6 +44,7 @@ const ProductDetails = () => {
   const [otherAttributes, setOtherAttributes] = useState([]);
   const [danhGias, setDanhGias] = useState([]);
   const [daMua, setDaMua] = useState(false); // Lưu trạng thái đã mua hay chưa
+  const [danhGia, setDanhGia] = useState(false); // Lưu trạng thái đã mua hay chưa
 
   // eslint-disable-next-line no-unused-vars
   const [isAttributesComplete, setIsAttributesComplete] = useState(false);
@@ -190,7 +191,8 @@ const ProductDetails = () => {
   }, [currentPage]); // Gọi lại mỗi khi trang thay đổi
 
   useEffect(() => {
-    // Kiểm tra xem khách hàng đã mua sản phẩm chưa
+    if (!productId || !khachHangIdFromStorage) return; // Đảm bảo các giá trị cần thiết có sẵn
+  
     const kiemTraMuaSanPham = async () => {
       try {
         const response = await fetch(
@@ -206,24 +208,24 @@ const ProductDetails = () => {
             }),
           }
         );
-
+  
         const data = await response.json();
-
         console.log(data);
-
-        if (data.da_mua === false) {
-          setDaMua(false);
-          console.log(daMua);
+  
+        if (data.status === "success") {
+          setDaMua(data.da_mua);
+          setDanhGia(data.danh_gia); 
         } else {
-          setDaMua(true); // Khách hàng chưa mua sản phẩm
+          console.error(data.message);
         }
       } catch (error) {
         console.error("Lỗi khi kiểm tra sản phẩm đã mua:", error);
       }
     };
-
+  
     kiemTraMuaSanPham();
   }, [productId, khachHangIdFromStorage]);
+  
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -1429,7 +1431,7 @@ const ProductDetails = () => {
                             </div>
                           </div>
 
-                          {daMua ? (
+                          {daMua && !danhGia ? (
                             <div className="col-auto">
                               <button
                                 className="btn btn-primary rounded-pill"
@@ -1455,22 +1457,6 @@ const ProductDetails = () => {
                                         Clear
                                       </button>
                                     </div>
-                                    {/* <div
-                                      className="mb-3 star-rating"
-                                      data-rater='{"starSize":32,"step":0.5}'
-                                      style={{
-                                        width: 160,
-                                        height: 32,
-                                        backgroundSize: 32,
-                                      }}
-                                    >
-                                      <div
-                                        className="star-value"
-                                        style={{ backgroundSize: 32, width: `${(formData.rating / 5) * 100}%` }}
-                                        onClick={() => setFormData({ ...formData, rating: 5 })}
-                                      />
-                                    </div> */}
-
                                     <div
                                       className="mb-3 star-rating"
                                       style={{ display: "flex", gap: "10px" }}
