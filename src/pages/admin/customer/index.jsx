@@ -27,11 +27,13 @@ const listCustomer = () => {
       .get("http://127.0.0.1:8000/api/khach-hang/tai-khoan")
       .then((response) => {
         setCustomers(response.data.data);
+
       })
       .catch((error) => {
         console.error("Error fetching customer data:", error);
       });
   }, []);
+
 
   const handleToggleStatus = async (customerId, newStatus) => {
     try {
@@ -44,13 +46,11 @@ const listCustomer = () => {
         }
       );
 
-      // Nếu cập nhật thành công, thay đổi trạng thái hiển thị ngay lập tức
-      if (response.data.success) {
-        // Cập nhật lại trạng thái của khách hàng trong state
+      if (response.data.success === true) {
         setCustomers((prevState) => {
           return prevState.map((customer) =>
             customer.id === customerId
-              ? { ...customer, status: newStatus ? 1 : 0 } // Cập nhật trạng thái
+              ? { ...customer, trang_thai: newStatus ? 1 : 0 } // Cập nhật trạng thái
               : customer
           );
         });
@@ -265,9 +265,8 @@ const listCustomer = () => {
                   ))}
                 </ul>
                 <button
-                  className={`page-link ${
-                    currentPage === totalPages ? "disabled" : ""
-                  }`}
+                  className={`page-link ${currentPage === totalPages ? "disabled" : ""
+                    }`}
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >

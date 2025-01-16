@@ -163,25 +163,25 @@ const ListParameter = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/thong-so/${id}`, {
-        method: "DELETE",
+      const response = await axios.delete(`http://127.0.0.1:8000/api/thong-so/${id}`, {
         headers: {
           "Content-Type": "application/json",
         },
       });
 
-      if (response.redirected == true) {
+      console.log(response);
+
+      if (response.status === 200) {
         alert("Xóa thông số thành công!");
         setThongSo((prevThongSo) =>
           prevThongSo.filter((item) => item.id !== id)
         );
       } else {
-        const errorData = await response.json();
-        alert(`Xóa thất bại!`);
+        alert("Xóa thất bại!");
       }
     } catch (error) {
       console.error("Lỗi khi xóa thông số:", error);
-      alert("Có lỗi xảy ra khi xóa thông số");
+      alert("Không thể xóa thông số liên kết với sản phẩm");
     }
   };
 
@@ -199,11 +199,14 @@ const ListParameter = () => {
     );
 
     const updatedThongSo = {
-      danh_muc_id: editCategory,
-      danh_muc: danhMuc,
+      // danh_muc_id: editCategory.id,
+      danh_muc_id: danhMuc.id,
       ten_thong_so: editTenThongSo,
       mo_ta: editMoTa,
     };
+
+    console.log(updatedThongSo);
+
 
     try {
       const response = await fetch(
@@ -404,9 +407,8 @@ const ListParameter = () => {
                 {Array.from({ length: totalPages }, (_, index) => (
                   <li
                     key={index}
-                    className={`page-item ${
-                      currentPage === index + 1 ? "active" : ""
-                    }`}
+                    className={`page-item ${currentPage === index + 1 ? "active" : ""
+                      }`}
                   >
                     <button
                       className="page-link"
