@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-
+import axios from "axios";
 import { toast } from "react-toastify"; // Thư viện toast cho thông báo
 import PacmanLoader from "react-spinners/PacmanLoader";
 import { useNavigate } from "react-router-dom"; // Import hook điều hướng
@@ -11,8 +11,10 @@ import soldout from "../../../assets/img/e-commerce/outstock.png";
 const ProductDetails = () => {
   const { search } = useLocation();
   const queryParams = new URLSearchParams(search);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const productId = queryParams.get("id");
+  const [wishlistStatus, setWishlistStatus] = useState({});
   const khachHangIdFromStorage = localStorage.getItem("userId");
   const [productData, setProductData] = useState(null);
   const location = useLocation();
@@ -497,7 +499,7 @@ const ProductDetails = () => {
       (item) =>
         item.san_pham_id === selectedVariant.san_pham_id &&
         JSON.stringify(item.attributes) ===
-          JSON.stringify(productDataToSend.attributes)
+        JSON.stringify(productDataToSend.attributes)
     );
 
     if (existingProductIndex !== -1) {
@@ -741,6 +743,48 @@ const ProductDetails = () => {
     return date.toLocaleString("vi-VN", { timeZone: "UTC", ...options });
   };
 
+  const handleAddToWishlist = async (sanPhamId) => {
+    if (!khachHangIdFromStorage) {
+      toast.error(
+        "Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích."
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/danh-sach-yeu-thich/addWishlist",
+        {
+          khach_hang_id: khachHangIdFromStorage,
+          san_pham_id: sanPhamId,
+        }
+      );
+      console.log(response);
+      if (response.data.message) {
+        toast.success(response.data.message);
+      }
+
+      if (
+        response.data.message ===
+        "Sản phẩm đã được thêm vào danh sách yêu thích."
+      ) {
+        // Cập nhật trạng thái wishlist của sản phẩm và lưu vào localStorage
+        const updatedWishlist = { ...wishlistStatus, [sanPhamId]: true };
+        setWishlistStatus(updatedWishlist);
+        console.log(wishlistStatus);
+        
+        localStorage.setItem("wishlist", JSON.stringify(updatedWishlist)); // Lưu wishlist mới vào localStorage
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Có lỗi xảy ra.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <>
       <div>
@@ -798,11 +842,10 @@ const ProductDetails = () => {
                           {images.map((image, index) => (
                             <div
                               key={index}
-                              className={`swiper-slide ${
-                                activeImageIndex === index + 1 // Chỉnh lại logic tính toán active
-                                  ? "swiper-slide-thumb-active"
-                                  : ""
-                              }`}
+                              className={`swiper-slide ${activeImageIndex === index + 1 // Chỉnh lại logic tính toán active
+                                ? "swiper-slide-thumb-active"
+                                : ""
+                                }`}
                               role="group"
                               aria-label={`${index + 2} / ${imageArray.length}`}
                               style={{ height: 84, marginBottom: 16 }}
@@ -854,21 +897,19 @@ const ProductDetails = () => {
                             <div
                               className="swiper-slide swiper-slide-active"
                               role="group"
-                              aria-label={`${activeImageIndex + 1} / ${
-                                imageArray.length
-                              }`}
+                              aria-label={`${activeImageIndex + 1} / ${imageArray.length
+                                }`}
                               style={{ width: 411 }}
                             >
                               {/* Hiển thị ảnh active */}
                               <img
                                 className="w-100"
-                                src={`${
-                                  imageArray[activeImageIndex]?.startsWith(
-                                    "http"
-                                  )
-                                    ? imageArray[activeImageIndex]
-                                    : baseUrl + imageArray[activeImageIndex]
-                                }`}
+                                src={`${imageArray[activeImageIndex]?.startsWith(
+                                  "http"
+                                )
+                                  ? imageArray[activeImageIndex]
+                                  : baseUrl + imageArray[activeImageIndex]
+                                  }`}
                                 alt={`Product image ${activeImageIndex + 1}`}
                               />
                             </div>
@@ -883,7 +924,18 @@ const ProductDetails = () => {
                     </div>
                   </div>
                   <div className="d-flex">
-                    <button className="btn btn-lg btn-outline-warning rounded-pill w-100 me-3 px-2 px-sm-4 fs-9 fs-sm-8">
+                    <button className={`btn btn-lg btn-outline-warning rounded-pill ${wishlistStatus[productId] ? "active" : ""
+                        } w-100 me-3 px-2 px-sm-4 fs-9 fs-sm-8 `}
+                      onClick={() =>
+                        handleAddToWishlist(productId)
+                      }
+                      title={
+                        wishlistStatus[productId]
+                          ? "Đã có trong danh sách yêu thích"
+                          : "Thêm vào danh sách yêu thích"
+                      }
+                      
+                    >
                       <svg
                         className="svg-inline--fa fa-heart me-2"
                         aria-hidden="true"
@@ -903,6 +955,7 @@ const ProductDetails = () => {
                       {/* <span class="me-2 far fa-heart"></span> Font Awesome fontawesome.com */}
                       Thêm yêu thích
                     </button>
+
                     <button
                       className="btn btn-lg btn-warning rounded-pill w-100 fs-9 fs-sm-8"
                       onClick={handleAddToCart}
@@ -925,6 +978,8 @@ const ProductDetails = () => {
                       </svg>
                       Thêm giỏ hàng
                     </button>
+
+
                   </div>
                 </div>
                 <div className="col-12 col-lg-6">
@@ -1055,12 +1110,12 @@ const ProductDetails = () => {
                               })
                                 .format(
                                   parseFloat(productData?.sanPham?.gia) *
-                                    (1 -
-                                      parseFloat(
-                                        productData?.sale_theo_phan_tram
-                                      ) /
-                                        100) +
-                                    variantPrice
+                                  (1 -
+                                    parseFloat(
+                                      productData?.sale_theo_phan_tram
+                                    ) /
+                                    100) +
+                                  variantPrice
                                 )
                                 .replace("₫", "VNĐ")}
                             </h1>
@@ -1088,7 +1143,7 @@ const ProductDetails = () => {
                             })
                               .format(
                                 parseFloat(productData?.sanPham?.gia) +
-                                  variantPrice
+                                variantPrice
                               )
                               .replace("₫", "VNĐ")}
                           </h1>
@@ -1123,11 +1178,10 @@ const ProductDetails = () => {
                             {colorVariants.map((variant, index) => (
                               <div
                                 key={index}
-                                className={`rounded-1 border border-translucent me-2 ${
-                                  variant.colorName === colorName
-                                    ? "active"
-                                    : ""
-                                }`} // Đánh dấu biến thể đã chọn
+                                className={`rounded-1 border border-translucent me-2 ${variant.colorName === colorName
+                                  ? "active"
+                                  : ""
+                                  }`} // Đánh dấu biến thể đã chọn
                                 onClick={() =>
                                   handleColorChange(variant.colorName)
                                 } // Gọi hàm khi chọn
@@ -1158,11 +1212,10 @@ const ProductDetails = () => {
                                 dungLuongOptions.map((option, index) => (
                                   <div
                                     key={index}
-                                    className={`d-flex align-items-center me-3 rounded-1 border cursor-pointer ${
-                                      selectedDungLuong === option
-                                        ? "border border-primary"
-                                        : "border border-1"
-                                    }`}
+                                    className={`d-flex align-items-center me-3 rounded-1 border cursor-pointer ${selectedDungLuong === option
+                                      ? "border border-primary"
+                                      : "border border-1"
+                                      }`}
                                     onClick={() =>
                                       handleCheckVariant("capacity", option)
                                     }
@@ -1344,9 +1397,9 @@ const ProductDetails = () => {
                                 {[
                                   ...Array(
                                     5 -
-                                      Math.ceil(
-                                        danhGias?.summary.trung_binh_sao
-                                      )
+                                    Math.ceil(
+                                      danhGias?.summary.trung_binh_sao
+                                    )
                                   ),
                                 ].map((_, index) => (
                                   <svg
@@ -1466,7 +1519,7 @@ const ProductDetails = () => {
                                       </div>
 
                                       {formData.images &&
-                                      formData.images.length > 0 ? (
+                                        formData.images.length > 0 ? (
                                         <div className="dz-preview d-flex flex-wrap">
                                           {formData.images.map(
                                             (image, index) => (
@@ -1667,9 +1720,8 @@ const ProductDetails = () => {
                             <ul className="pagination mb-0">
                               {/* Nút quay lại */}
                               <li
-                                className={`page-item ${
-                                  currentPage === 1 ? "disabled" : ""
-                                }`}
+                                className={`page-item ${currentPage === 1 ? "disabled" : ""
+                                  }`}
                               >
                                 <a
                                   className="page-link"
@@ -1701,11 +1753,10 @@ const ProductDetails = () => {
                                 (_, pageIndex) => (
                                   <li
                                     key={pageIndex + 1}
-                                    className={`page-item ${
-                                      currentPage === pageIndex + 1
-                                        ? "active"
-                                        : ""
-                                    }`}
+                                    className={`page-item ${currentPage === pageIndex + 1
+                                      ? "active"
+                                      : ""
+                                      }`}
                                   >
                                     <a
                                       className="page-link"
@@ -1722,9 +1773,8 @@ const ProductDetails = () => {
 
                               {/* Nút tiếp theo */}
                               <li
-                                className={`page-item ${
-                                  currentPage === totalPages ? "disabled" : ""
-                                }`}
+                                className={`page-item ${currentPage === totalPages ? "disabled" : ""
+                                  }`}
                               >
                                 <a
                                   className="page-link"
@@ -1784,7 +1834,7 @@ const ProductDetails = () => {
                   aria-live="polite"
                 >
                   {Array.isArray(productRelated?.san_phams_lien_quan) &&
-                  productRelated.san_phams_lien_quan.length > 0 ? (
+                    productRelated.san_phams_lien_quan.length > 0 ? (
                     productRelated.san_phams_lien_quan.map((product) => (
                       <div
                         key={product.id}
@@ -1887,14 +1937,14 @@ const ProductDetails = () => {
                                       {/* Điều kiện hiển thị dựa vào trang_thai */}
                                       {product.trang_thai === "Sale"
                                         ? `${parseFloat(
-                                            product.sale_percent.replace(
-                                              "%",
-                                              ""
-                                            )
-                                          ).toFixed(0)}%`
+                                          product.sale_percent.replace(
+                                            "%",
+                                            ""
+                                          )
+                                        ).toFixed(0)}%`
                                         : product.trang_thai === "Sản phẩm mới"
-                                        ? "NEW"
-                                        : null}
+                                          ? "NEW"
+                                          : null}
                                     </div>
                                   </div>
                                 )}
@@ -2015,11 +2065,11 @@ const ProductDetails = () => {
                                       {/* Tính toán giá sau khi giảm và định dạng giá */}
                                       {numberFormat.format(
                                         parseFloat(product.gia) *
-                                          (1 -
-                                            parseFloat(
-                                              product.sale_percent.trim()
-                                            ) /
-                                              100)
+                                        (1 -
+                                          parseFloat(
+                                            product.sale_percent.trim()
+                                          ) /
+                                          100)
                                       )}{" "}
                                       VNĐ
                                     </h4>
