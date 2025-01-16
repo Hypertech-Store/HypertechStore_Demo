@@ -146,7 +146,13 @@ const ProductDetails = () => {
       });
 
       const data = await response.json();
-
+      
+      const modal = document.getElementById("reviewModal");
+      if (modal) {
+        const bootstrapModal = bootstrap.Modal.getInstance(modal);
+        bootstrapModal.hide(); // Tắt modal
+      }
+      
       if (response.ok) {
         alert("Review submitted successfully!");
       } else {
@@ -1438,7 +1444,7 @@ const ProductDetails = () => {
                                 data-bs-toggle="modal"
                                 data-bs-target="#reviewModal"
                               >
-                                Rate this product
+                                Đánh giá sản phẩm này
                               </button>
 
                               <div
@@ -1451,10 +1457,10 @@ const ProductDetails = () => {
                                   <div className="modal-content p-4">
                                     <div className="d-flex flex-between-center mb-2">
                                       <h5 className="modal-title fs-8 mb-0">
-                                        Your rating
+                                        Đánh giá của bạn
                                       </h5>
                                       <button className="btn p-0 fs-10">
-                                        Clear
+                                        Đóng
                                       </button>
                                     </div>
                                     <div
@@ -1466,7 +1472,7 @@ const ProductDetails = () => {
 
                                     <div className="mb-3">
                                       <h5 className="text-body-highlight mb-3">
-                                        Your review
+                                        Nhận xét của bạn
                                       </h5>
                                       <textarea
                                         className="form-control"
@@ -1549,15 +1555,15 @@ const ProductDetails = () => {
                                           className="dz-message text-body-tertiary text-opacity-85"
                                           data-dz-message="data-dz-message"
                                         >
-                                          Drag your photo here
+                                          Chọn ảnh từ thiết bị của bạn
                                           <span className="text-body-secondary px-1">
-                                            or
+                                            hoặc
                                           </span>
                                           <button
                                             className="btn btn-link p-0"
                                             type="button"
                                           >
-                                            Browse from device
+                                            Duyệt từ thiết bị
                                           </button>
                                           <br />
                                           <img

@@ -165,7 +165,6 @@ const ListSubcategory = () => {
       // Kiểm tra phản hồi
       if (response.status === 200) {
         alert("Cập nhật danh mục con thành công!");
-
         axios
           .get(
             `http://127.0.0.1:8000/api/danh-muc-con?page=${currentPage}&limit=${subCategorysPerPage}`
@@ -180,11 +179,12 @@ const ListSubcategory = () => {
           });
         setPreviewImage();
 
-        const modal = document.getElementById("updateCustomer");
+        const modal = document.getElementById("updateSubcate");
         if (modal) {
           const bootstrapModal = bootstrap.Modal.getInstance(modal);
-          bootstrapModal.hide();
+          bootstrapModal.hide(); // Tắt modal
         }
+
 
         console.log("Dữ liệu đã cập nhật:", subCategoryDetails);
       }
@@ -439,9 +439,8 @@ const ListSubcategory = () => {
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
                         key={index + 1}
-                        className={`page-item ${
-                          currentPage === index + 1 ? "active" : ""
-                        }`}
+                        className={`page-item ${currentPage === index + 1 ? "active" : ""
+                          }`}
                       >
                         <button
                           className="page-link"
@@ -551,7 +550,7 @@ const ListSubcategory = () => {
                         onChange={handleFileChange} // Call the file change handler
                       />
                       {previewImage ||
-                      (imgSubCate && imgSubCate.trim() !== "") ? (
+                        (imgSubCate && imgSubCate.trim() !== "") ? (
                         <img
                           src={previewImage || `${link}${imgSubCate}`}
                           alt="imgSubCate"

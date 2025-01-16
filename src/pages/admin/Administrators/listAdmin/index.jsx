@@ -174,18 +174,39 @@ const listAdmin = () => {
           body: formData,
         }
       );
-      console.log(response);
 
       const data = await response.json();
       if (response.ok) {
         alert("Thêm thành công!");
 
-        // Cập nhật lại danh sách quanTriViens sau khi thêm thành công
-        setQuanTriViens((prevQuanTriViens) => {
-          return Array.isArray(prevQuanTriViens)
-            ? [...prevQuanTriViens, data.data]
-            : [data.data];
-        });
+        setHoTen();
+        setTenDangNhap();
+        setEmail();
+        setSoDienThoai();
+        setRole();
+        setTrangThai();
+        setDiaChi();
+        setMatKhau();
+
+        axios
+          .get(
+            `http://127.0.0.1:8000/api/quan-tri-viens/getAll?page=${currentPage}&limit=${adminPerPage}`
+          )
+          .then((response) => {
+            setQuanTriViens(response.data.data); // Dữ liệu của trang hiện tại
+            setTotalPages(response.data.last_page); // Tổng số trang
+          })
+          .catch((error) => {
+            console.error("Error fetching data:", error);
+          });
+
+        const modal = document.getElementById("addAdmin");
+        if (modal) {
+          const bootstrapModal = bootstrap.Modal.getInstance(modal);
+          bootstrapModal.hide(); // Tắt modal
+        }
+
+
         console.log("Server Response:", data);
       } else {
         alert("Có lỗi xảy ra: " + data.message);
@@ -405,7 +426,7 @@ const listAdmin = () => {
                   aria-haspopup="true"
                   aria-expanded="false"
                   data-bs-reference="parent"
-                  disabled={adminRole !== "0"} 
+                  disabled={adminRole !== "0"}
                 >
                   <span className="fas fa-plus me-2" />
                   Thêm quản trị

@@ -763,14 +763,26 @@ const Shop = () => {
                                   />
                                 </button>
 
-                                <img
-                                  className="img-fluid"
+                                <div
+                                  className="image-container"
                                   style={{
-                                    padding: "10px", // Tạo khoảng cách bên trong để ảnh nhỏ hơn viền
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
                                   }}
-                                  src={`${baseUrl}${product.duong_dan_anh}`}
-                                  alt={product.ten_san_pham}
-                                />
+                                >
+                                  <img
+                                    className="img-fluid"
+                                    style={{
+                                      width: "250px", // Adjust this value as per the desired size
+                                      height: "250px", // Adjust this value for height to maintain square ratio
+                                      objectFit: "cover", // Ensures the image covers the fixed size area
+                                      padding: "10px", // Padding to keep the image a bit away from the border
+                                    }}
+                                    src={`${baseUrl}${product.duong_dan_anh}`}
+                                    alt={product.ten_san_pham}
+                                  />
+                                </div>
                               </div>
                               <a
                                 className="stretched-link"
