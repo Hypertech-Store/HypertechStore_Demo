@@ -643,6 +643,12 @@ const Checkout = () => {
           })
 
           .then(() => {
+            console.log("Sending email data:", {
+              khach_hang_id: orderData.khach_hang_id,
+              order_id: orderData.ma_don_hang,
+              total: orderData.tong_tien,
+              payment_time: new Date().toISOString(),
+            });
             // Gửi email thông báo thành công
             return fetch("http://127.0.0.1:8000/api/donhang/send-mail", {
               method: "POST",
@@ -652,7 +658,7 @@ const Checkout = () => {
               },
               body: JSON.stringify({
                 khach_hang_id: orderData.khach_hang_id,
-                order_id: orderData.ma_don_hang,
+                ma_don_hang: orderData.ma_don_hang,
                 total: orderData.tong_tien,
                 payment_time: new Date().toISOString(),
               }),
