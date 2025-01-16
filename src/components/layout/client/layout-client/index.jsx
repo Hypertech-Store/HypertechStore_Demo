@@ -11,7 +11,12 @@ const LayoutClient = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Danh sách các đường dẫn không cần Header và Footer
-  const excludePaths = ["/dang-nhap", "/dang-ky", "/quen-mat-khau"];
+  const excludePaths = [
+    "/dang-nhap",
+    "/dang-ky",
+    "/quen-mat-khau",
+    "/cap-nhat-mat-khau",
+  ];
 
   // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách excludePaths
   const shouldSkipLoading = excludePaths.includes(location.pathname);

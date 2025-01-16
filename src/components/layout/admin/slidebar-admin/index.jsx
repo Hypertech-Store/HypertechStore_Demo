@@ -48,7 +48,7 @@ const SlidebarAdmin = () => {
                         </svg>
                       </span>
                       <span className="nav-link-text-wrapper">
-                        <span className="nav-link-text">Bảng điều khiển</span>
+                        <span className="nav-link-text">Thống kê</span>
                       </span>
                     </div>
                   </a>
