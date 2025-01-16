@@ -646,7 +646,7 @@ const SlidebarAdmin = () => {
                 </li>
 
                 {/* parent pages*/}
-                <div className="nav-item-wrapper">
+                {/* <div className="nav-item-wrapper">
                   <Link
                     className={`nav-link label-1 ${
                       activeItem === "chat" ? "active" : ""
@@ -679,7 +679,7 @@ const SlidebarAdmin = () => {
                       </span>
                     </div>
                   </Link>
-                </div>
+                </div> */}
 
                 <div className="nav-item-wrapper">
                   <Link

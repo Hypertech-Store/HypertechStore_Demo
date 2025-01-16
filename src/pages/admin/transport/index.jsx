@@ -61,8 +61,11 @@ const TransportMethod = () => {
         return;
       }
 
-      // Kiểm tra nếu gia_van_chuyen là một số hợp lệ
-      if (isNaN(formData.gia_van_chuyen) || formData.gia_van_chuyen >= 0) {
+      // Kiểm tra nếu gia_van_chuyen là một số hợp lệ và lớn hơn 0
+      if (
+        isNaN(formData.gia_van_chuyen) ||
+        Number(formData.gia_van_chuyen) <= 0
+      ) {
         alert("Giá vận chuyển phải là một số hợp lệ và lớn hơn 0!");
         return;
       }
