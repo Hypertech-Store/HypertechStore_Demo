@@ -143,8 +143,8 @@ const Cart = () => {
       })
         .then((response) => response.json())
         .then((data) => {
-          // Hiển thị thông báo thành công khi API trả về phản hồi thành công
           alert("Cập nhật giỏ hàng thành công");
+          window.location.reload();
           console.log("Cập nhật giỏ hàng thành công:", data);
         })
         .catch((error) => {
