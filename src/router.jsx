@@ -46,6 +46,7 @@ import Login from "./pages/client/login";
 import Register from "./pages/client/register";
 import ForPassword from "./pages/client/forgotPassword";
 import Verification from "./pages/client/2FAVerification";
+import ResetPassword from "./pages/client/resetPassword";
 // import ResetPassword from "./pages/client/ressetPassword";
 import PrivateRoute from "../src/components/layout/PrivateRoute.jsx"; // Import the PrivateRoute component
 
@@ -116,6 +117,7 @@ const Router = () => {
           <Route path="dang-ky" element={<Register />} />
           <Route path="quen-mat-khau" element={<ForPassword />} />
           <Route path="xac-minh-2-lop" element={<Verification />} />
+          <Route path="cap-nhat-mat-khau" element={<ResetPassword />} />
         </Route>
 
         {/* Admin Routes */}
