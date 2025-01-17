@@ -400,8 +400,8 @@ const HomeClient = () => {
                         <div className="position-relative text-decoration-none product-card h-100">
                           <div className="d-flex flex-column justify-content-between h-100">
                             <div>
-                              <div className="border border-1 border-translucent rounded-3 position-relative mb-3">               
-                                <img
+                              <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
+                                {/* <img
                                   className="img-fluid"
                                   style={{
                                     padding: "10px", // Tạo khoảng cách bên trong để ảnh nhỏ hơn viền
@@ -414,8 +414,8 @@ const HomeClient = () => {
                                   alt={
                                     product.san_pham?.ten_san_pham || "Sản phẩm"
                                   }
-                                />
-
+                                    
+                                /> */}
                                 <span
                                   style={{
                                     position: "absolute",
@@ -446,6 +446,37 @@ const HomeClient = () => {
                                     {parseFloat(product.sale_theo_phan_tram)}%
                                   </div>
                                 </span>
+                                <div
+                                  className="image-container"
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                  }}
+                                >
+
+                                  <img
+                                    className="img-fluid"
+                                    style={{
+                                      width: "150px", // Adjust this value as per the desired size
+                                      height: "180px", // Adjust this value for height to maintain square ratio
+                                      objectFit: "cover", // Ensures the image covers the fixed size area
+                                      padding: "10px", // Padding to keep the image a bit away from the border
+                                    }}
+                                    src={
+                                      product.san_pham?.duong_dan_anh
+                                        ? `${baseUrl}${product.san_pham.duong_dan_anh}`
+                                        : "default-image.jpg"
+                                    }
+                                    alt={
+                                      product.san_pham?.ten_san_pham || "Sản phẩm"
+                                    }
+                                  />
+
+
+                                </div>
+
+
                               </div>
                               <a
                                 className="stretched-link"
@@ -591,11 +622,28 @@ const HomeClient = () => {
                           <div className="d-flex flex-column justify-content-between h-100">
                             <div>
                               <div className="border border-1 border-translucent rounded-3 position-relative mb-3">
-                                <img
-                                  className="img-fluid"
-                                  src={`${baseUrl}${product.duong_dan_anh}`}
-                                  alt={product.ten_san_pham}
-                                />
+                                <div
+                                  className="image-container"
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <img
+                                    className="img-fluid"
+                                    style={{
+                                      width: "150px", // Adjust this value as per the desired size
+                                      height: "180px", // Adjust this value for height to maintain square ratio
+                                      objectFit: "cover", // Ensures the image covers the fixed size area
+                                      padding: "10px", // Padding to keep the image a bit away from the border
+                                    }}
+                                    src={`${baseUrl}${product.duong_dan_anh}`}
+                                    alt={product.ten_san_pham}
+                                  />
+                                </div>
+
+
                               </div>
                               <a
                                 className="stretched-link"

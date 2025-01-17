@@ -145,6 +145,7 @@ const Cart = () => {
       })
         .then((response) => response.json())
         .then((data) => {
+
           console.log("Cập nhật giỏ hàng thành công:", data);
 
           // Tính tổng tiền và tổng số lượng toàn bộ giỏ hàng

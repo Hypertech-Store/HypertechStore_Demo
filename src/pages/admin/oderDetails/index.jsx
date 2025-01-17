@@ -71,10 +71,9 @@ const OrderDetails = () => {
       3: [4, 5, 6, 7], // Hiển thị trạng thái 4, 5, 6, 7
       4: [5, 6, 7], // Hiển thị trạng thái 5, 6, 7
       5: [6, 7], // Hiển thị trạng thái 6, 7
-      6: [7], // Hiển thị trạng thái 7
-      7: [], // Không hiển thị trạng thái nào
-      8: [9], // Chỉ hiển thị trạng thái 9
-      9: [], // Không hiển thị trạng thái nào
+      6: [], 
+      8: [9], 
+      9: [], 
     };
 
     // Trả về danh sách trạng thái dựa trên statusMap hoặc tất cả trạng thái nếu không có ánh xạ
