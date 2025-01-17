@@ -35,7 +35,6 @@ const Shop = () => {
       });
   }, []);
 
-
   // eslint-disable-next-line no-unused-vars
   const [wishlistData, setWishlistData] = useState(null);
   const [error, setError] = useState(null);
@@ -236,7 +235,6 @@ const Shop = () => {
     fetchWishlist();
   }, [userId]); // Dùng [] để gọi API chỉ 1 lần khi component mount
 
-
   //các hàm xử lý lọc sản phẩm
   const [filters, setFilters] = useState({
     danh_muc_id: [],
@@ -274,7 +272,6 @@ const Shop = () => {
     });
   };
 
-
   const handleSubCategoryChange = (id) => {
     setFilters((prevFilters) => {
       const danh_muc_con_id = prevFilters.danh_muc_con_id.includes(id)
@@ -302,13 +299,16 @@ const Shop = () => {
 
   const callFilterAPI = async (filterData) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/san-pham/filter-products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(filterData),
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/san-pham/filter-products",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(filterData),
+        }
+      );
 
       const data = await response.json(); // Chuyển đổi dữ liệu nhận được thành JSON
 
@@ -335,7 +335,9 @@ const Shop = () => {
 
     // Thêm sao nửa nếu có
     if (halfStar) {
-      stars.push(<span key={filledStars} className="fa fa-star-half-alt text-warning" />);
+      stars.push(
+        <span key={filledStars} className="fa fa-star-half-alt text-warning" />
+      );
     }
 
     // Thêm sao rỗng nếu cần
@@ -452,7 +454,9 @@ const Shop = () => {
                                   id={`subCategory_${subCategory.id}`}
                                   type="checkbox"
                                   name="brands"
-                                  onChange={() => handleSubCategoryChange(subCategory.id)}
+                                  onChange={() =>
+                                    handleSubCategoryChange(subCategory.id)
+                                  }
                                 />
                                 <label
                                   className="form-check-label d-block lh-sm fs-8 text-body fw-normal mb-0"
@@ -490,22 +494,28 @@ const Shop = () => {
                         type="text"
                         aria-label="First name"
                         placeholder="Min"
-                        value={filters.min_price || ''}
-                        onChange={(e) => setFilters({ ...filters, min_price: e.target.value })}
+                        value={filters.min_price || ""}
+                        onChange={(e) =>
+                          setFilters({ ...filters, min_price: e.target.value })
+                        }
                       />
                       <input
                         className="form-control"
                         type="text"
                         aria-label="Last name"
                         placeholder="Max"
-                        value={filters.max_price || ''}
-                        onChange={(e) => setFilters({ ...filters, max_price: e.target.value })}
+                        value={filters.max_price || ""}
+                        onChange={(e) =>
+                          setFilters({ ...filters, max_price: e.target.value })
+                        }
                       />
                     </div>
                     <button
                       className="btn btn-phoenix-primary px-3"
                       type="button"
-                      onClick={() => handlePriceChange(filters.min_price, filters.max_price)}
+                      onClick={() =>
+                        handlePriceChange(filters.min_price, filters.max_price)
+                      }
                     >
                       Go
                     </button>
@@ -627,7 +637,6 @@ const Shop = () => {
                     />
                   </div>
                 </div>
-
               </div>
               <div
                 className="phoenix-offcanvas-backdrop d-lg-none"
@@ -735,8 +744,9 @@ const Shop = () => {
                                 )}
 
                                 <button
-                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${wishlistStatus[product.id] ? "active" : ""
-                                    }`}
+                                  className={`btn btn-wish btn-wish-primary z-2 d-toggle-container ${
+                                    wishlistStatus[product.id] ? "active" : ""
+                                  }`}
                                   data-bs-toggle="tooltip"
                                   data-bs-placement="top"
                                   title={
@@ -750,15 +760,17 @@ const Shop = () => {
                                   disabled={loading}
                                 >
                                   <span
-                                    className={`fas fa-heart d-block-hover ${wishlistStatus[product.id] ? "d-none" : ""
-                                      }`}
+                                    className={`fas fa-heart d-block-hover ${
+                                      wishlistStatus[product.id] ? "d-none" : ""
+                                    }`}
                                     data-fa-transform="down-1"
                                   />
                                   <span
-                                    className={`far fa-heart d-none-hover ${!wishlistStatus[product.id]
-                                      ? "d-block"
-                                      : ""
-                                      }`}
+                                    className={`far fa-heart d-none-hover ${
+                                      !wishlistStatus[product.id]
+                                        ? "d-block"
+                                        : ""
+                                    }`}
                                     data-fa-transform="down-1"
                                   />
                                 </button>
@@ -854,8 +866,9 @@ const Shop = () => {
                   <ul className="pagination mb-0">
                     {/* Previous Button */}
                     <li
-                      className={`page-item ${currentPage === 1 ? "disabled" : ""
-                        }`}
+                      className={`page-item ${
+                        currentPage === 1 ? "disabled" : ""
+                      }`}
                     >
                       <a
                         className="page-link"
@@ -873,8 +886,9 @@ const Shop = () => {
                     {/* Page Numbers */}
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
-                        className={`page-item ${currentPage === index + 1 ? "active" : ""
-                          }`}
+                        className={`page-item ${
+                          currentPage === index + 1 ? "active" : ""
+                        }`}
                         key={index}
                       >
                         <a
@@ -892,8 +906,9 @@ const Shop = () => {
 
                     {/* Next Button */}
                     <li
-                      className={`page-item ${currentPage === totalPages ? "disabled" : ""
-                        }`}
+                      className={`page-item ${
+                        currentPage === totalPages ? "disabled" : ""
+                      }`}
                     >
                       <a
                         className="page-link"

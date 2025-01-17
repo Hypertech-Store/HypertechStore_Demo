@@ -111,46 +111,72 @@ const Cart = () => {
     );
 
     if (itemIndex !== -1) {
+      // Cập nhật số lượng (không cho phép giá trị <= 0)
       updatedCartItems[itemIndex].so_luong = Math.max(quantity, 1);
 
-      // Tính productTotal
+      // Tính lại tổng tiền cho sản phẩm này và cập nhật vào danh sách giỏ hàng
       const selectedItem = updatedCartItems[itemIndex];
       const productTotal =
         selectedItem.gia_sau_sale_them_gia_bien_the * selectedItem.so_luong;
 
-      // Log dữ liệu sản phẩm sau khi cập nhật
+      // Gán giá trị tổng tiền tính được vào thuộc tính `tong_tien` của sản phẩm
+      updatedCartItems[itemIndex].tong_tien = productTotal;
+
+      // Log để kiểm tra dữ liệu sản phẩm
       console.log("Updated item:", updatedCartItems[itemIndex]);
 
-      // Cập nhật lại state giỏ hàng với số lượng mới
+      // Cập nhật lại state giỏ hàng
       setCart({
         ...cart,
         san_pham: updatedCartItems,
       });
 
-      // Gửi yêu cầu PUT API để cập nhật giỏ hàng
+      // Gửi yêu cầu PUT API để lưu thay đổi vào cơ sở dữ liệu
       fetch("http://127.0.0.1:8000/api/gio-hang/cap-nhat-gio-hang", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          // Thêm Authorization nếu cần
-          // 'Authorization': 'Bearer <your-token>',
         },
         body: JSON.stringify({
-          chi_tiet_gio_hang_id: selectedItem.chi_tiet_id, // ID chi tiết sản phẩm
-          so_luong: selectedItem.so_luong, // Số lượng sản phẩm
-          gia: productTotal, // Tính total từ gia_sau_sale_them_gia_bien_the
+          chi_tiet_gio_hang_id: selectedItem.chi_tiet_id, // ID sản phẩm
+          so_luong: selectedItem.so_luong, // Số lượng
+          gia: selectedItem.tong_tien, // Tổng tiền đã tính
         }),
       })
         .then((response) => response.json())
         .then((data) => {
-          alert("Cập nhật giỏ hàng thành công");
-          window.location.reload();
+
           console.log("Cập nhật giỏ hàng thành công:", data);
+
+          // Tính tổng tiền và tổng số lượng toàn bộ giỏ hàng
+          const totalQuantity = updatedCartItems.reduce(
+            (acc, item) => acc + item.so_luong,
+            0
+          );
+          const totalAmount = updatedCartItems.reduce(
+            (acc, item) => acc + item.tong_tien,
+            0
+          );
+
+          // Lưu tổng tiền và tổng số lượng vào localStorage
+          localStorage.setItem("totalQuantity", totalQuantity);
+          localStorage.setItem("totalAmount", totalAmount);
+
+          // Log tổng tiền và tổng số lượng
+          console.log("Tổng số lượng sản phẩm:", totalQuantity);
+          console.log(
+            "Tổng tiền:",
+            totalAmount.toLocaleString("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            })
+          );
         })
         .catch((error) => {
-          // Xử lý lỗi nếu có
-          console.error("Có lỗi khi cập nhật giỏ hàng:", error);
+          console.error("Lỗi khi cập nhật giỏ hàng:", error);
         });
+    } else {
+      console.error("Không tìm thấy sản phẩm với ID:", id);
     }
   };
 
